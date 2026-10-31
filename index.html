@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#142b3a"><meta name="description" content="Quản lý chi tiêu và quỹ chung cho chuyến đi">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg">
+<title>TripTogether</title><link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="pageLoader" class="page-loader" role="status" aria-live="polite"><span class="loading-spinner" aria-hidden="true"></span><span id="pageLoaderText">Loading TripTogether…</span></div>
+<header class="topbar"><a class="brand" href="./"><span class="brandmark">✳</span> TripTogether</a><button id="shareBtn" class="ghost hidden">↗ Chia sẻ link xem</button></header>
+<main>
+<section id="welcome" class="panel welcome">
+  <div class="eyebrow">ĐI CÙNG NHAU, CHI TIÊU RÕ RÀNG</div><h1>Mỗi chuyến đi.<br><em>Một quỹ chung.</em></h1>
+  <p class="muted">Ghi chi tiêu, đóng quỹ và đối soát phần mỗi người theo thời gian thực.</p>
+  <div class="actions"><button id="createBtn" class="primary">＋ Tạo chuyến đi</button></div>
+  <section id="savedTripsSection" class="saved-trips"><div class="sectionhead"><h2>Chuyến đi của bạn</h2></div><div id="savedTripList" class="list"></div><p id="noSavedTrips" class="muted small">Chưa có chuyến đi được lưu trên trình duyệt này. Dán link mời hoặc mã chuyến bên dưới để mở.</p></section>
+  <div class="joinrow"><input id="joinCode" placeholder="Dán link mời hoặc mã chuyến"><button id="joinBtn" class="secondary">Mở chuyến</button></div>
+  <p id="setupNotice" class="notice">Cloud sync needs a Supabase project. Follow SETUP.md to connect it.</p>
+</section>
+<section id="app" class="hidden">
+  <div class="triphead"><div><div class="eyebrow" id="tripMeta">CHUYẾN ĐI CHUNG</div><h1 id="tripName">Chuyến đi</h1><div class="muted small" id="memberCount"></div></div><button id="inviteBtn" class="secondary">Chia sẻ link xem ↗</button></div>
+  <div class="hero">
+    <div class="hero-label">TỔNG CHI ĐÃ GHI</div><div class="hero-total" id="totalSpent">₫0</div>
+    <div class="hero-foot"><span>Chi phí được chia đều theo thành viên hiện có</span><span id="memberCountHero"></span></div>
+  </div>
+  <div class="stats summary-stats">
+    <div class="stat"><span>Quỹ ban đầu</span><b id="initialFund">₫0</b></div>
+    <div class="stat"><span>Đóng quỹ thêm</span><b id="additionalFund">₫0</b></div>
+    <div class="stat"><span>Tổng quỹ</span><b id="fundTotal">₫0</b></div>
+    <div class="stat"><span>Quỹ còn sau chi</span><b id="fundBalance">₫0</b></div>
+  </div>
+  <nav class="tabs"><button class="tab active" data-tab="expenses">Chi tiêu</button><button class="tab" data-tab="fund">Đóng quỹ</button><button class="tab" data-tab="people">Thành viên</button></nav>
+  <section id="expensesTab" class="tabbody">
+    <div class="sectionhead"><div><h2>Danh sách chi tiêu</h2><p class="muted small">Chạm Sửa để cập nhật ngày, hạng mục, người trả, số tiền hoặc ghi chú.</p></div><button class="primary compact" id="addExpense">＋ Thêm khoản chi</button></div><div id="expenseList" class="list ledger-list"></div>
+  </section>
+  <section id="fundTab" class="tabbody hidden">
+    <div class="sectionhead"><div><h2>Theo dõi quỹ</h2><p class="muted small">Quỹ ban đầu được tính riêng. Các lần đóng thêm nằm trong danh sách dưới đây.</p></div><div class="section-actions"><button id="editInitialFundBtn" class="secondary compact">Sửa quỹ ban đầu</button><button class="primary compact" id="addContribution">＋ Đóng quỹ thêm</button></div></div><div id="contributionList" class="list ledger-list"></div>
+  </section>
+  <section id="peopleTab" class="tabbody hidden">
+    <div class="sectionhead"><div><h2>Thành viên & đối soát</h2><p class="muted small">Chênh lệch = đã tự thanh toán − phần chi bình quân. Dương là trả dư, âm là cần góp thêm.</p></div><button class="primary compact" id="addMember">＋ Thêm thành viên</button></div>
+    <div class="member-table-head"><span>Thành viên</span><span>Đã trả</span><span>Phần bình quân</span><span>Chênh lệch</span></div><div id="memberList" class="list member-list"></div>
+    <div class="settlement"><h3>Gợi ý đối soát</h3><p class="muted small">Các khoản chuyển đề xuất để cân bằng chi phí giữa các thành viên.</p><div id="settlements"></div></div>
+  </section>
+  <footer><span id="syncStatus">● Đang kết nối…</span><div class="footer-actions"><button id="deleteTripBtn" class="danger hidden">Xóa chuyến đi</button><button id="leaveBtn" class="ghost">Rời chuyến</button></div></footer>
+</section>
+</main>
+<dialog id="tripTitleDialog"><form method="dialog" id="tripTitleForm"><h2>Tạo chuyến đi</h2><label>Tên chuyến đi<input id="tripTitle" required maxlength="100" placeholder="Ví dụ: Cao Bằng"></label><label>Quỹ ban đầu (VNĐ)<input id="tripInitialFund" type="number" min="0" step="1" value="0" placeholder="16000000"></label><menu><button class="secondary" value="cancel">Hủy</button><button class="primary" id="tripTitleSave" value="default">Tạo chuyến</button></menu></form></dialog>
+<dialog id="profileDialog"><form method="dialog" id="profileForm"><h2>Tên hiển thị của bạn</h2><p class="muted">Tên này sẽ xuất hiện trong chuyến đi chung.</p><input id="displayName" maxlength="40" required placeholder="Tên của bạn"><menu><button class="secondary" value="cancel">Hủy</button><button class="primary" id="profileSave" value="default">Tiếp tục</button></menu></form></dialog>
+<dialog id="expenseDialog"><form method="dialog" id="expenseForm"><input id="expenseId" type="hidden"><h2 id="expenseDialogTitle">Thêm khoản chi</h2><label>Hạng mục / nội dung<input id="expenseTitle" required maxlength="100" placeholder="Ví dụ: Vé máy bay"></label><div class="formgrid"><label>Số tiền (VNĐ)<input id="expenseAmount" required type="number" min="1" step="1" placeholder="250000"></label><label>Người thanh toán (không bắt buộc)<select id="expensePayer"><option value="">Lấy từ quỹ chung</option></select><span class="field-hint">Chọn thành viên nếu người đó tự trả khoản này.</span></label></div><div class="formgrid"><label>Ngày<input id="expenseDate" type="date" required></label><label>Phân loại<select id="expenseCategory"><option value="Food">Ăn uống</option><option value="Transport">Di chuyển</option><option value="Accommodation">Lưu trú</option><option value="Tickets">Vé tham quan</option><option value="Shopping">Mua sắm</option><option value="Other">Khác</option></select></label></div><label>Ghi chú<input id="expenseNote" maxlength="200" placeholder="Thông tin thêm nếu có"></label><menu><button class="secondary" id="expenseCancel" type="button">Hủy</button><button class="primary" id="expenseSave" value="default">Lưu khoản chi</button></menu></form></dialog>
+<dialog id="fundDialog"><form method="dialog" id="fundForm"><input id="fundId" type="hidden"><h2 id="fundDialogTitle">Đóng quỹ thêm</h2><div class="formgrid"><label>Số tiền (VNĐ)<input id="fundAmount" required type="number" min="1" step="1"></label><label>Người đóng<select id="fundPayer"></select></label></div><label>Ghi chú<input id="fundNote" maxlength="100" placeholder="Ví dụ: Đóng quỹ lần 1"></label><label>Ngày đóng<input id="fundDate" type="date" required></label><menu><button class="secondary" id="fundCancel" type="button">Hủy</button><button class="primary" id="fundSave" value="default">Lưu khoản đóng</button></menu></form></dialog>
+<dialog id="initialFundDialog"><form method="dialog" id="initialFundForm"><h2>Sửa quỹ ban đầu</h2><p class="muted">Nhập số tiền trong quỹ trước các lần đóng thêm.</p><label>Quỹ ban đầu (VNĐ)<input id="initialFundInput" required type="number" min="0" step="1"></label><menu><button class="secondary" id="initialFundCancel" type="button">Hủy</button><button class="primary" id="initialFundSave" value="default">Lưu quỹ ban đầu</button></menu></form></dialog>
+<dialog id="memberDialog"><form method="dialog" id="memberForm"><h2>Thêm thành viên</h2><p class="muted">Thêm người chưa dùng link mời. Người này sẽ được tính vào phần chia đều.</p><label>Tên thành viên<input id="memberName" required maxlength="40" placeholder="Ví dụ: Minh"></label><menu><button class="secondary" id="memberCancel" type="button">Hủy</button><button class="primary" id="memberSave" value="default">Thêm thành viên</button></menu></form></dialog>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="app.js"></script>
+</body></html>
