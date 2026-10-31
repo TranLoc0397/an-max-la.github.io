@@ -20,7 +20,7 @@ Upload the entire folder to a static HTTPS host such as Netlify, Cloudflare Page
 - Android: open the HTTPS site in Chrome → Install app / Add to Home screen.
 
 ## 5) Invite people
-Create a trip and tap “Chia sẻ link xem”. Anyone with that link can open a read-only view without entering a name or being added to the member list. To join as a member and make changes, paste the link into the home screen and enter a name. Treat the link like a password; anyone holding it can view trip details. If Supabase was configured before read-only sharing was added, run `share_view.sql` once in SQL Editor.
+Create a trip and tap “Chia sẻ link xem”. Anyone with that link can open a read-only view without entering a name or being added to the member list. To join as a member and make changes, paste the link into the home screen and enter a name. Treat the link like a password; anyone holding it can view trip details. The trip creator must set a passcode (at least 8 characters) before sharing. Viewers enter it to open the read-only link; send the passcode separately. For an existing database, run `trip_passcode.sql` once in Supabase SQL Editor.
 
 ## Add a member manually
 To include someone who will not open an invitation link, first run `add_member.sql` in Supabase SQL Editor. Then open the trip → Members & settle → Add member and enter their name. Manually added members appear in equal expense splits and can be selected as the payer, but they do not get access to the app or the shared trip. Invite them if they need to use the app themselves.
