@@ -39,9 +39,13 @@
     <div class="sectionhead"><div><h2>Theo dõi quỹ</h2><p class="muted small">Quỹ ban đầu được tính riêng. Các lần đóng thêm nằm trong danh sách dưới đây.</p></div><div class="section-actions"><button class="primary compact" id="addContribution">＋ Đóng quỹ thêm</button></div></div><div id="contributionList" class="list ledger-list"></div>
   </section>
   <section id="peopleTab" class="tabbody hidden">
-    <div class="sectionhead"><div><h2>Thành viên & khoản nợ</h2><p class="muted small">Ghi khoản một thành viên đang nợ thành viên khác. Chi cá nhân ứng hộ được theo dõi riêng ở khoản chi.</p></div><div class="section-actions"><button class="secondary compact" id="addDebt">＋ Ghi khoản nợ</button><button class="primary compact" id="addMember">＋ Thêm thành viên</button></div></div>
+    <div class="sectionhead"><div><h2>Chi tiêu từng thành viên</h2><p class="muted small">So sánh số tiền mỗi người đã trả với phần chi bình quân. Khoản ứng cá nhân chưa hoàn vẫn được theo dõi riêng ở mục quỹ còn nợ.</p></div><div class="section-actions"><button class="secondary compact" id="addDebt">＋ Ghi khoản nợ</button><button class="primary compact" id="addMember">＋ Thêm thành viên</button></div></div>
+    <div class="member-table-head"><span>Thành viên</span><span>Đã chi</span><span>Phần bình quân</span><span>Chênh lệch</span></div>
+    <div id="memberList" class="list ledger-list"></div>
+    <div class="settlement"><h3>Đối soát chi tiêu</h3><p class="muted small">Gợi ý ai chuyển cho ai để cân bằng khoản chi đã ghi, chia đều theo số thành viên.</p><div id="expenseSettlements"></div></div>
+    <div class="sectionhead debt-heading"><div><h2>Khoản nợ riêng giữa thành viên</h2><p class="muted small">Ghi các khoản nợ cá nhân ngoài phần chia chi tiêu chung.</p></div></div>
     <div id="debtList" class="list ledger-list"></div>
-    <div class="settlement"><h3>Gợi ý thanh toán</h3><p class="muted small">Các khoản chuyển tối giản để thanh toán nợ chưa tất toán giữa thành viên.</p><div id="settlements"></div></div>
+    <div class="settlement"><h3>Gợi ý trả nợ riêng</h3><p class="muted small">Các khoản chuyển tối giản theo nợ riêng chưa thanh toán.</p><div id="debtSettlements"></div></div>
   </section>
   <footer><span id="syncStatus">● Đang kết nối…</span><div class="footer-actions"><button id="deleteTripBtn" class="danger hidden">Xóa chuyến đi</button><button id="leaveBtn" class="ghost">Rời chuyến</button></div></footer>
 </section>
