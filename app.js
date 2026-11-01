@@ -8,6 +8,10 @@ let pendingAction=null;
 let pendingTripTitleAction=null;
 let pendingPasscodeResolve=null;
 let actionInFlight=false;
+const authCallbackParams=new URLSearchParams(location.hash.replace(/^#/,''));
+const authSearchParams=new URLSearchParams(location.search);
+const authCallback=authSearchParams.has('code')||authCallbackParams.has('access_token')||authCallbackParams.has('error_code');
+const authCallbackError=authCallbackParams.get('error_description')||'';
 function ready(){return SUPABASE_URL.startsWith('https://') && !SUPABASE_ANON_KEY.startsWith('PASTE_') && window.supabase}
 function status(s){const el=$('syncStatus');el.textContent='● '+s;el.classList.toggle('sync-loading',s==='Loading…'||s==='Connecting…')}
 function pageLoading(show,message='Loading…'){$('pageLoaderText').textContent=message;$('pageLoader').classList.toggle('hidden',!show)}
@@ -24,6 +28,8 @@ async function init(){
   await loadMyTrips();
   const code=new URLSearchParams(location.search).get('trip');
   if(code)await openSharedTrip(code)
+  if(localStorage.getItem('tt_account_pending')==='true'||(authCallback&&user?.email&&!user.is_anonymous))openAccount();
+  if(authCallbackError){history.replaceState({},'',location.pathname+location.search);alert(authCallbackError.toLowerCase().includes('expired')?'Link xác minh đã hết hạn. Hãy nhập lại email trong mục Liên kết thiết bị để nhận link mới.':'Không thể xác minh email. Hãy gửi lại email xác minh trong mục Liên kết thiết bị.')}
  }catch(error){console.error(error);alert('Could not load TripTogether: '+error.message)}
  finally{pageLoading(false)}
 }
@@ -41,12 +47,12 @@ function openAccount(){
    <form id="accountLinkForm"><label>Email để liên kết<input id="accountLinkEmail" type="email" required autocomplete="email" placeholder="ban@example.com"></label><button class="primary" id="accountLinkSave">Gửi email xác minh</button></form>
    <hr><p class="muted">Đã liên kết tài khoản trên thiết bị khác? Đăng nhập tại đây để mở chuyến của bạn trên thiết bị này.</p>
    <form id="accountLoginForm"><label>Email<input id="accountLoginEmail" type="email" required autocomplete="email"></label><label>Mật khẩu<input id="accountLoginPassword" type="password" required autocomplete="current-password"></label><button class="secondary" id="accountLoginSave">Đăng nhập</button></form>`;
-  $('accountLinkForm').onsubmit=async ev=>{ev.preventDefault();const button=$('accountLinkSave');await withButtonLoading(button,'Đang gửi…',async()=>{try{const email=$('accountLinkEmail').value.trim();const {error}=await db.auth.updateUser({email},{emailRedirectTo:location.origin+location.pathname+location.search});if(error)throw error;alert('Đã gửi email xác minh. Mở thư trên thiết bị này, bấm xác minh rồi quay lại TripTogether để đặt mật khẩu.');$('accountDialog').close()}catch(error){alert('Không thể liên kết email: '+error.message)}})};
+  $('accountLinkForm').onsubmit=async ev=>{ev.preventDefault();const button=$('accountLinkSave');await withButtonLoading(button,'Đang gửi…',async()=>{try{const email=$('accountLinkEmail').value.trim();const {error}=await db.auth.updateUser({email},{emailRedirectTo:location.origin+location.pathname+location.search});if(error)throw error;localStorage.setItem('tt_account_pending','true');alert('Đã gửi email xác minh. Mở email mới nhất, bấm xác minh rồi quay lại TripTogether để đặt mật khẩu.');$('accountDialog').close()}catch(error){alert('Không thể liên kết email: '+error.message)}})};
   $('accountLoginForm').onsubmit=async ev=>{ev.preventDefault();const button=$('accountLoginSave');await withButtonLoading(button,'Đang đăng nhập…',async()=>{try{const {error}=await db.auth.signInWithPassword({email:$('accountLoginEmail').value.trim(),password:$('accountLoginPassword').value});if(error)throw error;location.reload()}catch(error){alert('Không thể đăng nhập: '+error.message)}})};
  }else{
   const verified=!!user.email_confirmed_at;
-  content.innerHTML=verified?`<p class="muted">Email <strong>${esc(user.email)}</strong> đã liên kết. Hãy đặt hoặc cập nhật mật khẩu để đăng nhập trên điện thoại và máy tính.</p><form id="accountPasswordForm"><label>Mật khẩu mới<input id="accountNewPassword" type="password" required minlength="8" autocomplete="new-password" placeholder="Ít nhất 8 ký tự"></label><button class="primary" id="accountPasswordSave">Lưu mật khẩu</button></form>`:`<p class="muted">Email <strong>${esc(user.email||'')}</strong> đang chờ xác minh. Hãy mở email xác minh trên thiết bị này; sau đó quay lại đây để đặt mật khẩu.</p><button class="secondary" id="accountResend">Gửi lại email xác minh</button>`;
-  if(verified)$('accountPasswordForm').onsubmit=async ev=>{ev.preventDefault();const button=$('accountPasswordSave');await withButtonLoading(button,'Đang lưu…',async()=>{try{const {error}=await db.auth.updateUser({password:$('accountNewPassword').value});if(error)throw error;alert('Đã lưu mật khẩu. Trên điện thoại, mở TripTogether → Tài khoản → đăng nhập bằng email và mật khẩu này.');$('accountDialog').close()}catch(error){alert('Không thể lưu mật khẩu: '+error.message)}})};
+  content.innerHTML=verified?`<p class="muted">Email <strong>${esc(user.email)}</strong> đã được xác minh. Đặt mật khẩu để đăng nhập trên điện thoại và máy tính.</p><form id="accountPasswordForm"><label>Mật khẩu mới<input id="accountNewPassword" type="password" required minlength="8" autocomplete="new-password" placeholder="Ít nhất 8 ký tự"></label><button class="primary" id="accountPasswordSave">Lưu mật khẩu</button></form>`:`<p class="muted">Email <strong>${esc(user.email||'')}</strong> đang chờ xác minh. Hãy mở email xác minh mới nhất. Sau khi xác minh, app sẽ tự mở bước đặt mật khẩu.</p><button class="secondary" id="accountResend">Gửi lại email xác minh</button>`;
+  if(verified)$('accountPasswordForm').onsubmit=async ev=>{ev.preventDefault();const button=$('accountPasswordSave');await withButtonLoading(button,'Đang lưu…',async()=>{try{const {error}=await db.auth.updateUser({password:$('accountNewPassword').value});if(error)throw error;localStorage.removeItem('tt_account_pending');alert('Đã lưu mật khẩu. Trên điện thoại, mở TripTogether → Liên kết thiết bị → đăng nhập bằng email và mật khẩu này.');$('accountDialog').close()}catch(error){alert('Không thể lưu mật khẩu: '+error.message)}})};
   else $('accountResend').onclick=async()=>{try{const {error}=await db.auth.updateUser({email:user.email},{emailRedirectTo:location.origin+location.pathname+location.search});if(error)throw error;alert('Đã gửi lại email xác minh.')}catch(error){alert('Không thể gửi email: '+error.message)}};
  }
  $('accountDialog').showModal();
