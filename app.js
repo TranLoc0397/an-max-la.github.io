@@ -22,6 +22,8 @@ async function withButtonLoading(button,message,action){if(!button||actionInFlig
 async function init(){
  pageLoading(true,'Connecting to your trip…');
  try{
+  const sdkLoaded=await window.__supabaseSdkReady;
+  if(sdkLoaded===false){$('setupNotice').classList.remove('hidden');$('setupNotice').textContent='Không tải được thư viện kết nối Supabase từ CDN. Kiểm tra Internet hoặc content blocker rồi tải lại trang.';return}
   if(!ready()){$('setupNotice').classList.remove('hidden');$('setupNotice').textContent='Chưa kết nối cloud. Mở SETUP.md để cấu hình Supabase trước khi dùng chung.';return}
   $('setupNotice').classList.add('hidden');db=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
   const {data,error}=await db.auth.getSession();if(error)console.error(error);
