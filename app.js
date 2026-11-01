@@ -20,12 +20,39 @@ async function init(){
   const {data,error}=await db.auth.getSession();if(error)console.error(error);
   if(!data.session){const x=await db.auth.signInAnonymously();if(x.error){alert('Không thể kết nối: '+x.error.message);return}}
   user=(await db.auth.getUser()).data.user;
+  updateAccountButton();
   await loadMyTrips();
   const code=new URLSearchParams(location.search).get('trip');
   if(code)await openSharedTrip(code)
  }catch(error){console.error(error);alert('Could not load TripTogether: '+error.message)}
  finally{pageLoading(false)}
 }
+function updateAccountButton(){
+ const button=$('accountBtn');
+ if(!button||!user)return;
+ button.textContent=user.is_anonymous||!user.email?'Liên kết thiết bị':user.email;
+}
+function openAccount(){
+ if(!db||!user)return;
+ const content=$('accountContent');
+ const anonymous=!!user.is_anonymous||!user.email;
+ if(anonymous){
+  content.innerHTML=`<p class="muted">Đầu tiên, liên kết email trên thiết bị đang giữ chuyến đi. Việc này giữ nguyên quyền chủ chuyến. Sau khi xác minh email và đặt mật khẩu, đăng nhập cùng tài khoản trên điện thoại.</p>
+   <form id="accountLinkForm"><label>Email để liên kết<input id="accountLinkEmail" type="email" required autocomplete="email" placeholder="ban@example.com"></label><button class="primary" id="accountLinkSave">Gửi email xác minh</button></form>
+   <hr><p class="muted">Đã liên kết tài khoản trên thiết bị khác? Đăng nhập tại đây để mở chuyến của bạn trên thiết bị này.</p>
+   <form id="accountLoginForm"><label>Email<input id="accountLoginEmail" type="email" required autocomplete="email"></label><label>Mật khẩu<input id="accountLoginPassword" type="password" required autocomplete="current-password"></label><button class="secondary" id="accountLoginSave">Đăng nhập</button></form>`;
+  $('accountLinkForm').onsubmit=async ev=>{ev.preventDefault();const button=$('accountLinkSave');await withButtonLoading(button,'Đang gửi…',async()=>{try{const email=$('accountLinkEmail').value.trim();const {error}=await db.auth.updateUser({email},{emailRedirectTo:location.origin+location.pathname+location.search});if(error)throw error;alert('Đã gửi email xác minh. Mở thư trên thiết bị này, bấm xác minh rồi quay lại TripTogether để đặt mật khẩu.');$('accountDialog').close()}catch(error){alert('Không thể liên kết email: '+error.message)}})};
+  $('accountLoginForm').onsubmit=async ev=>{ev.preventDefault();const button=$('accountLoginSave');await withButtonLoading(button,'Đang đăng nhập…',async()=>{try{const {error}=await db.auth.signInWithPassword({email:$('accountLoginEmail').value.trim(),password:$('accountLoginPassword').value});if(error)throw error;location.reload()}catch(error){alert('Không thể đăng nhập: '+error.message)}})};
+ }else{
+  const verified=!!user.email_confirmed_at;
+  content.innerHTML=verified?`<p class="muted">Email <strong>${esc(user.email)}</strong> đã liên kết. Hãy đặt hoặc cập nhật mật khẩu để đăng nhập trên điện thoại và máy tính.</p><form id="accountPasswordForm"><label>Mật khẩu mới<input id="accountNewPassword" type="password" required minlength="8" autocomplete="new-password" placeholder="Ít nhất 8 ký tự"></label><button class="primary" id="accountPasswordSave">Lưu mật khẩu</button></form>`:`<p class="muted">Email <strong>${esc(user.email||'')}</strong> đang chờ xác minh. Hãy mở email xác minh trên thiết bị này; sau đó quay lại đây để đặt mật khẩu.</p><button class="secondary" id="accountResend">Gửi lại email xác minh</button>`;
+  if(verified)$('accountPasswordForm').onsubmit=async ev=>{ev.preventDefault();const button=$('accountPasswordSave');await withButtonLoading(button,'Đang lưu…',async()=>{try{const {error}=await db.auth.updateUser({password:$('accountNewPassword').value});if(error)throw error;alert('Đã lưu mật khẩu. Trên điện thoại, mở TripTogether → Tài khoản → đăng nhập bằng email và mật khẩu này.');$('accountDialog').close()}catch(error){alert('Không thể lưu mật khẩu: '+error.message)}})};
+  else $('accountResend').onclick=async()=>{try{const {error}=await db.auth.updateUser({email:user.email},{emailRedirectTo:location.origin+location.pathname+location.search});if(error)throw error;alert('Đã gửi lại email xác minh.')}catch(error){alert('Không thể gửi email: '+error.message)}};
+ }
+ $('accountDialog').showModal();
+}
+$('accountBtn').onclick=openAccount;
+$('accountClose').onclick=()=>$('accountDialog').close();
 async function loadMyTrips(){
  if(!db||!user)return;
  try{

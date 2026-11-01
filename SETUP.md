@@ -6,7 +6,8 @@ TripTogether is a mobile-first Progressive Web App (PWA). It runs on iPhone, And
 1. Create a project at https://supabase.com/
 2. In Project Settings → API, copy the Project URL and `anon` / publishable key.
 3. Open SQL Editor → New query. Paste all of `supabase.sql` and run it.
-4. In Authentication → Providers, enable **Anonymous Sign-Ins**.
+4. In Authentication → Providers, enable **Anonymous Sign-Ins** and Email/password sign-in.
+5. In Authentication settings, enable **Manual Linking**. The app uses this to attach an email to the existing anonymous identity without changing its user ID or losing trip ownership.
 
 ## 2) Connect the app
 Open `app.js` and replace `PASTE_YOUR_SUPABASE_PROJECT_URL` and `PASTE_YOUR_SUPABASE_ANON_KEY`.
@@ -21,6 +22,9 @@ Upload the entire folder to a static HTTPS host such as Netlify, Cloudflare Page
 
 ## 5) Invite people
 Create a trip and tap “Chia sẻ link xem”. Anyone with that link can open a read-only view without entering a name or being added to the member list. To join as a member and make changes, paste the link into the home screen and enter a name. Treat the link like a password; anyone holding it can view trip details. The trip creator must set a passcode (at least 8 characters) before sharing. Viewers enter it to open the read-only link; send the passcode separately. For an existing database, run `trip_passcode.sql` once in Supabase SQL Editor.
+
+## Use the same account on desktop and phone
+On the device/browser that currently owns your trips, tap **Tài khoản → Gửi email xác minh** and verify the email from that same device. Return to the app, open **Tài khoản**, and save a password. On the second device, open the app, tap **Tài khoản**, and sign in with that email and password. Your original user ID is preserved, so your creator privileges and membership follow you; do not join the trip again as a new member. Email confirmation must be enabled/configured for your Supabase project.
 
 ## Add a member manually
 To include someone who will not open an invitation link, first run `add_member.sql` in Supabase SQL Editor. Then open the trip → Members & settle → Add member and enter their name. Manually added members appear in equal expense splits and can be selected as the payer, but they do not get access to the app or the shared trip. Invite them if they need to use the app themselves.
