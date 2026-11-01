@@ -8,6 +8,7 @@ TripTogether is a mobile-first Progressive Web App (PWA). It runs on iPhone, And
 3. Open SQL Editor → New query. Paste all of `supabase.sql` and run it.
 4. In Authentication → Providers, enable **Anonymous Sign-Ins** and Email/password sign-in.
 5. In Authentication settings, enable **Manual Linking**. The app uses this to attach an email to the existing anonymous identity without changing its user ID or losing trip ownership.
+6. To email-verify addresses outside your Supabase organization, configure a custom mail provider under **Authentication → SMTP Settings**. Supabase's built-in sender is for project-team testing and is tightly rate-limited; production use needs your own SMTP credentials and a verified sender domain. See [Supabase SMTP setup](https://supabase.com/docs/guides/auth/auth-smtp).
 
 ## 2) Connect the app
 Open `app.js` and replace `PASTE_YOUR_SUPABASE_PROJECT_URL` and `PASTE_YOUR_SUPABASE_ANON_KEY`.
@@ -21,7 +22,10 @@ Upload the entire folder to a static HTTPS host such as Netlify, Cloudflare Page
 - Android: open the HTTPS site in Chrome → Install app / Add to Home screen.
 
 ## 5) Invite people
-Create a trip and tap “Chia sẻ link xem”. Anyone with that link can open a read-only view without entering a name or being added to the member list. To join as a member and make changes, paste the link into the home screen and enter a name. Treat the link like a password; anyone holding it can view trip details. The trip creator must set a passcode (at least 8 characters) before sharing. Viewers enter it to open the read-only link; send the passcode separately. For an existing database, run `trip_passcode.sql` once in Supabase SQL Editor.
+Create a trip and tap “Chia sẻ link xem”. Anyone with that link can open a read-only view without entering a name or being added to the member list. To join as a member, paste the link into the home screen and enter a name. New members are view-only until the trip creator grants edit permission in the Members tab. Treat the link like a password; anyone holding it can view trip details. The trip creator must set a passcode (at least 8 characters) before sharing. Viewers enter it to open the read-only link; send the passcode separately. For an existing database, run `trip_passcode.sql` once in Supabase SQL Editor.
+
+## Grant edit access to members
+For a database set up before this feature, run `member_edit_permissions.sql` once in Supabase SQL Editor. Existing joined members keep their current access; new members start as view-only. In a trip you created, open **Thành viên** and use **Cấp quyền sửa** or **Thu hồi quyền** for each joined account. Manually added guest names do not have an app login and cannot sign in.
 
 ## Use the same account on desktop and phone
 On the device/browser that currently owns your trips, tap **Tài khoản → Gửi email xác minh** and verify the email from that same device. Return to the app, open **Tài khoản**, and save a password. On the second device, open the app, tap **Tài khoản**, and sign in with that email and password. Your original user ID is preserved, so your creator privileges and membership follow you; do not join the trip again as a new member. Email confirmation must be enabled/configured for your Supabase project.
@@ -41,4 +45,4 @@ Expenses paid personally by a member are treated as advances owed by the shared 
 Trip creation, join by invitation link, member roster, shared expenses and contributions, reimbursement tracking, member-to-member debts, live updates and suggested debt transfers.
 
 ## Current limitations
-This starter build does not yet include receipt uploads, offline write queues, admin roles, push notifications, partial reimbursements or multi-currency conversion. For production use, add backup/export routines and consider stricter member/admin permissions.
+This starter build does not yet include receipt uploads, offline write queues, push notifications, partial reimbursements or multi-currency conversion. For production use, add backup/export routines.

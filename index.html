@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#142b3a"><meta name="description" content="Quản lý chi tiêu và quỹ chung cho chuyến đi">
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg">
-<title>TripTogether</title><link rel="stylesheet" href="styles.css?v=31">
+<title>TripTogether</title><link rel="stylesheet" href="styles.css?v=32">
 </head>
 <body>
 <div id="pageLoader" class="page-loader" role="status" aria-live="polite"><span class="loading-spinner" aria-hidden="true"></span><span id="pageLoaderText">Loading TripTogether…</span></div>
@@ -43,6 +43,7 @@
     <div class="sectionhead"><div><h2>Chi tiêu từng thành viên</h2><p class="muted small">Chênh lệch = quỹ ban đầu chia đều + đóng quỹ − phần chi − quỹ thực chia đều. Khoản ứng chưa hoàn đã trừ vào quỹ thực và được theo dõi riêng, không tính lần hai vào chuyển tiền giữa thành viên.</p></div><div class="section-actions"><button class="secondary compact" id="addDebt">＋ Ghi khoản nợ</button><button class="primary compact" id="addMember">＋ Thêm thành viên</button></div></div>
     <div class="member-table-head"><span>Thành viên</span><span>Đã chi cá nhân</span><span>Đã đóng quỹ</span><span>Phần chi</span><span>Chênh lệch quỹ</span></div>
     <div id="memberList" class="list ledger-list"></div>
+    <div id="editPermissionsPanel" class="settlement member-permissions hidden"><h3>Quyền chỉnh sửa thành viên</h3><p class="muted small">Chọn thành viên được phép thêm, sửa và xóa dữ liệu chuyến đi.</p><div id="memberPermissionList"></div></div>
     <div class="settlement"><h3>Đối soát quỹ</h3><p class="muted small">Gợi ý chuyển tiền dựa trên khoản đóng quỹ, phần chi bình quân và quỹ thực chia đều. Khoản ứng chưa hoàn đã tính trong quỹ thực, không cộng lần nữa vào đối soát này.</p><div id="expenseSettlements"></div></div>
     <div class="sectionhead debt-heading"><div><h2>Khoản nợ riêng giữa thành viên</h2><p class="muted small">Ghi các khoản nợ cá nhân ngoài phần chia chi tiêu chung.</p></div></div>
     <div id="debtList" class="list ledger-list"></div>
@@ -61,5 +62,5 @@
 <dialog id="initialFundDialog"><form method="dialog" id="initialFundForm"><h2>Sửa quỹ ban đầu</h2><p class="muted">Nhập số tiền trong quỹ trước các lần đóng thêm.</p><label>Quỹ ban đầu (VNĐ)<input id="initialFundInput" required type="number" min="0" step="1"></label><menu><button class="secondary" id="initialFundCancel" type="button">Hủy</button><button class="primary" id="initialFundSave" value="default">Lưu quỹ ban đầu</button></menu></form></dialog>
 <dialog id="memberDialog"><form method="dialog" id="memberForm"><h2>Thêm thành viên</h2><p class="muted">Thêm người chưa dùng link mời. Người này sẽ được tính vào phần chia đều.</p><label>Tên thành viên<input id="memberName" required maxlength="40" placeholder="Ví dụ: Minh"></label><menu><button class="secondary" id="memberCancel" type="button">Hủy</button><button class="primary" id="memberSave" value="default">Thêm thành viên</button></menu></form></dialog>
 <dialog id="debtDialog"><form method="dialog" id="debtForm"><h2>Ghi khoản nợ thành viên</h2><p class="muted small">Khoản này hiển thị trong đối soát thành viên; không trừ vào quỹ chung.</p><div class="formgrid"><label>Người nợ<select id="debtDebtor" required></select></label><label>Người nhận nợ<select id="debtCreditor" required></select></label></div><label>Số tiền (VNĐ)<input id="debtAmount" type="number" min="1" step="1" required placeholder="250000"></label><div class="formgrid"><label>Ngày<input id="debtDate" type="date" required></label><label>Ghi chú<input id="debtNote" maxlength="200" placeholder="Lý do khoản nợ"></label></div><menu><button class="secondary" id="debtCancel" type="button">Hủy</button><button class="primary" id="debtSave" value="default">Lưu khoản nợ</button></menu></form></dialog>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="app.js?v=31"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="app.js?v=32"></script>
 </body></html>

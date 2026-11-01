@@ -24,10 +24,13 @@
    user_id uuid not null,
    name text not null,
  is_guest boolean not null default false,
+  can_edit boolean not null default true,
    created_at timestamptz default now(),
    unique(trip_id,user_id)
   );
 alter table public.members add column if not exists is_guest boolean not null default false;
+alter table public.members add column if not exists can_edit boolean not null default true;
+alter table public.members alter column can_edit set default false;
   create table if not exists public.expenses (
    id uuid primary key default gen_random_uuid(),
    trip_id uuid not null references public.trips(id) on delete cascade,
@@ -77,7 +80,17 @@ alter table public.members add column if not exists is_guest boolean not null de
   returns boolean language sql stable security definer set search_path=public
   as $$ select exists(select 1 from public.members where trip_id=tid and user_id=auth.uid()) $$;
 
+  create or replace function public.can_edit_trip(tid uuid)
+  returns boolean language sql stable security definer set search_path=public
+  as $$
+   select exists(select 1 from public.trips where id=tid and created_by=auth.uid())
+       or exists(select 1 from public.members where trip_id=tid and user_id=auth.uid() and can_edit)
+  $$;
+
   -- Trip owners can delete the trip and its dependent rows (cascade).
+  revoke all on function public.can_edit_trip(uuid) from public;
+  grant execute on function public.can_edit_trip(uuid) to authenticated;
+
   create or replace function public.delete_trip(p_trip_id uuid)
   returns void language plpgsql security definer set search_path=public
   as $$
@@ -108,8 +121,8 @@ alter table public.members add column if not exists is_guest boolean not null de
     if extensions.crypt(p_passcode,t.view_passcode_hash)<>t.view_passcode_hash then raise exception 'Incorrect passcode'; end if;
    end if;
    if nullif(trim(p_name),'') is null then raise exception 'A display name is required'; end if;
-   insert into public.members(trip_id,user_id,name)
-   values(t.id,auth.uid(),left(trim(p_name),40))
+   insert into public.members(trip_id,user_id,name,can_edit)
+   values(t.id,auth.uid(),left(trim(p_name),40),t.created_by=auth.uid())
    on conflict(trip_id,user_id) do update set name=excluded.name;
    return t.id;
   end;
@@ -166,8 +179,8 @@ returns uuid language plpgsql security definer set search_path=public
 as $$
 declare guest_id uuid;
 begin
- if auth.uid() is null or not public.is_trip_member(p_trip_id) then
-  raise exception 'Only members of this trip can add a guest';
+ if auth.uid() is null or not public.can_edit_trip(p_trip_id) then
+  raise exception 'Only trip editors can add a guest';
  end if;
  if nullif(trim(p_name),'') is null then raise exception 'Member name is required'; end if;
  guest_id := gen_random_uuid();
@@ -177,6 +190,24 @@ begin
 end;
 $$;
 grant execute on function public.add_guest_member(uuid,text) to authenticated;
+notify pgrst, 'reload schema';
+
+create or replace function public.set_trip_member_edit_access(p_trip_id uuid,p_member_user_id uuid,p_can_edit boolean)
+returns void language plpgsql security definer set search_path=public
+as $$
+declare owner_id uuid;
+begin
+ select created_by into owner_id from public.trips where id=p_trip_id;
+ if auth.uid() is null or owner_id is null or owner_id<>auth.uid() then
+  raise exception 'Only the trip creator can change edit access';
+ end if;
+ update public.members set can_edit=p_can_edit
+  where trip_id=p_trip_id and user_id=p_member_user_id and user_id<>owner_id and not is_guest;
+ if not found then raise exception 'Joined member not found'; end if;
+end;
+$$;
+revoke all on function public.set_trip_member_edit_access(uuid,uuid,boolean) from public;
+grant execute on function public.set_trip_member_edit_access(uuid,uuid,boolean) to authenticated;
 notify pgrst, 'reload schema';
 
   alter table public.trips enable row level security;
@@ -195,25 +226,37 @@ notify pgrst, 'reload schema';
    with check(created_by=auth.uid());
   create policy "members read trips" on public.trips for select to authenticated
    using(public.is_trip_member(id));
+  drop policy if exists "members update trips" on public.trips;
   create policy "members update trips" on public.trips for update to authenticated
-   using(public.is_trip_member(id)) with check(public.is_trip_member(id));
+   using(public.can_edit_trip(id)) with check(public.can_edit_trip(id));
 
   create policy "members read roster" on public.members for select to authenticated
    using(public.is_trip_member(trip_id));
+  drop policy if exists "members update own profile" on public.members;
   create policy "members update own profile" on public.members for update to authenticated
    using(user_id=auth.uid() and public.is_trip_member(trip_id))
    with check(user_id=auth.uid() and public.is_trip_member(trip_id));
   -- Membership creation is handled by the join_trip RPC.
 
-  create policy "members manage expenses" on public.expenses for all to authenticated
-   using(public.is_trip_member(trip_id)) with check(public.is_trip_member(trip_id));
-  create policy "members manage contributions" on public.contributions for all to authenticated
-   using(public.is_trip_member(trip_id)) with check(public.is_trip_member(trip_id));
-  create policy "members manage member debts" on public.member_debts for all to authenticated
-   using(public.is_trip_member(trip_id)) with check(public.is_trip_member(trip_id));
+  drop policy if exists "members manage expenses" on public.expenses;
+  drop policy if exists "members manage contributions" on public.contributions;
+  drop policy if exists "members manage member debts" on public.member_debts;
+  drop policy if exists "editors manage expenses" on public.expenses;
+  drop policy if exists "editors manage contributions" on public.contributions;
+  drop policy if exists "editors manage member debts" on public.member_debts;
+  create policy "editors manage expenses" on public.expenses for all to authenticated
+   using(public.can_edit_trip(trip_id)) with check(public.can_edit_trip(trip_id));
+  create policy "editors manage contributions" on public.contributions for all to authenticated
+   using(public.can_edit_trip(trip_id)) with check(public.can_edit_trip(trip_id));
+  create policy "editors manage member debts" on public.member_debts for all to authenticated
+   using(public.can_edit_trip(trip_id)) with check(public.can_edit_trip(trip_id));
 
   grant usage on schema public to authenticated;
-  grant select,insert,update,delete on public.trips,public.members,public.expenses,public.contributions,public.member_debts to authenticated;
+  grant select,insert,delete on public.trips to authenticated;
+  grant update(initial_fund) on public.trips to authenticated;
+  grant select,insert,delete on public.members to authenticated;
+  grant update(name) on public.members to authenticated;
+  grant select,insert,update,delete on public.expenses,public.contributions,public.member_debts to authenticated;
   grant usage,select on all sequences in schema public to authenticated;
   alter publication supabase_realtime add table public.members;
   alter publication supabase_realtime add table public.expenses;
