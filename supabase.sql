@@ -43,6 +43,8 @@ alter table public.members add column if not exists is_guest boolean not null de
   );
   alter table public.expenses add column if not exists note text not null default '';
   alter table public.expenses alter column payer_id drop not null;
+  alter table public.expenses add column if not exists reimbursed boolean not null default false;
+  alter table public.expenses add column if not exists reimbursed_at timestamptz;
   create table if not exists public.contributions (
    id uuid primary key default gen_random_uuid(),
    trip_id uuid not null references public.trips(id) on delete cascade,
@@ -53,6 +55,22 @@ alter table public.members add column if not exists is_guest boolean not null de
    paid_on date not null default current_date,
    created_by uuid not null,
    created_at timestamptz default now()
+  );
+  create table if not exists public.member_debts (
+   id uuid primary key default gen_random_uuid(),
+   trip_id uuid not null references public.trips(id) on delete cascade,
+   debtor_id uuid not null,
+   creditor_id uuid not null,
+   amount numeric not null check(amount>0),
+   note text not null default '',
+   incurred_on date not null default current_date,
+   is_settled boolean not null default false,
+   settled_at timestamptz,
+   created_by uuid not null,
+   created_at timestamptz default now(),
+   check(debtor_id<>creditor_id),
+   foreign key(trip_id,debtor_id) references public.members(trip_id,user_id) on delete cascade,
+   foreign key(trip_id,creditor_id) references public.members(trip_id,user_id) on delete cascade
   );
 
   create or replace function public.is_trip_member(tid uuid)
@@ -134,7 +152,8 @@ alter table public.members add column if not exists is_guest boolean not null de
     'trip',(to_jsonb(t)-'view_passcode_hash')||jsonb_build_object('view_passcode_set',t.view_passcode_hash is not null),
     'members',coalesce((select jsonb_agg(to_jsonb(m) order by m.created_at) from public.members m where m.trip_id=t.id),'[]'::jsonb),
     'expenses',coalesce((select jsonb_agg(to_jsonb(e) order by e.spent_on desc) from public.expenses e where e.trip_id=t.id),'[]'::jsonb),
-    'contributions',coalesce((select jsonb_agg(to_jsonb(c) order by c.paid_on desc) from public.contributions c where c.trip_id=t.id),'[]'::jsonb)
+    'contributions',coalesce((select jsonb_agg(to_jsonb(c) order by c.paid_on desc) from public.contributions c where c.trip_id=t.id),'[]'::jsonb),
+    'debts',coalesce((select jsonb_agg(to_jsonb(d) order by d.incurred_on desc) from public.member_debts d where d.trip_id=t.id),'[]'::jsonb)
    );
   end;
   $$;
@@ -164,11 +183,13 @@ notify pgrst, 'reload schema';
   alter table public.members enable row level security;
   alter table public.expenses enable row level security;
   alter table public.contributions enable row level security;
+  alter table public.member_debts enable row level security;
 
   drop policy if exists "link access trips" on public.trips;
   drop policy if exists "link access members" on public.members;
   drop policy if exists "link access expenses" on public.expenses;
   drop policy if exists "link access contributions" on public.contributions;
+  drop policy if exists "members manage member debts" on public.member_debts;
 
   create policy "create own trips" on public.trips for insert to authenticated
    with check(created_by=auth.uid());
@@ -188,10 +209,13 @@ notify pgrst, 'reload schema';
    using(public.is_trip_member(trip_id)) with check(public.is_trip_member(trip_id));
   create policy "members manage contributions" on public.contributions for all to authenticated
    using(public.is_trip_member(trip_id)) with check(public.is_trip_member(trip_id));
+  create policy "members manage member debts" on public.member_debts for all to authenticated
+   using(public.is_trip_member(trip_id)) with check(public.is_trip_member(trip_id));
 
   grant usage on schema public to authenticated;
-  grant select,insert,update,delete on public.trips,public.members,public.expenses,public.contributions to authenticated;
+  grant select,insert,update,delete on public.trips,public.members,public.expenses,public.contributions,public.member_debts to authenticated;
   grant usage,select on all sequences in schema public to authenticated;
   alter publication supabase_realtime add table public.members;
   alter publication supabase_realtime add table public.expenses;
   alter publication supabase_realtime add table public.contributions;
+  alter publication supabase_realtime add table public.member_debts;

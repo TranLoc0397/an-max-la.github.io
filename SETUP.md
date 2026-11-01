@@ -31,8 +31,10 @@ Expenses and deposits can be removed from their lists by any trip member. Only t
 ## Match the expense workbook
 The app tracks an initial fund separately from later contributions and stores a note on each expense. The payer is optional for expenses paid from the shared fund. If the database was configured before this field became optional, run `expense_payer_optional.sql` in Supabase SQL Editor. If the database was configured before these fields were added, run `excel_workflow.sql` once in Supabase SQL Editor.
 
+Expenses paid personally by a member are treated as advances owed by the shared fund. They do not lower the cash balance until a member marks the expense as reimbursed. The Members tab can also record separate debts between members and mark them settled. For an existing database, run `reimbursements_and_member_debts.sql` once in Supabase SQL Editor.
+
 ## Included in this starter build
-Trip creation, join by invitation link, member roster, shared expenses, contributions, live updates, equal-split balances and suggested transfers.
+Trip creation, join by invitation link, member roster, shared expenses and contributions, reimbursement tracking, member-to-member debts, live updates and suggested debt transfers.
 
 ## Current limitations
-This starter build does not yet include editing, receipt uploads, offline write queues, admin roles, push notifications or multi-currency conversion. Balances currently split all trip expenses equally among the members currently listed. The fund ledger is tracked separately from who paid individual expenses. For production use, add backup/export routines and consider stricter member/admin permissions.
+This starter build does not yet include receipt uploads, offline write queues, admin roles, push notifications, partial reimbursements or multi-currency conversion. For production use, add backup/export routines and consider stricter member/admin permissions.
