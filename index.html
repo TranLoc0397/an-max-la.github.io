@@ -28,8 +28,9 @@
     <div class="stat"><span>Quỹ ban đầu</span><b id="initialFund">₫0</b><button id="editInitialFundBtn" class="secondary compact initial-fund-edit">Sửa</button></div>
     <div class="stat"><span>Đóng quỹ thêm</span><b id="additionalFund">₫0</b></div>
     <div class="stat"><span>Tổng quỹ</span><b id="fundTotal">₫0</b></div>
-    <div class="stat"><span>Quỹ còn sau chi</span><b id="fundBalance">₫0</b></div>
+    <div class="stat"><span>Tiền mặt còn trong quỹ</span><b id="fundBalance">₫0</b></div>
     <div class="stat stat-due"><span>Quỹ còn nợ thành viên</span><b id="reimbursementDue">₫0</b></div>
+    <div class="stat stat-net" id="actualFundStat"><span>Quỹ thực sau khi trừ nợ</span><b id="actualFundBalance">₫0</b></div>
   </div>
   <nav class="tabs"><button class="tab active" data-tab="expenses">Chi tiêu</button><button class="tab" data-tab="fund">Đóng quỹ</button><button class="tab" data-tab="people">Thành viên</button></nav>
   <section id="expensesTab" class="tabbody">
@@ -39,7 +40,7 @@
     <div class="sectionhead"><div><h2>Theo dõi quỹ</h2><p class="muted small">Quỹ ban đầu được tính riêng. Các lần đóng thêm nằm trong danh sách dưới đây.</p></div><div class="section-actions"><button class="primary compact" id="addContribution">＋ Đóng quỹ thêm</button></div></div><div id="contributionList" class="list ledger-list"></div>
   </section>
   <section id="peopleTab" class="tabbody hidden">
-    <div class="sectionhead"><div><h2>Chi tiêu từng thành viên</h2><p class="muted small">Xem số tiền mỗi người tự trả, đóng quỹ và phần chi bình quân. Chênh lệch quỹ tính cả số dư chung; khoản ứng chưa hoàn vẫn nằm ở mục quỹ còn nợ.</p></div><div class="section-actions"><button class="secondary compact" id="addDebt">＋ Ghi khoản nợ</button><button class="primary compact" id="addMember">＋ Thêm thành viên</button></div></div>
+    <div class="sectionhead"><div><h2>Chi tiêu từng thành viên</h2><p class="muted small">Chênh lệch = quỹ ban đầu chia đều + đóng quỹ + ứng chưa hoàn − phần chi − tiền mặt còn lại chia đều. Số dương là được nhận; số âm là cần bù. Tổng đối soát được cân bằng về 0.</p></div><div class="section-actions"><button class="secondary compact" id="addDebt">＋ Ghi khoản nợ</button><button class="primary compact" id="addMember">＋ Thêm thành viên</button></div></div>
     <div class="member-table-head"><span>Thành viên</span><span>Đã chi cá nhân</span><span>Đã đóng quỹ</span><span>Phần chi</span><span>Chênh lệch quỹ</span></div>
     <div id="memberList" class="list ledger-list"></div>
     <div class="settlement"><h3>Đối soát quỹ</h3><p class="muted small">Gợi ý chuyển tiền dựa trên khoản từng người đóng quỹ, phần chi bình quân và số dư quỹ còn lại.</p><div id="expenseSettlements"></div></div>
