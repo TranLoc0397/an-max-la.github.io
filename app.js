@@ -285,7 +285,7 @@ async function loadMyTrips(){
    return `<article class="tt-trip-card">
      <div class="tt-trip-cover" aria-hidden="true"><span>${cover}</span></div>
      <div class="tt-trip-card-body">
-       <span class="tt-trip-role">${isHost?'♛ Chủ chuyến đi':'✓ Thành viên'}</span>
+       <span class="tt-trip-role">${isHost?'♛ Host':'✓ Thành viên'}</span>
        <h3>${esc(t.name)}</h3>
        <p class="muted small">${created?'📅 '+esc(created):'TripTogether'} · ${isHost?'Quản lý chuyến đi':'Chuyến đi đã tham gia'}</p>
        <button class="primary trip-open" type="button" data-trip-id="${esc(t.id)}">Xem chuyến đi →</button>
