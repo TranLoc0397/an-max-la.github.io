@@ -46,3 +46,7 @@ Trip creation, join by invitation link, member roster, shared expenses and contr
 
 ## Current limitations
 This starter build does not yet include receipt uploads, offline write queues, push notifications, partial reimbursements or multi-currency conversion. For production use, add backup/export routines.
+
+## Member requests for editing access
+
+Run `member_edit_permissions.sql`, then `trip_edit_requests.sql` **once** in the Supabase SQL Editor. A viewer must join the trip as a member before requesting edit access. A joined member who has no edit access can select **Gửi yêu cầu cấp quyền** under Thành viên. The Host reviews pending requests there using **Duyệt** or **Từ chối**. Only the Host can approve requests. The viewing passcode alone never grants editing rights.
