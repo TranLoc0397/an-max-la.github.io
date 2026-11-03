@@ -8,9 +8,9 @@
   "description": "Shared group trip expenses",
   "icons": [
     {
-      "src": "brand-logo.svg?v=2",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "triptogether-logo.png?v=1",
+      "sizes": "128x128",
+      "type": "image/png",
       "purpose": "any"
     }
   ]
