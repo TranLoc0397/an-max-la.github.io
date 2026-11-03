@@ -897,6 +897,252 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
  .tt-sidebar{display:none!important}
 }
 
+/* Trip footer: sync status never competes with destructive/leave actions.
+   At phone sizes, status occupies its own line above two equal-width buttons. */
+#app > footer{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  column-gap:18px;
+  row-gap:12px;
+}
+#app > footer #syncStatus{
+  display:flex;
+  align-items:center;
+  min-width:0;
+  margin:0;
+  font:600 12px/1.5 'Roboto',Arial,sans-serif;
+  letter-spacing:0;
+  overflow-wrap:normal;
+  word-break:normal;
+}
+#app > footer .footer-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  flex-wrap:nowrap;
+  gap:10px;
+  width:auto;
+  min-width:0;
+}
+#app > footer .footer-actions button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:44px;
+  min-width:120px;
+  width:auto;
+  padding:10px 15px;
+  font:700 13px/1.3 'Roboto',Arial,sans-serif;
+  white-space:normal;
+  text-align:center;
+  border-radius:12px;
+}
+#app > footer #leaveBtn{
+  background:#f0eeff;
+  color:#5045c9;
+  border:1px solid #e9e5ff;
+}
+#app > footer #leaveBtn:hover{background:#e8e3ff}
+#app > footer #deleteTripBtn{
+  background:#fff0ed;
+  color:#b34033;
+  border:1px solid #f2d5d0;
+}
+#memberOpeningFundField{margin-top:7px}
+#memberOpeningFundField label{margin-bottom:0}
+#memberOpeningFundField input{min-height:46px}
+.field-optional{
+  display:inline-block;
+  margin-left:5px;
+  font-size:11px;
+  color:#81879b;
+  font-weight:500;
+}
+.member-fund-hint{margin:8px 0 12px;font-size:12px;line-height:1.6}
+@media(max-width:650px){
+  #app > footer{
+    grid-template-columns:minmax(0,1fr);
+    justify-items:stretch;
+    gap:13px;
+    padding-top:16px;
+  }
+  #app > footer #syncStatus{
+    grid-column:1;
+    width:100%;
+    min-height:22px;
+    font-size:12px;
+    line-height:1.5;
+  }
+  #app > footer .footer-actions{
+    grid-column:1;
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+    width:100%;
+  }
+  #app > footer .footer-actions button{
+    min-width:0;
+    width:100%;
+    min-height:46px;
+    padding:11px 9px;
+    font-size:13px;
+  }
+  #app > footer .footer-actions button:not(.hidden):only-child{
+    grid-column:1/-1;
+  }
+}
+@media(max-width:360px){
+  #app > footer .footer-actions{gap:8px}
+  #app > footer .footer-actions button{font-size:12px;padding:10px 7px}
+}
+
+/* Fund reconciliation: distinct compact cards with consistent hierarchy and mobile spacing. */
+#peopleTab .tt-reconciliation{
+  margin-top:28px;
+  padding:0;
+  min-width:0;
+  border:0;
+  background:transparent;
+}
+#peopleTab .tt-reconciliation-header{
+  display:flex;
+  align-items:flex-start;
+  gap:13px;
+  min-width:0;
+  margin:0 0 16px;
+  padding:0 2px;
+}
+#peopleTab .tt-reconciliation-header>div{min-width:0;flex:1}
+#peopleTab .tt-reconciliation-header h2{
+  margin:0 0 5px;
+  font:800 clamp(19px,2.3vw,23px)/1.3 'Roboto',Arial,sans-serif;
+  letter-spacing:-.5px;
+  color:#202442;
+}
+#peopleTab .tt-reconciliation-header p{
+  margin:0;
+  max-width:650px;
+  line-height:1.6;
+}
+#peopleTab .tt-reconciliation-icon{
+  flex:0 0 42px;
+  display:grid;
+  place-items:center;
+  width:42px;
+  height:42px;
+  border-radius:13px;
+  background:#eae6ff;
+  color:#5d50d7;
+  font:800 24px/1 'Roboto',Arial,sans-serif;
+}
+#peopleTab .tt-reconciliation-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+  align-items:start;
+}
+#peopleTab .tt-reconciliation-card{
+  min-width:0;
+  margin:0;
+  padding:19px;
+  border:1px solid #e8e6f4;
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 7px 24px rgba(34,41,83,.045);
+}
+#peopleTab .tt-reconciliation-card-primary{
+  background:linear-gradient(145deg,#f8f7ff,#fff);
+  border-color:#e4defe;
+}
+#peopleTab .tt-reconciliation-card-heading{
+  display:flex;
+  align-items:flex-start;
+  gap:11px;
+  min-width:0;
+  padding-bottom:14px;
+  border-bottom:1px solid #f0eef8;
+}
+#peopleTab .tt-reconciliation-card-heading>div{flex:1;min-width:0}
+#peopleTab .tt-reconciliation-card-heading h3{
+  margin:0 0 5px;
+  font:800 16px/1.4 'Roboto',Arial,sans-serif;
+  letter-spacing:-.3px;
+  color:#252a49;
+  overflow-wrap:anywhere;
+}
+#peopleTab .tt-reconciliation-card-heading p{
+  margin:0;
+  color:#858ca0;
+  font-size:12px;
+  line-height:1.55;
+}
+#peopleTab .tt-reconciliation-card-icon{
+  flex:0 0 35px;
+  width:35px;
+  height:35px;
+  display:grid;
+  place-items:center;
+  border-radius:11px;
+  background:#f0edff;
+  color:#6759df;
+  font:800 19px/1 'Roboto',Arial,sans-serif;
+}
+#peopleTab .tt-reconciliation-content{
+  min-width:0;
+  margin:12px 0 0;
+}
+#peopleTab .tt-reconciliation-content > .muted,
+#peopleTab .tt-reconciliation-content > .ledger-empty{
+  margin:0;
+  padding:10px 0;
+  color:#838ba0;
+  font-size:12px;
+  line-height:1.55;
+  overflow-wrap:anywhere;
+}
+#peopleTab .tt-reconciliation-content .item{
+  min-width:0;
+  margin:0;
+  padding:12px;
+  border-radius:12px;
+  border-color:#edeaf5;
+  box-shadow:none;
+}
+#peopleTab .tt-reconciliation-content .item + .item{margin-top:8px}
+#peopleTab .tt-reconciliation-activity{grid-column:1/-1}
+#peopleTab .tt-reconciliation-activity .tt-reconciliation-content{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:9px;
+}
+#peopleTab .tt-reconciliation-activity .tt-reconciliation-content .item{
+  margin:0;
+  background:#faf9ff;
+}
+#peopleTab .tt-reconciliation-activity .tt-reconciliation-content > .muted{
+  grid-column:1/-1;
+}
+@media(max-width:860px){
+  #peopleTab .tt-reconciliation-grid{grid-template-columns:minmax(0,1fr);gap:12px}
+  #peopleTab .tt-reconciliation-activity{grid-column:auto}
+}
+@media(max-width:650px){
+  #peopleTab .tt-reconciliation{margin-top:24px}
+  #peopleTab .tt-reconciliation-header{gap:10px;margin-bottom:13px}
+  #peopleTab .tt-reconciliation-header h2{font-size:19px}
+  #peopleTab .tt-reconciliation-icon{width:38px;height:38px;flex-basis:38px}
+  #peopleTab .tt-reconciliation-card{padding:16px 14px;border-radius:16px}
+  #peopleTab .tt-reconciliation-card-heading{gap:10px;padding-bottom:12px}
+  #peopleTab .tt-reconciliation-card-heading h3{font-size:15px}
+  #peopleTab .tt-reconciliation-card-icon{flex-basis:33px;width:33px;height:33px;font-size:17px}
+  #peopleTab .tt-reconciliation-content{margin-top:10px}
+  #peopleTab .tt-reconciliation-activity .tt-reconciliation-content{grid-template-columns:1fr;gap:8px}
+}
+@media(prefers-reduced-motion:reduce){
+  #peopleTab .tt-reconciliation-card,
+  #peopleTab .tt-reconciliation-content .item{animation:none!important;transition:none!important}
+}
 
 /* Account dialog action hierarchy: equal-width buttons, consistent typography,
    predictable mobile hit targets, and a clearly separated sign-out action. */
