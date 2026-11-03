@@ -91,7 +91,7 @@ async function init(){
   await loadMyTrips();
   const code=new URLSearchParams(location.search).get('trip');
   if(code)await openSharedTrip(code)
-  if(localStorage.getItem('tt_account_pending')==='true'||(authCallback&&user?.email&&!user.is_anonymous))openAccount();
+  if(localStorage.getItem('tt_account_pending')==='true'||(authCallback&&user?.email&&!user.is_anonymous))openAccount(localStorage.getItem('tt_account_pending')==='true'?'register':'login');
   if(authCallbackError){history.replaceState({},'',location.pathname+location.search);alert(authCallbackError.toLowerCase().includes('expired')?'Link xác minh đã hết hạn. Hãy nhập lại email trong mục Liên kết thiết bị để nhận link mới.':'Không thể xác minh email. Hãy gửi lại email xác minh trong mục Liên kết thiết bị.')}
  }catch(error){console.error(error);alert('Could not load TripTogether: '+error.message)}
  finally{pageLoading(false)}
@@ -99,7 +99,7 @@ async function init(){
 function updateAccountButton(){
  const button=$('accountBtn');
  if(!button||!user)return;
- button.textContent=user.is_anonymous||!user.email?'Liên kết thiết bị':user.email;
+ button.textContent=user.is_anonymous||!user.email?'Đăng nhập / Tạo tài khoản':user.email;
 }
 function accountNotice(message,kind='info'){
  const el=$('accountFeedback');
@@ -184,7 +184,6 @@ function accountView(view){
    };
   }
   addPasswordVisibilityControls(content);
-  content.querySelector('input')?.focus({preventScroll:true});
   return;
  }
  const verified=!!user.email_confirmed_at;
@@ -247,6 +246,7 @@ function openAccount(view){
  if(!db||!user)return;
  accountView(view==='login'||view==='register'?view:'login');
  if(!$('accountDialog').open)$('accountDialog').showModal();
+ $('accountContent input')?.focus({preventScroll:true});
 }
 $('accountBtn').onclick=openAccount;
 $('accountClose').onclick=()=>$('accountDialog').close();
