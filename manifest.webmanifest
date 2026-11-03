@@ -8,7 +8,7 @@
   "description": "Shared group trip expenses",
   "icons": [
     {
-      "src": "icon.svg",
+      "src": "brand-logo.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
