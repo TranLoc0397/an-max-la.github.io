@@ -256,6 +256,29 @@ Object.assign(dictionary,{
  "Quỹ còn lại sau khi trừ khoản cần hoàn cho thành viên.":"Fund remaining after outstanding reimbursements.",
  "Cần quyền chỉnh sửa để thêm khoản chi":"Editing permission required to add an expense"
 });
+Object.assign(dictionary,{
+ "Mỗi chuyến đi.":"Every trip.",
+ "Thêm niềm vui.":"More joy.",
+ "Bớt tính toán. ✨":"Less calculating. ✨",
+ "ĐI CÙNG NHAU · CHI TIÊU RÕ RÀNG":"TRAVEL TOGETHER · CLEAR EXPENSES",
+ "Theo dõi chi phí, quản lý quỹ chung và chia tiền công bằng — tất cả trong một nơi.":"Track expenses, manage the group fund and split costs fairly — all in one place.",
+ "KHÔNG GIAN CỦA TÔI":"MY WORKSPACE",
+ "Chuyến đi của bạn ✨":"Your trips ✨",
+ "Quản lý chuyến đi và những kỷ niệm của cả nhóm.":"Manage your trips and shared memories.",
+ "＋ Tạo chuyến đi mới":"＋ Create new trip",
+ "Bắt đầu hành trình tiếp theo của bạn.":"Start your next adventure.",
+ "Quản lý chuyến đi":"Manage trip",
+ "Chuyến đi đã tham gia":"Joined trip",
+ "Xem chuyến đi →":"View trip →",
+ "Được mời tham gia chuyến đi?":"Invited to a trip?",
+ "Dán liên kết chia sẻ hoặc mã chuyến để mở và xem thông tin.":"Paste a shared link or trip code to open and view it.",
+ "Mở chuyến →":"Open trip →",
+ "Tạo chuyến đi mới 🚀":"Create a new trip 🚀",
+ "Nhập thông tin cơ bản để bắt đầu theo dõi quỹ và chi tiêu.":"Enter the basic details to start tracking your fund and expenses.",
+ "Chưa có chuyến đi nào trong tài khoản này. Tạo chuyến đầu tiên hoặc mở liên kết được chia sẻ.":"No trips in this account yet. Create your first trip or open a shared link.",
+ "Chủ chuyến đi":"Trip Host",
+ "Thành viên":"Members"
+});
 const reverse=new Map(Object.entries(dictionary).map(([vi,en])=>[en,vi]));
 let language=localStorage.getItem('tt_language')==='en'?'en':'vi';
 const sourceText=new WeakMap();
