@@ -833,3 +833,66 @@ body.tt-trip-open .activity-panel{border-color:#eceaf6}
  .tt-trip-card,.tt-trip-create-tile{transition:none!important}
  .tt-trip-card:hover,.tt-trip-create-tile:hover{transform:none!important}
 }
+
+
+/* Unified purple brand: legacy teal tokens now resolve to the current logo palette.
+   Keep red for errors/destructive actions and amber for outstanding money warnings. */
+:root{
+ --teal:#6559e8;
+ --mint:#ece9ff;
+ --premium-teal:#6559e8;
+ --premium-mint:#e7e3ff;
+ --premium-glow:#f1efff;
+ --tt-purple:#6559e8;
+ --tt-purple-deep:#5045c9;
+ --tt-purple-soft:#f0eeff;
+ --tt-green:#6559e8;
+}
+.topbar .brand-wordmark{color:#202344;letter-spacing:-.055em;font-weight:900}
+.topbar .brand-icon img{filter:drop-shadow(0 3px 6px #5045c91c)}
+.topbar .brand-icon{background:transparent!important}
+.tt-sidebar{padding-top:26px}
+.tt-sidebar-brand{
+ display:flex;align-items:center;gap:9px;padding:0 7px;
+ color:#202344;text-decoration:none;font:900 19px/1.15 'Roboto',Arial,sans-serif;
+ letter-spacing:-.65px;white-space:nowrap;margin:0 0 37px;
+}
+.tt-sidebar-brand img{width:42px;height:42px;flex:none;object-fit:contain}
+.tt-sidebar-brand span{overflow:hidden;text-overflow:ellipsis}
+.tt-sidebar-brand:hover{color:#5d51dc}
+.eyebrow,.brandmark,#syncStatus,.record-status,.member-diff-positive,
+.payment-progress,.payment-amount,.tt-fund-highlight,.site-copyright a{
+ color:#6559e8;
+}
+.tt-fund-highlight{color:#6559e8}
+.tt-person-row:nth-child(even) .tt-person-avatar{background:#f1eeff;color:#6559e8}
+.tt-recent-row:nth-child(even) .tt-recent-icon{background:#f1eeff}
+.stat-net{background:linear-gradient(145deg,#fff,#f4f1ff);border-color:#e5dfff}
+.stat-net b{color:#5d50d7}
+body.tt-trip-open .stat-net{background:linear-gradient(145deg,#fff,#f1efff);border-color:#e6e0ff}
+body.tt-trip-open .record-status{color:#6559e8}
+body.tt-trip-open .record-status-due,
+body.tt-trip-open .member-outstanding{color:#a35b13}
+body.tt-trip-open .record-status-partial{color:#946313}
+.account-intro-icon,.account-avatar{background:#efecff;color:#6559e8}
+.account-switch{background:#f1efff}
+.account-tab.active{color:#6559e8}
+.account-tab:focus-visible,.account-submit:focus-visible{outline-color:#8174f3}
+.account-profile{background:#f8f7ff;border-color:#e7e3ff}
+.account-feedback,.account-feedback-success{background:#f1efff;color:#5045c9}
+.account-feedback-error{background:#fff0ed;color:#9c362b}
+.primary{background:linear-gradient(130deg,#7567ed,#5849d7);color:#fff;box-shadow:0 6px 18px #6559e820}
+.primary:hover{background:linear-gradient(130deg,#6659e4,#4e40ca)}
+.secondary{background:#f0eeff;color:#5045c9}
+.secondary:hover{background:#e8e4ff}
+.tab.active{color:#6559e8;border-color:#6559e8;background:#f0eeff}
+.progress span{background:linear-gradient(90deg,#988cff,#c4baff)}
+.settlement{background:#f5f3ff}
+.tt-workspace-home .tt-welcome-actions #createBtn{background:#fff;color:#5849d7}
+body.tt-trip-open .hero-label{color:#f0edff}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+ outline-color:#887cf3;
+}
+@media(max-width:1050px){
+ .tt-sidebar{display:none!important}
+}
