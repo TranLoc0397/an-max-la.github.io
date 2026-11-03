@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#142b3a"><meta name="description" content="Quản lý chi tiêu và quỹ chung cho chuyến đi">
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="triptogether-logo.png?v=1" type="image/png">
-<title>TripTogether</title><link rel="stylesheet" href="styles.css?v=42">
+<title>TripTogether</title><link rel="stylesheet" href="styles.css?v=43">
 </head>
 <body>
 <div id="pageLoader" class="page-loader" role="status" aria-live="polite"><span class="loading-spinner" aria-hidden="true"></span><span id="pageLoaderText">Loading TripTogether…</span></div>
@@ -35,7 +35,15 @@
   </div>
   <nav class="tabs"><button class="tab active" data-tab="expenses">Chi tiêu</button><button class="tab" data-tab="fund">Đóng quỹ</button><button class="tab" data-tab="people">Thành viên</button></nav>
   <section id="expensesTab" class="tabbody">
-    <div class="sectionhead"><div><h2>Danh sách chi tiêu</h2><p class="muted small">Chạm Sửa để cập nhật ngày, hạng mục, người trả, số tiền hoặc ghi chú.</p></div><button class="primary compact" id="addExpense">＋ Thêm khoản chi</button></div><div id="expenseList" class="list ledger-list"></div>
+    <div class="sectionhead"><div><h2>Danh sách chi tiêu</h2><p class="muted small">Chạm Sửa để cập nhật ngày, hạng mục, người trả, số tiền hoặc ghi chú.</p></div><button class="primary compact" id="addExpense">＋ Thêm khoản chi</button></div><div class="expense-toolbar" role="search" aria-label="Lọc chi tiêu">
+      <label class="sr-only" for="expenseSearch">Tìm khoản chi</label>
+      <input id="expenseSearch" type="search" placeholder="Tìm theo tên, ghi chú hoặc người trả" autocomplete="off">
+      <label class="sr-only" for="expenseCategoryFilter">Lọc danh mục</label>
+      <select id="expenseCategoryFilter" aria-label="Lọc danh mục"><option value="">Tất cả danh mục</option></select>
+      <label class="sr-only" for="expenseStatusFilter">Lọc trạng thái</label>
+      <select id="expenseStatusFilter" aria-label="Lọc trạng thái"><option value="">Tất cả trạng thái</option><option value="due">Chưa hoàn trả</option><option value="partial">Đã hoàn một phần</option><option value="paid">Đã thanh toán</option></select>
+    </div>
+    <div id="expenseList" class="list ledger-list"></div>
   </section>
   <section id="fundTab" class="tabbody hidden">
     <div class="sectionhead"><div><h2>Theo dõi quỹ</h2><p class="muted small">Quỹ ban đầu được tính riêng. Các lần đóng thêm nằm trong danh sách dưới đây.</p></div><div class="section-actions"><button class="primary compact" id="addContribution">＋ Đóng quỹ thêm</button></div></div><div id="contributionList" class="list ledger-list"></div>
@@ -49,6 +57,9 @@
     <div class="sectionhead debt-heading"><div><h2>Khoản nợ riêng giữa thành viên</h2><p class="muted small">Ghi các khoản nợ cá nhân ngoài phần chia chi tiêu chung.</p></div></div>
     <div id="debtList" class="list ledger-list"></div>
     <div class="settlement"><h3>Gợi ý trả nợ riêng</h3><p class="muted small">Các khoản chuyển tối giản theo nợ riêng chưa thanh toán.</p><div id="debtSettlements"></div></div>
+    <div class="sectionhead debt-heading"><div><h2>Lịch sử thanh toán</h2><p class="muted small">Các khoản hoàn quỹ và trả nợ, kể cả thanh toán một phần hoặc hoàn tác.</p></div></div>
+    <div id="paymentHistory" class="list ledger-list" aria-live="polite"></div>
+    <div id="activityPanel" class="activity-panel"><div class="sectionhead"><div><h2>Nhật ký thay đổi</h2><p class="muted small">Xem ai đã cập nhật dữ liệu và khôi phục khoản chi hoặc khoản đóng bị xóa.</p></div></div><div id="activityList" class="list ledger-list"></div></div>
   </section>
   <footer><span id="syncStatus">● Đang kết nối…</span><div class="footer-actions"><button id="deleteTripBtn" class="danger hidden">Xóa chuyến đi</button><button id="leaveBtn" class="ghost">Rời chuyến</button></div></footer>
 </section>
@@ -57,6 +68,15 @@
   <span>© <time datetime="2026">2026</time> <strong>TripTogether</strong>. Bảo lưu mọi quyền.</span>
   <span>Phát triển bởi <a href="https://github.com/an-max-la" target="_blank" rel="noopener noreferrer">an-max-la</a></span>
 </footer>
+<dialog id="paymentDialog" aria-labelledby="paymentDialogTitle">
+  <form id="paymentForm" method="dialog">
+    <h2 id="paymentDialogTitle">Ghi thanh toán</h2>
+    <p id="paymentContext" class="muted small"></p>
+    <label>Số tiền (VNĐ)<input id="paymentAmount" type="number" min="1" step="1" required></label>
+    <label>Ghi chú<input id="paymentNote" maxlength="200" placeholder="Tùy chọn"></label>
+    <menu><button type="button" id="paymentCancel" class="secondary">Hủy</button><button type="submit" id="paymentSave" class="primary">Lưu thanh toán</button></menu>
+  </form>
+</dialog>
 <dialog id="tripTitleDialog"><form method="dialog" id="tripTitleForm"><h2>Tạo chuyến đi</h2><label>Tên chuyến đi<input id="tripTitle" required maxlength="100" placeholder="Ví dụ: Cao Bằng"></label><label>Quỹ ban đầu (VNĐ)<input id="tripInitialFund" type="number" min="0" step="1" value="0" placeholder="16000000"></label><menu><button class="secondary" type="button" id="tripTitleCancel">Hủy</button><button class="primary" id="tripTitleSave" value="default">Tạo chuyến</button></menu></form></dialog>
 <dialog id="profileDialog"><form method="dialog" id="profileForm"><h2>Tên hiển thị của bạn</h2><p class="muted">Tên này sẽ xuất hiện trong chuyến đi chung.</p><input id="displayName" maxlength="40" required placeholder="Tên của bạn"><menu><button class="secondary" type="button" id="profileCancel">Hủy</button><button class="primary" id="profileSave" value="default">Tiếp tục</button></menu></form></dialog>
 <dialog id="accountDialog" aria-labelledby="accountDialogTitle"><section class="account-dialog-content"><h2 id="accountDialogTitle">Tài khoản TripTogether</h2><div id="accountContent"></div><menu><button class="secondary" type="button" id="accountClose">Đóng</button></menu></section></dialog>
@@ -69,5 +89,5 @@
 <dialog id="debtDialog"><form method="dialog" id="debtForm"><h2>Ghi khoản nợ thành viên</h2><p class="muted small">Khoản này hiển thị trong đối soát thành viên; không trừ vào quỹ chung.</p><div class="formgrid"><label>Người nợ<select id="debtDebtor" required></select></label><label>Người nhận nợ<select id="debtCreditor" required></select></label></div><label>Số tiền (VNĐ)<input id="debtAmount" type="number" min="1" step="1" required placeholder="250000"></label><div class="formgrid"><label>Ngày<input id="debtDate" type="date" required></label><label>Ghi chú<input id="debtNote" maxlength="200" placeholder="Lý do khoản nợ"></label></div><menu><button class="secondary" id="debtCancel" type="button">Hủy</button><button class="primary" id="debtSave" value="default">Lưu khoản nợ</button></menu></form></dialog>
 <script>
 window.__supabaseSdkReady=new Promise(resolve=>{const sources=['https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2','https://unpkg.com/@supabase/supabase-js@2'];let index=0;const load=()=>{if(window.supabase){resolve(true);return}if(index>=sources.length){resolve(false);return}const script=document.createElement('script');script.src=sources[index++];let finished=false;const timer=setTimeout(()=>{if(finished)return;finished=true;script.remove();load()},6000);script.onload=()=>{if(finished)return;finished=true;clearTimeout(timer);if(window.supabase)resolve(true);else load()};script.onerror=()=>{if(finished)return;finished=true;clearTimeout(timer);script.remove();load()};document.head.appendChild(script)};load()});
-</script><script src="i18n.js?v=1"></script><script src="finance.js?v=1"></script><script src="app.js?v=45"></script>
+</script><script src="i18n.js?v=2"></script><script src="finance.js?v=2"></script><script src="trip-ui.js?v=1"></script><script src="app.js?v=46"></script>
 </body></html>

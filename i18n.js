@@ -183,6 +183,49 @@ const dictionary={
 Object.assign(dictionary,{"Đã gửi yêu cầu. Host sẽ quyết định cấp quyền chỉnh sửa.":"Request sent. The Host will decide whether to grant editing access.","Đã tham gia chuyến đi. Mở tab Thành viên → Xin quyền chỉnh sửa để gửi yêu cầu cho Host.":"You've joined the trip. Open Members → Request edit access to ask the Host.","Không tìm thấy chuyến đi hoặc link không hợp lệ.":"Trip not found or the link is invalid.","Hãy cấu hình Supabase theo SETUP.md trước nhé.":"Please configure Supabase according to SETUP.md first.","Cần ít nhất hai thành viên để ghi khoản nợ.":"At least two members are required to record a debt.","Người nợ và người nhận nợ phải khác nhau.":"The debtor and creditor must be different people.","Đăng xuất khỏi tài khoản trên thiết bị này? Chuyến đi trên thiết bị khác không bị ảnh hưởng.":"Sign out on this device? Trips on other devices will not be affected.","Đã sao chép link xem (không cần mã). Chỉ chia sẻ với người đáng tin cậy.":"View link copied (no passcode required). Share only with people you trust.","Đã gửi email xác minh.":"Verification email sent.","Đang cập nhật…":"Refreshing…","Xem chuyến đi":"View trip","Đánh dấu đã hoàn trả":"Mark reimbursed","Đánh dấu chưa hoàn trả":"Mark not reimbursed","Chỉ thành viên đã tham gia bằng tài khoản đăng nhập mới hiện ở đây. Thành viên được thêm thủ công chưa có tài khoản nên chưa thể cấp quyền trực tiếp.":"Only members who joined with an account appear here. Manually added members cannot receive direct edit access.","Chưa có thành viên đăng nhập nào để cấp quyền.":"No signed-in members to grant access to yet.","Để bật phân quyền riêng cho từng thành viên, hãy chạy member_edit_permissions.sql một lần trong Supabase SQL Editor. Các thành viên hiện tại vẫn giữ quyền sửa cho đến khi migration được cài.":"Run member_edit_permissions.sql in Supabase SQL Editor once to enable individual permissions. Existing members retain access until migration.","Đang chờ Host duyệt yêu cầu.":"Waiting for Host approval.","Quỹ đã hoàn trả":"Fund reimbursed","Quỹ còn nợ":"Fund owes","Trả trực tiếp từ quỹ":"Paid directly from fund","Ứng bởi":"Advanced by","Chưa có yêu cầu cấp quyền mới.":"No pending access requests.","Đã lưu mật khẩu. Bạn có thể dùng tài khoản này để đăng nhập trên thiết bị khác.":"Password saved. You can now sign in on other devices.","Email hoặc mật khẩu không đúng. Hãy kiểm tra lại hoặc đặt lại mật khẩu.":"Incorrect email or password. Please try again or reset your password.","Email chưa được xác minh. Hãy kiểm tra hộp thư của bạn.":"Email isn't verified yet. Check your inbox.","Email này đã có tài khoản. Hãy chuyển sang Đăng nhập.":"This email already has an account. Switch to Sign in.","Kiểm tra email để xác minh tài khoản. Sau khi xác minh, quay lại đây để tạo mật khẩu.":"Check your email to verify your account, then return to set a password.","Mật khẩu xác nhận chưa khớp.":"Passwords do not match.","Quyền chỉnh sửa":"Edit access","Đang tải…":"Loading…"} );
 Object.assign(dictionary,{"Bảo lưu mọi quyền.":"All rights reserved.","Phát triển bởi":"Developed by"});
 Object.assign(dictionary,{'Quỹ còn nợ:':'Fund owes:'});
+Object.assign(dictionary,{
+  "Tìm khoản chi":"Search expenses",
+  "Lọc danh mục":"Filter categories",
+  "Lọc trạng thái":"Filter status",
+  "Tìm theo tên, ghi chú hoặc người trả":"Search name, note, or payer",
+  "Tất cả danh mục":"All categories",
+  "Tất cả trạng thái":"All statuses",
+  "Chưa hoàn trả":"Not reimbursed",
+  "Đã hoàn một phần":"Partially reimbursed",
+  "Đã thanh toán":"Paid",
+  "Không tìm thấy khoản chi phù hợp.":"No matching expenses.",
+  "Ghi hoàn trả":"Record reimbursement",
+  "Ghi trả nợ":"Record debt payment",
+  "Hoàn tác thanh toán":"Reverse payment",
+  "Đã hoàn một phần":"Partially reimbursed",
+  "Đã trả một phần":"Partially paid",
+  "Ghi thanh toán":"Record payment",
+  "Số tiền (VNĐ)":"Amount (VND)",
+  "Lưu thanh toán":"Save payment",
+  "Tùy chọn":"Optional",
+  "Lịch sử thanh toán":"Payment history",
+  "Các khoản hoàn quỹ và trả nợ, kể cả thanh toán một phần hoặc hoàn tác.":"Reimbursements and debt payments, including partial and reversed payments.",
+  "Chưa có thanh toán nào.":"No payments recorded yet.",
+  "Nhật ký thay đổi":"Activity history",
+  "Xem ai đã cập nhật dữ liệu và khôi phục khoản chi hoặc khoản đóng bị xóa.":"See record edits and restore deleted expenses or contributions.",
+  "Chưa có thay đổi nào được ghi nhận.":"No recorded activity yet.",
+  "Khôi phục":"Restore",
+  "Đã thêm":"Added",
+  "Đã sửa":"Edited",
+  "Đã xóa":"Deleted",
+  "Khoản chi":"Expense",
+  "Đóng quỹ":"Contribution",
+  "Nợ riêng":"Personal debt",
+  "Thanh toán":"Payment",
+  "Quỹ chung hoàn tiền":"Fund reimbursement",
+  "Thanh toán nợ riêng":"Personal debt payment",
+  "Hoàn tác":"Reversed",
+  "Đã ghi thanh toán.":"Payment recorded.",
+  "Đã khôi phục dữ liệu.":"Record restored.",
+  "Không thể khôi phục: ":"Could not restore: ",
+  "Không thể ghi thanh toán: ":"Could not record payment: ",
+  "Trạng thái không khả dụng":"Status unavailable"
+});
 const reverse=new Map(Object.entries(dictionary).map(([vi,en])=>[en,vi]));
 let language=localStorage.getItem('tt_language')==='en'?'en':'vi';
 const sourceText=new WeakMap();

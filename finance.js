@@ -5,15 +5,36 @@
   if (root) root.TripTogetherFinance = api;
 })(typeof globalThis !== 'undefined' ? globalThis : undefined, function() {
   'use strict';
+  function applyPayments(expenses, debts, payments) {
+    const expenseTotals = new Map(), debtTotals = new Map();
+    for (const payment of payments || []) {
+      const map = payment.expense_id ? expenseTotals : debtTotals;
+      const key = payment.expense_id || payment.debt_id;
+      if (!key) continue;
+      map.set(key, (map.get(key) || 0) + Number(payment.amount));
+    }
+    const amountPaid = (row, values, completed) => {
+      const amount = Number(row.amount);
+      return Math.min(amount, Math.max(0, values.has(row.id) ? values.get(row.id) : completed ? amount : 0));
+    };
+    return {
+      expenses: expenses.map(row => ({ ...row, paid_amount: row.payer_id ? amountPaid(row, expenseTotals, row.reimbursed) : 0 })),
+      debts: debts.map(row => ({ ...row, paid_amount: amountPaid(row, debtTotals, row.is_settled) }))
+    };
+  }
+  const reimbursedAmount = item => item.payer_id
+    ? Math.max(0, Math.min(Number(item.amount), item.paid_amount == null ? (item.reimbursed ? Number(item.amount) : 0) : Number(item.paid_amount)))
+    : Number(item.amount);
+
   function calculateTotals(trip, expenses, contributions) {
     const spent = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
     const additional = contributions.reduce((sum, item) => sum + Number(item.amount), 0);
     const initial = Number(trip.initial_fund || 0);
     const fund = initial + additional;
     const fundPaid = expenses.reduce((sum, item) =>
-      sum + (!item.payer_id || item.reimbursed ? Number(item.amount) : 0), 0);
+      sum + reimbursedAmount(item), 0);
     const dueToMembers = expenses.reduce((sum, item) =>
-      sum + (item.payer_id && !item.reimbursed ? Number(item.amount) : 0), 0);
+      sum + (item.payer_id ? Number(item.amount) - reimbursedAmount(item) : 0), 0);
     const cashFund = fund - fundPaid;
     const actualFund = cashFund - dueToMembers;
     return { spent, additional, initial, fund, fundPaid, dueToMembers, cashFund, actualFund };
@@ -26,12 +47,24 @@
       const personal = expenses.filter(item => item.payer_id === member.user_id);
       const paid = personal.reduce((sum, item) => sum + Number(item.amount), 0);
       const outstanding = personal.reduce((sum, item) =>
-        sum + (!item.reimbursed ? Number(item.amount) : 0), 0);
+        sum + (Number(item.amount) - reimbursedAmount(item)), 0);
       const contributed = contributions.filter(item => item.payer_id === member.user_id)
         .reduce((sum, item) => sum + Number(item.amount), 0);
       const b = totals.initial / memberCount + contributed - sharePerMember - totals.actualFund / memberCount;
       return { id: member.user_id, name: member.name, paid, outstanding, contributed, share: sharePerMember, b };
     });
+  }
+
+  function calculateDebtBalances(members, debts) {
+    return members.map(member => ({
+      id: member.user_id, name: member.name,
+      b: debts.reduce((sum, debt) => {
+        const due = Math.max(0, Number(debt.amount) -
+          Number(debt.paid_amount == null ? (debt.is_settled ? debt.amount : 0) : debt.paid_amount));
+        return sum + (debt.creditor_id === member.user_id ? due :
+                      debt.debtor_id === member.user_id ? -due : 0);
+      }, 0)
+    }));
   }
 
   // Preserve the existing transfer order, threshold and rounding behavior.
@@ -60,5 +93,5 @@
     return get('year') + '-' + get('month') + '-' + get('day');
   }
 
-  return { calculateTotals, calculateMemberBalances, settle, vietnamDate };
+  return { calculateTotals, calculateMemberBalances, calculateDebtBalances, applyPayments, settle, vietnamDate };
 });
