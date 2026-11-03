@@ -180,6 +180,7 @@ const dictionary={
   "Đăng nhập / Đăng ký": "Sign in / Sign up",
   "Đăng nhập để tạo chuyến đi": "Sign in to create a trip"
 };
+Object.assign(dictionary,{"Đã gửi yêu cầu. Host sẽ quyết định cấp quyền chỉnh sửa.":"Request sent. The Host will decide whether to grant editing access.","Đã tham gia chuyến đi. Mở tab Thành viên → Xin quyền chỉnh sửa để gửi yêu cầu cho Host.":"You've joined the trip. Open Members → Request edit access to ask the Host.","Không tìm thấy chuyến đi hoặc link không hợp lệ.":"Trip not found or the link is invalid.","Hãy cấu hình Supabase theo SETUP.md trước nhé.":"Please configure Supabase according to SETUP.md first.","Cần ít nhất hai thành viên để ghi khoản nợ.":"At least two members are required to record a debt.","Người nợ và người nhận nợ phải khác nhau.":"The debtor and creditor must be different people.","Đăng xuất khỏi tài khoản trên thiết bị này? Chuyến đi trên thiết bị khác không bị ảnh hưởng.":"Sign out on this device? Trips on other devices will not be affected.","Đã sao chép link xem (không cần mã). Chỉ chia sẻ với người đáng tin cậy.":"View link copied (no passcode required). Share only with people you trust.","Đã gửi email xác minh.":"Verification email sent.","Đang cập nhật…":"Refreshing…","Xem chuyến đi":"View trip","Đánh dấu đã hoàn trả":"Mark reimbursed","Đánh dấu chưa hoàn trả":"Mark not reimbursed","Chỉ thành viên đã tham gia bằng tài khoản đăng nhập mới hiện ở đây. Thành viên được thêm thủ công chưa có tài khoản nên chưa thể cấp quyền trực tiếp.":"Only members who joined with an account appear here. Manually added members cannot receive direct edit access.","Chưa có thành viên đăng nhập nào để cấp quyền.":"No signed-in members to grant access to yet.","Để bật phân quyền riêng cho từng thành viên, hãy chạy member_edit_permissions.sql một lần trong Supabase SQL Editor. Các thành viên hiện tại vẫn giữ quyền sửa cho đến khi migration được cài.":"Run member_edit_permissions.sql in Supabase SQL Editor once to enable individual permissions. Existing members retain access until migration.","Đang chờ Host duyệt yêu cầu.":"Waiting for Host approval.","Quỹ đã hoàn trả":"Fund reimbursed","Quỹ còn nợ":"Fund owes","Trả trực tiếp từ quỹ":"Paid directly from fund","Ứng bởi":"Advanced by","Chưa có yêu cầu cấp quyền mới.":"No pending access requests.","Đã lưu mật khẩu. Bạn có thể dùng tài khoản này để đăng nhập trên thiết bị khác.":"Password saved. You can now sign in on other devices.","Email hoặc mật khẩu không đúng. Hãy kiểm tra lại hoặc đặt lại mật khẩu.":"Incorrect email or password. Please try again or reset your password.","Email chưa được xác minh. Hãy kiểm tra hộp thư của bạn.":"Email isn't verified yet. Check your inbox.","Email này đã có tài khoản. Hãy chuyển sang Đăng nhập.":"This email already has an account. Switch to Sign in.","Kiểm tra email để xác minh tài khoản. Sau khi xác minh, quay lại đây để tạo mật khẩu.":"Check your email to verify your account, then return to set a password.","Mật khẩu xác nhận chưa khớp.":"Passwords do not match.","Quyền chỉnh sửa":"Edit access","Đang tải…":"Loading…"} );
 const reverse=new Map(Object.entries(dictionary).map(([vi,en])=>[en,vi]));
 let language=localStorage.getItem('tt_language')==='en'?'en':'vi';
 const sourceText=new WeakMap();
@@ -189,6 +190,24 @@ function translation(original){
  const translated=dictionary[original];
  if(language==='vi')return original;
  if(translated)return translated;
+ const variablePrefixes={
+  'Không thể tạo chuyến: ':'Could not create trip: ',
+  'Không thể mở chuyến đi: ':'Could not open trip: ',
+  'Không thể tham gia chuyến đi: ':'Could not join trip: ',
+  'Không thể lưu khoản chi: ':'Could not save expense: ',
+  'Không thể lưu khoản đóng quỹ: ':'Could not save contribution: ',
+  'Không thể lưu khoản nợ: ':'Could not save debt: ',
+  'Không thể cập nhật khoản nợ: ':'Could not update debt: ',
+  'Không thể cập nhật hoàn trả: ':'Could not update reimbursement: ',
+  'Không thể xử lý yêu cầu: ':'Could not process request: ',
+  'Không thể gửi yêu cầu: ':'Could not submit request: ',
+  'Không thể kết nối: ':'Connection failed: ',
+  'Không thể lưu mật khẩu: ':'Could not save password: ',
+  'Không thể gửi email: ':'Could not send email: ',
+  'Không thể đăng nhập: ':'Could not sign in: ',
+  'Không thể cập nhật quyền sửa: ':'Could not update permissions: '
+ };
+ for(const [vi,en] of Object.entries(variablePrefixes))if(original.startsWith(vi))return en+original.slice(vi.length);
  // Preserve user-generated names and notes; replace only known UI fragments.
  const m=original.match(/^(\d+) thành viên$/);
  if(m)return m[1]+' members';
