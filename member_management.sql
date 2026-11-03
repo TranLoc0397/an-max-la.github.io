@@ -4,6 +4,10 @@ returns void language plpgsql security definer set search_path=public,pg_temp as
 begin
  if auth.uid() is null or not public.can_edit_trip(p_trip_id) then raise exception 'Editing permission required'; end if;
  if nullif(trim(p_name),'') is null or length(trim(p_name))>40 then raise exception 'Name must be between 1 and 40 characters'; end if;
+ if exists(select 1 from public.trips where id=p_trip_id and created_by=p_member_user_id)
+    and auth.uid()<>p_member_user_id then
+  raise exception 'Only the Host can rename their Host profile';
+ end if;
  update public.members set name=trim(p_name)
  where trip_id=p_trip_id and user_id=p_member_user_id;
  if not found then raise exception 'Member not found'; end if;
