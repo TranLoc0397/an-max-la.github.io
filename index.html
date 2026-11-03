@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#142b3a"><meta name="description" content="Quản lý chi tiêu và quỹ chung cho chuyến đi">
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="triptogether-logo.png?v=1" type="image/png">
-<title>TripTogether</title><link rel="stylesheet" href="styles.css?v=39">
+<title>TripTogether</title><link rel="stylesheet" href="styles.css?v=40">
 </head>
 <body>
 <div id="pageLoader" class="page-loader" role="status" aria-live="polite"><span class="loading-spinner" aria-hidden="true"></span><span id="pageLoaderText">Loading TripTogether…</span></div>
@@ -53,6 +53,10 @@
   <footer><span id="syncStatus">● Đang kết nối…</span><div class="footer-actions"><button id="deleteTripBtn" class="danger hidden">Xóa chuyến đi</button><button id="leaveBtn" class="ghost">Rời chuyến</button></div></footer>
 </section>
 </main>
+<footer class="site-copyright" aria-label="Copyright">
+  <span>© <time datetime="2026">2026</time> <strong>TripTogether</strong>. Bảo lưu mọi quyền.</span>
+  <span>Phát triển bởi <a href="https://github.com/an-max-la" target="_blank" rel="noopener noreferrer">an-max-la</a></span>
+</footer>
 <dialog id="tripTitleDialog"><form method="dialog" id="tripTitleForm"><h2>Tạo chuyến đi</h2><label>Tên chuyến đi<input id="tripTitle" required maxlength="100" placeholder="Ví dụ: Cao Bằng"></label><label>Quỹ ban đầu (VNĐ)<input id="tripInitialFund" type="number" min="0" step="1" value="0" placeholder="16000000"></label><menu><button class="secondary" type="button" id="tripTitleCancel">Hủy</button><button class="primary" id="tripTitleSave" value="default">Tạo chuyến</button></menu></form></dialog>
 <dialog id="profileDialog"><form method="dialog" id="profileForm"><h2>Tên hiển thị của bạn</h2><p class="muted">Tên này sẽ xuất hiện trong chuyến đi chung.</p><input id="displayName" maxlength="40" required placeholder="Tên của bạn"><menu><button class="secondary" type="button" id="profileCancel">Hủy</button><button class="primary" id="profileSave" value="default">Tiếp tục</button></menu></form></dialog>
 <dialog id="accountDialog" aria-labelledby="accountDialogTitle"><section class="account-dialog-content"><h2 id="accountDialogTitle">Tài khoản TripTogether</h2><div id="accountContent"></div><menu><button class="secondary" type="button" id="accountClose">Đóng</button></menu></section></dialog>
