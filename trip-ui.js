@@ -21,5 +21,16 @@
    return text&&(!category||(item.category||'Khác')===category)&&matchStatus;
   });
  }
- return {filterExpenses};
+ function sharedAccess(user,trip,members=[]){
+   const signedIn=!!(user&&user.email&&!user.is_anonymous);
+   const owner=!!(user?.id&&trip?.created_by===user.id);
+   const member=members.find(m=>m.user_id===user?.id);
+   const joined=owner||!!member;
+   const canEdit=owner||!!member?.can_edit;
+   return {
+     signedIn,joined,canEdit,
+     mode:joined?(canEdit?'editor':'member'):signedIn?'signed-in-viewer':'guest-viewer'
+   };
+ }
+ return {filterExpenses,sharedAccess};
 });
