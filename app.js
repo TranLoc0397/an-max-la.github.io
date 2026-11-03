@@ -13,6 +13,35 @@ const authCallbackParams=new URLSearchParams(location.hash.replace(/^#/,''));
 const authSearchParams=new URLSearchParams(location.search);
 const authCallback=authSearchParams.has('code')||authCallbackParams.has('access_token')||authCallbackParams.has('error_code');
 const authCallbackError=authCallbackParams.get('error_description')||'';
+
+const PASSWORD_EYE='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>';
+const PASSWORD_EYE_OFF='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3 21 21"/><path d="M10.7 5.1a11 11 0 0 1 1.3-.1c6.5 0 10 7 10 7a16 16 0 0 1-3.2 4.1"/><path d="M6.3 6.3C3.4 8.2 2 12 2 12s3.5 7 10 7a10.9 10.9 0 0 0 4.1-.8"/><path d="M10 10a3 3 0 0 0 4 4"/></svg>';
+function addPasswordVisibilityControls(root=document){
+ root.querySelectorAll('input[type="password"]').forEach(input=>{
+  if(input.parentElement.classList.contains('password-field'))return;
+  const wrapper=document.createElement('span');
+  wrapper.className='password-field';
+  input.parentNode.insertBefore(wrapper,input);
+  wrapper.append(input);
+  const toggle=document.createElement('button');
+  toggle.type='button';
+  toggle.className='password-toggle';
+  toggle.setAttribute('aria-label','Hiện mật khẩu');
+  toggle.setAttribute('aria-pressed','false');
+  toggle.title='Hiện mật khẩu';
+  toggle.innerHTML=PASSWORD_EYE;
+  toggle.addEventListener('click',()=>{
+   const visible=input.type==='password';
+   input.type=visible?'text':'password';
+   toggle.setAttribute('aria-label',visible?'Ẩn mật khẩu':'Hiện mật khẩu');
+   toggle.setAttribute('aria-pressed',String(visible));
+   toggle.title=visible?'Ẩn mật khẩu':'Hiện mật khẩu';
+   toggle.innerHTML=visible?PASSWORD_EYE_OFF:PASSWORD_EYE;
+   input.focus({preventScroll:true});
+  });
+  wrapper.append(toggle);
+ });
+}
 function ready(){return SUPABASE_URL.startsWith('https://') && !SUPABASE_ANON_KEY.startsWith('PASTE_') && window.supabase}
 function status(s){const el=$('syncStatus');el.textContent='● '+s;el.classList.toggle('sync-loading',s==='Loading…'||s==='Connecting…')}
 function pageLoading(show,message='Loading…'){$('pageLoaderText').textContent=message;$('pageLoader').classList.toggle('hidden',!show)}
@@ -48,6 +77,7 @@ async function reviewEditRequest(button){
 $('requestEditBtn').onclick=requestEditAccess;
 async function withButtonLoading(button,message,action){if(!button||actionInFlight)return;actionInFlight=true;const controls=[...document.querySelectorAll('button')],disabled=controls.map(b=>b.disabled),label=button.textContent;controls.forEach(b=>b.disabled=true);button.classList.add('is-loading');button.setAttribute('aria-busy','true');button.textContent=message;try{return await action()}finally{controls.forEach((b,i)=>{if(b.isConnected)b.disabled=disabled[i]});button.classList.remove('is-loading');button.removeAttribute('aria-busy');button.textContent=label;actionInFlight=false}}
 async function init(){
+ addPasswordVisibilityControls();
  pageLoading(true,'Connecting to your trip…');
  try{
   const sdkLoaded=await window.__supabaseSdkReady;
@@ -91,6 +121,7 @@ function openAccount(){
   content.insertAdjacentHTML('beforeend','<hr><button class="danger compact" type="button" id="accountLogout">Đăng xuất khỏi thiết bị này</button><p class="muted small">Chỉ đăng xuất thiết bị hiện tại; chuyến đi không bị xóa và thiết bị khác vẫn đăng nhập.</p>');
   $('accountLogout').onclick=async()=>{if(!confirm('Đăng xuất khỏi tài khoản trên thiết bị này? Chuyến đi và phiên đăng nhập trên các thiết bị khác vẫn được giữ nguyên.'))return;const button=$('accountLogout');await withButtonLoading(button,'Đang đăng xuất…',async()=>{try{const {error}=await db.auth.signOut({scope:'local'});if(error)throw error;localStorage.removeItem('tt_account_pending');location.replace(location.pathname)}catch(error){alert('Không thể đăng xuất: '+error.message)}})};
  }
+ addPasswordVisibilityControls(content);
  $('accountDialog').showModal();
 }
 $('accountBtn').onclick=openAccount;
