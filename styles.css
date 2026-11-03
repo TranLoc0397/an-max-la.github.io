@@ -369,3 +369,94 @@ dialog::backdrop{background:rgba(11,37,48,.57);backdrop-filter:blur(3px)}
 /* Use Roboto for all languages, including form controls and dialog content. */
 html,body,button,input,select,textarea,option,dialog,summary,legend,output{font-family:'Roboto',Arial,sans-serif}
 button,input,select,textarea{font-family:inherit}
+
+
+/* Unified controls — consistent weight, touch targets and layout on narrow screens. */
+:root{
+  --ui-action-font-size:13px;
+  --ui-action-height:44px;
+  --ui-action-radius:11px;
+  --ui-action-gap:8px;
+}
+.primary,.secondary,.ghost,.danger{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  min-height:var(--ui-action-height);
+  padding:10px 15px;
+  font-family:'Roboto',Arial,sans-serif;
+  font-size:var(--ui-action-font-size);
+  font-weight:700;
+  line-height:1.25;
+  text-align:center;
+  border-radius:var(--ui-action-radius);
+  white-space:normal;
+  overflow-wrap:normal;
+  vertical-align:middle;
+}
+.primary.compact,.secondary.compact,.ghost.compact,.danger.compact{
+  min-height:40px;
+  padding:8px 13px;
+  font-size:var(--ui-action-font-size);
+  line-height:1.25;
+}
+.sectionhead{gap:14px;align-items:flex-start}
+.sectionhead>div:first-child{min-width:0}
+.sectionhead h2{line-height:1.35}
+.sectionhead .muted{line-height:1.55}
+.section-actions,.member-actions,.triphead-actions,.footer-actions{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:var(--ui-action-gap);
+}
+.sectionhead>button,.sectionhead>.section-actions{flex-shrink:0}
+#addExpense,#addContribution,#addMember,#addDebt,
+#memberAccessBtn,#inviteBtn,#deleteTripBtn,#leaveBtn{
+  font-size:var(--ui-action-font-size);
+  font-weight:700;
+  min-height:var(--ui-action-height);
+  padding:10px 14px;
+  line-height:1.25;
+}
+#addExpense,#addContribution,#addMember,#addDebt{white-space:nowrap}
+#memberAccessBtn,#inviteBtn{white-space:nowrap}
+#deleteTripBtn,#leaveBtn{white-space:nowrap}
+.sectionhead.debt-heading{margin-top:24px}
+@media(max-width:760px){
+  .sectionhead{flex-direction:column;align-items:stretch;gap:10px}
+  .sectionhead>div:first-child{flex:0 0 auto;min-width:0}
+  .sectionhead>button,.sectionhead>.section-actions{width:100%;flex:0 0 auto}
+  .sectionhead>button{align-self:stretch}
+  .section-actions{justify-content:stretch}
+  .section-actions>button{flex:1 1 0;min-width:0}
+  .members-sectionhead{gap:10px}
+  .members-sectionhead>div:first-child{flex:0 0 auto}
+  .member-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .member-actions button{width:100%;min-width:0;white-space:nowrap}
+  .triphead-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;min-width:0}
+  .triphead-actions #memberAccessBtn,.triphead-actions #inviteBtn{
+    width:100%;min-width:0;white-space:normal;overflow-wrap:break-word;
+  }
+  .footer-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}
+}
+@media(max-width:520px){
+  :root{--ui-action-font-size:13px}
+  .sectionhead h2{font-size:19px}
+  .sectionhead .muted{font-size:12px}
+  #addExpense,#addContribution,#addMember,#addDebt,
+  #memberAccessBtn,#inviteBtn,#deleteTripBtn,#leaveBtn{min-height:44px}
+  .triphead-actions{width:100%;margin-left:0}
+  .footer-actions{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .footer-actions>button{width:100%;min-width:0}
+  .member-actions .compact{font-size:13px;min-height:44px;padding:10px 8px}
+  .sectionhead.debt-heading{margin-top:26px}
+}
+@media(max-width:350px){
+  .member-actions{grid-template-columns:1fr}
+  .triphead-actions{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){
+ .primary,.secondary,.ghost,.danger{transition:none!important;animation:none!important}
+}
