@@ -90,12 +90,12 @@ begin
   select coalesce(sum(amount),0) into already_paid from public.trip_payments where expense_id=NEW.id;
   if already_paid>0 and (NEW.payer_id is null or NEW.amount < already_paid)
    then raise exception 'Cannot change a paid expense below its reimbursed amount'; end if;
-  if already_paid>0 and NEW.reimbursed is distinct from (already_paid=NEW.amount)
+  if NEW.reimbursed is distinct from (already_paid=NEW.amount)
    then raise exception 'Update reimbursement through record_trip_payment'; end if;
  elsif TG_TABLE_NAME='member_debts' then
   select coalesce(sum(amount),0) into already_paid from public.trip_payments where debt_id=NEW.id;
   if already_paid>NEW.amount then raise exception 'Cannot change debt below its paid amount'; end if;
-  if already_paid>0 and NEW.is_settled is distinct from (already_paid=NEW.amount)
+  if NEW.is_settled is distinct from (already_paid=NEW.amount)
    then raise exception 'Update debt payment through record_trip_payment'; end if;
  end if;
  return NEW;
@@ -188,6 +188,15 @@ begin
    and source_table in ('expenses','contributions');
  if not found then raise exception 'Restorable record not found'; end if;
  d:=event.before_data;restored_id:=event.record_id;
+ -- Paid expenses require full-ledger recovery, not a partial record-only restore.
+ if event.source_table='expenses' and exists(
+   select 1 from public.trip_activity h
+   where h.trip_id=p_trip_id and h.source_table='trip_payments' and h.action='DELETE'
+     and h.before_data->>'expense_id'=restored_id::text
+     and h.recorded_at between event.recorded_at-interval '10 seconds' and event.recorded_at+interval '10 seconds'
+ ) then
+  raise exception 'This deleted expense has payment history; restore payments alongside the expense';
+ end if;
  if event.source_table='expenses' then
   if exists(select 1 from public.expenses where id=restored_id) then raise exception 'Expense already restored'; end if;
   if d->>'payer_id' is not null and not exists(select 1 from public.members where trip_id=p_trip_id and user_id=(d->>'payer_id')::uuid)
