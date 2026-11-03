@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#6559e8"><meta name="description" content="Quản lý chi tiêu và quỹ chung cho chuyến đi">
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="triptogether-purple-icon.svg?v=1" type="image/svg+xml"><link rel="apple-touch-icon" href="triptogether-purple-icon.png?v=1">
-<title>TripTogether</title><link rel="stylesheet" href="styles.css?v=51">
+<title>TripTogether</title><link rel="stylesheet" href="styles.css?v=52">
 </head>
 <body>
 <div id="pageLoader" class="page-loader" role="status" aria-live="polite"><span class="loading-spinner" aria-hidden="true"></span><span id="pageLoaderText">Loading TripTogether…</span></div>
@@ -106,13 +106,57 @@
     <div class="member-table-head"><span>Thành viên</span><span>Đã chi cá nhân</span><span>Đã đóng quỹ</span><span>Phần chi</span></div>
     <div id="memberList" class="list ledger-list"></div>
     <div id="editRequestPanel" class="settlement member-permissions hidden"><h3>Xin quyền chỉnh sửa</h3><p class="muted small" id="editRequestState">Bạn có thể gửi yêu cầu để Host cấp quyền.</p><button class="primary compact" type="button" id="requestEditBtn">Gửi yêu cầu cấp quyền</button></div>
-    <div class="settlement"><h3>Đối soát quỹ</h3><p class="muted small">Gợi ý cân bằng khoản đóng quỹ giữa các thành viên. Các khoản quỹ còn nợ thành viên được theo dõi riêng và không tính lần hai vào đối soát này.</p><div id="expenseSettlements"></div></div>
-    <div class="sectionhead debt-heading"><div><h2>Khoản nợ riêng giữa thành viên</h2><p class="muted small">Ghi các khoản nợ cá nhân ngoài phần chia chi tiêu chung.</p></div></div>
-    <div id="debtList" class="list ledger-list"></div>
-    <div class="settlement"><h3>Gợi ý trả nợ riêng</h3><p class="muted small">Các khoản chuyển tối giản theo nợ riêng chưa thanh toán.</p><div id="debtSettlements"></div></div>
-    <div class="sectionhead debt-heading"><div><h2>Lịch sử thanh toán</h2><p class="muted small">Các khoản hoàn quỹ và trả nợ, kể cả thanh toán một phần hoặc hoàn tác.</p></div></div>
-    <div id="paymentHistory" class="list ledger-list" aria-live="polite"></div>
-    <div id="activityPanel" class="activity-panel"><div class="sectionhead"><div><h2>Nhật ký thay đổi</h2><p class="muted small">Xem ai đã cập nhật dữ liệu và khôi phục khoản chi hoặc khoản đóng bị xóa.</p></div></div><div id="activityList" class="list ledger-list"></div></div>
+    <section class="tt-reconciliation" aria-labelledby="reconciliationTitle">
+      <header class="tt-reconciliation-header">
+        <span class="tt-reconciliation-icon" aria-hidden="true">⇄</span>
+        <div>
+          <h2 id="reconciliationTitle">Đối soát quỹ</h2>
+          <p class="muted small">Tổng hợp cân bằng quỹ, nợ riêng và lịch sử thanh toán trong chuyến đi.</p>
+        </div>
+      </header>
+      <div class="tt-reconciliation-grid">
+        <section class="tt-reconciliation-card tt-reconciliation-card-primary" aria-labelledby="fundReconcileTitle">
+          <div class="tt-reconciliation-card-heading">
+            <span class="tt-reconciliation-card-icon" aria-hidden="true">◈</span>
+            <div><h3 id="fundReconcileTitle">Cân bằng quỹ chung</h3>
+              <p class="muted small">Gợi ý cân bằng tiền đóng quỹ giữa các thành viên. Khoản quỹ chưa hoàn trả được theo dõi riêng.</p></div>
+          </div>
+          <div id="expenseSettlements" class="tt-reconciliation-content"></div>
+        </section>
+        <section class="tt-reconciliation-card" aria-labelledby="personalDebtsTitle">
+          <div class="tt-reconciliation-card-heading">
+            <span class="tt-reconciliation-card-icon" aria-hidden="true">↔</span>
+            <div><h3 id="personalDebtsTitle">Khoản nợ riêng giữa thành viên</h3>
+              <p class="muted small">Các khoản nợ cá nhân ngoài phần chia chi tiêu chung.</p></div>
+          </div>
+          <div id="debtList" class="list ledger-list tt-reconciliation-content"></div>
+        </section>
+        <section class="tt-reconciliation-card" aria-labelledby="debtSuggestionsTitle">
+          <div class="tt-reconciliation-card-heading">
+            <span class="tt-reconciliation-card-icon" aria-hidden="true">⇢</span>
+            <div><h3 id="debtSuggestionsTitle">Gợi ý trả nợ riêng</h3>
+              <p class="muted small">Các khoản chuyển tiền tối giản theo nợ riêng chưa thanh toán.</p></div>
+          </div>
+          <div id="debtSettlements" class="tt-reconciliation-content"></div>
+        </section>
+        <section class="tt-reconciliation-card" aria-labelledby="paymentHistoryTitle">
+          <div class="tt-reconciliation-card-heading">
+            <span class="tt-reconciliation-card-icon" aria-hidden="true">◷</span>
+            <div><h3 id="paymentHistoryTitle">Lịch sử thanh toán</h3>
+              <p class="muted small">Hoàn quỹ, trả nợ, thanh toán một phần và hoàn tác.</p></div>
+          </div>
+          <div id="paymentHistory" class="list ledger-list tt-reconciliation-content" aria-live="polite"></div>
+        </section>
+        <section id="activityPanel" class="tt-reconciliation-card tt-reconciliation-activity" aria-labelledby="activityTitle">
+          <div class="tt-reconciliation-card-heading">
+            <span class="tt-reconciliation-card-icon" aria-hidden="true">☷</span>
+            <div><h3 id="activityTitle">Nhật ký thay đổi</h3>
+              <p class="muted small">Xem lịch sử cập nhật và khôi phục khoản chi hoặc đóng quỹ đã xóa.</p></div>
+          </div>
+          <div id="activityList" class="list ledger-list tt-reconciliation-content"></div>
+        </section>
+      </div>
+    </section>
   </section>
   <footer><span id="syncStatus">● Đang kết nối…</span><div class="footer-actions"><button id="deleteTripBtn" class="danger hidden">Xóa chuyến đi</button><button id="leaveBtn" class="ghost">Rời chuyến</button></div></footer>
 </section>
