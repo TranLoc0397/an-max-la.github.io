@@ -1,0 +1,22 @@
+name: Phase 1 reliability tests
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  finance-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax
+        run: |
+          node --check app.js
+          node --check finance.js
+          node --check sw.js
+      - name: Verify financial calculations and Vietnam dates
+        run: node --test tests/finance.test.cjs
