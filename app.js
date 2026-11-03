@@ -437,7 +437,7 @@ function render(){
  contributionList.querySelectorAll('.delete-contribution').forEach(button=>button.onclick=()=>removeRecord('contributions',button,`Xóa khoản đóng quỹ “${button.dataset.note}”? Thao tác này không thể hoàn tác.`));
  const memberName=id=>members.find(m=>m.user_id===id)?.name||'Thành viên';
  const expenseBalances=window.TripTogetherFinance.calculateMemberBalances(members,displayExpenses,contributions,{spent,initial,actualFund});
- $('memberList').innerHTML=expenseBalances.length?expenseBalances.map(m=>`<div class="item member-row"><span class="item-title">${esc(m.name)}${m.id===trip.created_by?'<span class="creator-label" title="Trip creator">Host</span>':''}${m.outstanding?`<small class="member-outstanding">Quỹ còn nợ: ${money(m.outstanding)}</small>`:''}</span><span class="member-value">${money(m.paid)}</span><span class="member-value">${money(m.contributed)}</span><span class="member-value">${money(m.share)}</span></div>`).join(''):'<p class="muted ledger-empty">Chưa có thành viên.</p>';
+ $('memberList').innerHTML=expenseBalances.length?expenseBalances.map(m=>`<div class="item member-row"><span class="item-title">${esc(m.name)}${m.id===trip.created_by?'<span class="creator-label" title="Trip creator">Host</span>':''}${m.outstanding?`<small class="member-outstanding">Quỹ còn nợ: ${money(m.outstanding)}</small>`:''}</span><span class="member-cell"><small class="member-mobile-label">Đã chi cá nhân</small><span class="member-value">${money(m.paid)}</span></span><span class="member-cell"><small class="member-mobile-label">Đã đóng quỹ</small><span class="member-value">${money(m.contributed)}</span></span><span class="member-cell"><small class="member-mobile-label">Phần chi</small><span class="member-value">${money(m.share)}</span></span></div>`).join(''):'<p class="muted ledger-empty">Chưa có thành viên.</p>';
  const requestPanel=$('editRequestPanel'), requestState=$('editRequestState'), requestBtn=$('requestEditBtn');
  const isHost=trip.created_by===user?.id, joined=members.some(m=>m.user_id===user?.id);
  requestPanel.classList.toggle('hidden',readOnly||!joined||isHost||canEdit);
@@ -466,6 +466,33 @@ function render(){
  const balances=members.map(m=>({id:m.user_id,name:m.name,b:openDebts.reduce((sum,d)=>{const due=Number(d.amount)-Number(d.paid_amount||0);return sum+(d.creditor_id===m.user_id?due:d.debtor_id===m.user_id?-due:0)},0)}));
  const transfers=settle(balances);$('debtSettlements').innerHTML=transfers.length?transfers.map(t=>`<div class="settlement-row"><span>${esc(t.from)} → ${esc(t.to)}</span><b>${money(t.amount)}</b></div>`).join(''):'<p class="muted small">Không có khoản nợ chưa thanh toán.</p>';
  const opts=members.map(m=>`<option value="${m.user_id}">${esc(m.name)}</option>`).join('');$('expensePayer').innerHTML='<option value="shared_fund">Lấy từ quỹ chung</option>'+opts;$('fundPayer').innerHTML=opts;
+ const paymentHistory=$('paymentHistory'),activityPanel=$('activityPanel'),activityList=$('activityList');
+ const memberDisplay=id=>members.find(member=>member.user_id===id)?.name||'Thành viên';
+ const expenseById=id=>expenses.find(item=>item.id===id);
+ const debtById=id=>debts.find(item=>item.id===id);
+ paymentHistory.innerHTML=payments.length?payments.slice(0,60).map(p=>{
+   const isExpense=!!p.expense_id,source=isExpense?expenseById(p.expense_id):debtById(p.debt_id);
+   const title=isExpense?'Quỹ chung hoàn tiền':'Thanh toán nợ riêng';
+   const counterparty=isExpense?(source?.payer_name||'Thành viên'):(memberDisplay(source?.debtor_id)+' → '+memberDisplay(source?.creditor_id));
+   const subtitle=String(p.paid_on||'')+' · '+counterparty+(p.note?' · '+p.note:'');
+   return `<div class="item payment-history-entry"><div><b>${esc(Number(p.amount)<0?'Hoàn tác · '+title:title)}</b><small class="payment-meta">${esc(subtitle)}</small></div><span class="payment-amount ${Number(p.amount)<0?'payment-reversed':''}">${Number(p.amount)<0?'−':'+'}${money(Math.abs(Number(p.amount)))}</span></div>`;
+ }).join(''):'<p class="muted small">Chưa có thanh toán nào.</p>';
+ activityPanel.classList.toggle('hidden',readOnly);
+ if(!readOnly){
+  const entityNames={expenses:'Khoản chi',contributions:'Đóng quỹ',member_debts:'Nợ riêng',trip_payments:'Thanh toán'};
+  const actionNames={INSERT:'Đã thêm',UPDATE:'Đã sửa',DELETE:'Đã xóa'};
+  activityList.innerHTML=activityEvents.length?activityEvents.map(event=>{
+   const d=event.after_data||event.before_data||{},entity=entityNames[event.source_table]||event.source_table;
+   const title=d.title||d.note||d.payer_name||entity;
+   const exists=event.source_table==='expenses'?expenses.some(x=>x.id===event.record_id):
+     event.source_table==='contributions'?contributions.some(x=>x.id===event.record_id):true;
+   const canRestore=canEdit&&event.action==='DELETE'&&!exists&&
+     (event.source_table==='expenses'||event.source_table==='contributions');
+   const actor=event.actor_id?memberDisplay(event.actor_id):'Hệ thống';
+   return `<div class="item activity-entry"><div><b>${esc(actionNames[event.action]||event.action)} · ${esc(entity)}</b><small class="activity-meta">${esc(String(title).slice(0,70))} · ${esc(actor)} · ${esc(new Date(event.recorded_at).toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'}))}</small></div>${canRestore?`<button type="button" class="secondary compact restore-activity" data-id="${esc(event.id)}">Khôi phục</button>`:''}</div>`;
+  }).join(''):'<p class="muted small">Chưa có thay đổi nào được ghi nhận.</p>';
+  activityList.querySelectorAll('.restore-activity').forEach(button=>button.onclick=()=>restoreActivity(button));
+ }
  $('deleteTripBtn').classList.toggle('hidden',readOnly||trip.created_by!==user.id);$('shareBtn').classList.toggle('hidden',readOnly);$('inviteBtn').classList.toggle('hidden',readOnly);$('leaveBtn').classList.toggle('hidden',readOnly);$('addExpense').classList.toggle('hidden',!canEdit);$('addContribution').classList.toggle('hidden',!canEdit);$('editInitialFundBtn').classList.toggle('hidden',!canEdit);$('addMember').classList.toggle('hidden',!canEdit);$('addDebt').classList.toggle('hidden',!canEdit);$('syncStatus').textContent=readOnly?'● Chế độ chỉ xem':canEdit?'● Đã đồng bộ':'● Chỉ xem · chưa được cấp quyền sửa';
 }
 let pendingPayment=null;
@@ -519,6 +546,9 @@ function openContribution(record=null){$('fundForm').reset();$('fundId').value=r
 const settle = balances => window.TripTogetherFinance.settle(balances);
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function invite(ev){const button=ev?.currentTarget;if(!button)return;return withButtonLoading(button,'Đang tạo link…',async()=>{const url=location.origin+location.pathname+'?trip='+trip.invite_code;try{await navigator.clipboard.writeText(url);localizedAlert('Đã sao chép link xem (không cần mã). Chỉ chia sẻ với người đáng tin cậy.\n'+url)}catch{localizedAlert('Link xem chuyến đi (không cần mã, hãy giữ kín):\n'+url)}})}
+$('expenseSearch').addEventListener('input',()=>{if(trip)render()});
+$('expenseCategoryFilter').addEventListener('change',()=>{if(trip)render()});
+$('expenseStatusFilter').addEventListener('change',()=>{if(trip)render()});
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));['expenses','fund','people'].forEach(k=>$(k+'Tab').classList.toggle('hidden',b.dataset.tab!==k))});
 $('addExpense').onclick=()=>{if(!members.length)return;openExpense()};
 $('expenseCancel').onclick=()=>{$('expenseDialog').close();$('expenseForm').reset()};
