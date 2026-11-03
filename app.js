@@ -4,7 +4,7 @@ const $ = id => document.getElementById(id);
 const money = n => new Intl.NumberFormat('vi-VN',{style:'currency',currency:'VND',maximumFractionDigits:0}).format(Number(n||0));
 const dateToday = () => new Date().toISOString().slice(0,10);
 let db, user, trip, members=[], expenses=[], contributions=[], debts=[], channel, readOnly=false, canEdit=false, editPermissionsReady=false, sharedCode=null, sharedPasscode=null, viewerTimer=null;
-let editRequests=[], editRequestsAvailable=false;
+let editRequests=[], editRequestsAvailable=false, editRequestTimer=null;
 let pendingAction=null;
 let pendingTripTitleAction=null;
 let pendingPasscodeResolve=null;
@@ -140,7 +140,7 @@ async function joinFromSharedView(name){
    const {data:tripId,error}=await db.rpc('join_trip',{p_invite_code:code,p_name:name,p_passcode:passcode});
    if(error)throw error;
    await joinTrip(tripId,false);
-   if(!readOnly)alert('Đã tham gia chuyến đi. Tài khoản hiện ở chế độ chỉ xem. Hãy nhờ chủ chuyến vào Thành viên → Quyền chỉnh sửa thành viên → Cấp quyền sửa cho bạn.');
+   if(!readOnly)alert('Đã tham gia chuyến đi. Mở tab Thành viên → Xin quyền chỉnh sửa để gửi yêu cầu cho Host.');
   }catch(error){alert('Không thể tham gia chuyến đi: '+error.message)}
  });
 }
@@ -148,7 +148,7 @@ $('joinSharedTripBtn').onclick=()=>askName(joinFromSharedView);
 $('sharedAccountBtn').onclick=openAccount;
 async function showTrip(){$('welcome').classList.add('hidden');$('app').classList.remove('hidden');$('shareBtn').classList.toggle('hidden',readOnly||!trip.view_passcode_set);$('inviteBtn').classList.toggle('hidden',readOnly||!trip.view_passcode_set);$('setPasscodeBtn').classList.toggle('hidden',readOnly||trip.created_by!==user.id);$('setPasscodeBtn').textContent=trip.view_passcode_set?'Đổi mã xem':'Đặt mã xem trước khi chia sẻ';$('tripName').textContent=trip.name;$('sharedAccessPanel').classList.toggle('hidden',!readOnly);status(readOnly?'Chỉ xem':'Đã đồng bộ')}
 async function joinTrip(id,ask=true){
- readOnly=false;sharedCode=null;sharedPasscode=null;if(viewerTimer){clearInterval(viewerTimer);viewerTimer=null}
+ readOnly=false;sharedCode=null;sharedPasscode=null;if(editRequestTimer){clearInterval(editRequestTimer);editRequestTimer=null}if(viewerTimer){clearInterval(viewerTimer);viewerTimer=null}
  if(!user){status('Not connected');return}
  pageLoading(true,'Opening shared trip…');
  try{
@@ -159,6 +159,9 @@ async function joinTrip(id,ask=true){
   trip={...tdata,view_passcode_set:!!tdata.view_passcode_hash};delete trip.view_passcode_hash;await refresh();await loadMyTrips();await showTrip();
   if(channel)db.removeChannel(channel);
   channel=db.channel('trip-'+id).on('postgres_changes',{event:'*',schema:'public',table:'expenses',filter:'trip_id=eq.'+id},refresh).on('postgres_changes',{event:'*',schema:'public',table:'contributions',filter:'trip_id=eq.'+id},refresh).on('postgres_changes',{event:'*',schema:'public',table:'members',filter:'trip_id=eq.'+id},refresh).on('postgres_changes',{event:'*',schema:'public',table:'member_debts',filter:'trip_id=eq.'+id},refresh).subscribe(s=>status(s==='SUBSCRIBED'?'Live sync':'Connecting…'));
+  // Refresh request statuses and pending Host approvals while this trip is open.
+  const pollingTripId=trip.id;
+  editRequestTimer=setInterval(async()=>{if(!trip||readOnly||trip.id!==pollingTripId)return;const previous=JSON.stringify(editRequests);await loadEditRequests();if(JSON.stringify(editRequests)!==previous){await refresh()}},20000);
   $('shareBtn').onclick=invite;$('inviteBtn').onclick=invite;
  }catch(error){console.error(error);alert('Could not open trip: '+error.message)}
  finally{pageLoading(false)}
