@@ -677,3 +677,159 @@ body.tt-trip-open .activity-panel{border-color:#eceaf6}
  dialog menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
  dialog menu button{min-width:0;padding:11px 8px}
 }
+
+/* 2026 reference UI: workspace home and real trip cards.
+   Scoped deliberately so the expense, finance and access flows are unchanged. */
+.tt-workspace-home{
+ max-width:1400px;width:100%;margin:0 auto;min-height:0;
+ display:flex;flex-direction:column;gap:24px;padding:0!important;
+ background:transparent!important;border:0!important;
+ box-shadow:none!important;overflow:visible!important;isolation:auto!important;
+}
+.tt-workspace-home::before{content:none!important}
+.tt-welcome-hero{
+ display:grid;grid-template-columns:minmax(0,1.45fr) minmax(210px,.75fr);
+ position:relative;isolation:isolate;overflow:hidden;
+ gap:24px;align-items:center;min-height:300px;
+ padding:clamp(24px,4.5vw,54px);
+ border:1px solid #d9d4ff;border-radius:25px;
+ color:#fff;background:linear-gradient(120deg,#5f53dc,#8074ed 61%,#a196fb);
+ box-shadow:0 19px 38px #6559e825;
+}
+.tt-welcome-hero::before,.tt-welcome-hero::after{
+ content:"";pointer-events:none;position:absolute;z-index:-1;
+ border:1px solid #ffffff52;border-radius:50%;
+ width:380px;height:380px;top:-190px;right:-75px;
+}
+.tt-welcome-hero::after{width:275px;height:275px;right:1%;top:-120px}
+.tt-workspace-home .tt-welcome-copy{min-width:0;position:relative;z-index:2}
+.tt-workspace-home .tt-welcome-copy .eyebrow{color:#e9e6ff;font-size:11px;letter-spacing:1.65px}
+.tt-workspace-home .tt-welcome-copy h1{
+ color:#fff;margin:12px 0 14px;font-size:clamp(28px,3.8vw,48px);
+ line-height:1.14;font-weight:900;letter-spacing:-1.3px;
+}
+.tt-workspace-home .tt-welcome-copy h1 em{
+ color:#fff;font-style:normal;
+ background:none;-webkit-background-clip:initial;background-clip:initial;
+ -webkit-text-fill-color:currentColor;text-shadow:none;
+}
+.tt-workspace-home .tt-welcome-copy>p{color:#eeecff;font-size:14px;max-width:510px;line-height:1.7}
+.tt-workspace-home .tt-welcome-actions{margin-top:23px;align-items:center;gap:12px}
+.tt-workspace-home #createBtn{background:white;color:#594bd6;border:1px solid white;min-height:47px;padding:12px 19px;border-radius:12px;font-size:13px;font-weight:800;box-shadow:0 7px 20px #382cac2b}
+.tt-workspace-home #createLoginHint{color:#f8f7ff;max-width:260px}
+.tt-welcome-illustration{
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ min-height:210px;position:relative;z-index:1;gap:20px;
+}
+.tt-welcome-emoji{font-size:clamp(72px,9vw,130px);line-height:1;filter:drop-shadow(0 15px 19px #392a9d48);animation:tt-float 5s ease-in-out infinite}
+.tt-welcome-illustration-foot{border:1px solid #ffffff5a;border-radius:999px;background:#ffffff18;color:#fff;padding:10px 14px;font-size:12px;font-weight:700;backdrop-filter:blur(6px)}
+@keyframes tt-float{0%,100%{transform:translateY(0) rotate(-7deg)}50%{transform:translateY(-10px) rotate(-2deg)}}
+.tt-trips-workspace{
+ margin:0!important;padding:0!important;border:0!important;background:transparent!important;
+}
+.tt-workspace-heading{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;margin:8px 0 18px}
+.tt-workspace-heading>div:first-child{flex:1 1 270px}
+.tt-workspace-heading .eyebrow{color:#6559e8;font-size:10px;letter-spacing:1.8px}
+.tt-workspace-heading h2{color:#1c2541;font-size:clamp(22px,2.6vw,29px);font-weight:900;margin:4px 0 6px;letter-spacing:-.7px}
+.tt-workspace-heading .muted{color:#8e95a9;font-size:13px}
+.tt-workspace-heading .tt-workspace-create{
+ background:#f0eeff;color:#6559e8;min-height:43px;border-radius:11px;font-weight:800;
+}
+.tt-trip-cards{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px;
+ align-items:stretch;
+}
+.tt-trip-card{
+ display:flex;min-width:0;flex-direction:column;overflow:hidden;
+ background:#fff;border:1px solid #e8e9f3;border-radius:20px;
+ box-shadow:0 12px 36px rgba(34,41,83,.065);
+ transition:transform .22s ease,box-shadow .22s ease;
+}
+.tt-trip-cover{
+ display:grid;place-items:center;height:145px;position:relative;overflow:hidden;
+ background:linear-gradient(125deg,#675be8,#a59bf5);
+}
+.tt-trip-cover::before{content:"";position:absolute;right:-35px;top:-110px;width:250px;height:250px;border:1px solid #ffffff52;border-radius:50%;box-shadow:0 0 0 40px #ffffff10}
+.tt-trip-cover span{position:relative;z-index:1;font-size:62px;filter:drop-shadow(0 10px 12px #4c3aa34a)}
+.tt-trip-card:nth-child(3n+2) .tt-trip-cover{background:linear-gradient(125deg,#46b6a8,#8cdec6)}
+.tt-trip-card:nth-child(3n) .tt-trip-cover{background:linear-gradient(125deg,#e7a56e,#f0ceac)}
+.tt-trip-card-body{padding:20px;display:flex;flex:1;flex-direction:column;gap:10px}
+.tt-trip-card-body .tt-trip-role{
+ display:inline-flex;align-self:flex-start;color:#6559e8;background:#f0edff;
+ border-radius:99px;padding:7px 11px;font-size:11px;font-weight:800;
+}
+.tt-trip-card-body h3{font-size:19px;color:#1c2541;letter-spacing:-.35px;margin:1px 0 0;overflow-wrap:anywhere}
+.tt-trip-card-body p{font-size:12px;color:#9198aa;margin:0 0 10px;line-height:1.6}
+.tt-trip-card-body .trip-open{margin-top:auto;width:100%;min-height:43px;border-radius:11px;justify-content:center;font-size:13px}
+.tt-trip-create-tile{
+ display:flex;flex-direction:column;justify-content:center;align-items:center;
+ gap:13px;min-height:320px;padding:25px 16px;
+ border:2px dashed #d9d3fa;border-radius:20px;
+ background:#f3f1ff;color:#6559e8;text-align:center;
+ transition:transform .2s ease,background .2s ease;
+}
+.tt-trip-create-tile>span{
+ display:grid;place-items:center;width:72px;height:72px;border-radius:20px;background:white;
+ box-shadow:0 8px 24px #635be420;font-size:38px;font-weight:500;
+}
+.tt-trip-create-tile>b{font-size:18px;font-weight:900}
+.tt-trip-create-tile>small{color:#9293b0;font-size:12px}
+.tt-workspace-home #noSavedTrips{font-size:13px;color:#9399ae;margin:12px 0 2px}
+.tt-invite-workspace{
+ display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px 15px;
+ background:white;border:1px solid #e8e9f3;border-radius:19px;
+ box-shadow:0 12px 36px #2229530d;padding:22px 23px;
+}
+.tt-invite-icon{display:grid;place-items:center;width:43px;height:43px;border-radius:13px;background:#f0eeff;font-size:20px}
+.tt-invite-content{min-width:0}
+.tt-invite-content h2{color:#1c2541;font-size:17px;font-weight:900;margin:0 0 5px}
+.tt-invite-content p{font-size:12px;color:#8e95a9}
+.tt-invite-workspace .joinrow{
+ grid-column:2;display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:0;
+}
+.tt-invite-workspace .joinrow input{
+ flex:1 1 180px;min-width:0;min-height:44px;
+ background:#fbfcff;border:1px solid #e5e7f1;border-radius:11px;
+}
+.tt-invite-workspace .joinrow button{
+ min-height:44px;padding:10px 17px;background:#f0edff;color:#6559e8;font-weight:800;border-radius:11px;
+}
+.tt-create-dialog{max-width:520px}
+.tt-create-eyebrow{font-size:11px;letter-spacing:1.5px;font-weight:900;color:#6559e8;margin-bottom:10px}
+.tt-create-dialog h2{margin-bottom:9px}
+.tt-create-dialog form>p{font-size:13px;margin:0 0 18px}
+@media(hover:hover) and (pointer:fine){
+ .tt-trip-card:hover{transform:translateY(-4px);box-shadow:0 20px 40px #24285816}
+ .tt-trip-create-tile:hover{transform:translateY(-3px);background:#ebe8ff}
+}
+@media(max-width:1000px){
+ .tt-trip-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+ .tt-welcome-hero{grid-template-columns:minmax(0,1.4fr) minmax(170px,.6fr)}
+}
+@media(max-width:650px){
+ .tt-workspace-home{gap:19px}
+ .tt-welcome-hero{display:block;min-height:0;padding:25px 21px;border-radius:21px}
+ .tt-workspace-home .tt-welcome-copy h1{font-size:clamp(28px,7.1vw,36px);letter-spacing:-.85px}
+ .tt-workspace-home .tt-welcome-copy>p{font-size:13px}
+ .tt-welcome-illustration{position:absolute;right:-16px;bottom:2px;min-height:100px;opacity:.23;pointer-events:none}
+ .tt-welcome-emoji{font-size:90px}
+ .tt-welcome-illustration-foot{display:none}
+ .tt-welcome-actions{position:relative;z-index:2}
+ .tt-workspace-heading{align-items:stretch;flex-direction:column;gap:11px}
+ .tt-workspace-heading>div:first-child{flex:0 0 auto;width:100%}
+ .tt-workspace-heading .tt-workspace-create{width:100%;min-height:44px}
+ .tt-trip-cards{grid-template-columns:1fr;gap:13px}
+ .tt-trip-cover{height:122px}
+ .tt-trip-card-body{padding:16px}
+ .tt-trip-create-tile{min-height:155px}
+ .tt-trip-create-tile>span{width:51px;height:51px;font-size:29px;border-radius:15px}
+ .tt-trip-create-tile>b{font-size:16px}
+ .tt-invite-workspace{padding:17px 15px;gap:10px}
+ .tt-invite-workspace .joinrow{grid-column:1/-1;width:100%}
+ .tt-invite-workspace .joinrow input,.tt-invite-workspace .joinrow button{width:100%;flex:1 1 100%}
+}
+@media(prefers-reduced-motion:reduce){
+ .tt-welcome-emoji{animation:none!important}
+ .tt-trip-card,.tt-trip-create-tile{transition:none!important}
+ .tt-trip-card:hover,.tt-trip-create-tile:hover{transform:none!important}
+}
