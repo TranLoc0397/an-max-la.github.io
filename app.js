@@ -101,28 +101,152 @@ function updateAccountButton(){
  if(!button||!user)return;
  button.textContent=user.is_anonymous||!user.email?'Liên kết thiết bị':user.email;
 }
-function openAccount(){
- if(!db||!user)return;
+function accountNotice(message,kind='info'){
+ const el=$('accountFeedback');
+ if(!el)return;
+ el.textContent=message;
+ el.className='account-feedback '+(kind==='error'?'account-feedback-error':kind==='success'?'account-feedback-success':'');
+ el.classList.remove('hidden');
+ el.setAttribute('role',kind==='error'?'alert':'status');
+}
+function accountError(error){
+ const message=String(error?.message||'');
+ if(/invalid login credentials/i.test(message))return 'Email hoặc mật khẩu không đúng. Hãy kiểm tra lại hoặc đặt lại mật khẩu.';
+ if(/email not confirmed/i.test(message))return 'Email chưa được xác minh. Hãy kiểm tra hộp thư của bạn.';
+ if(/user already registered|email already exists|already been registered/i.test(message))return 'Email này đã có tài khoản. Hãy chuyển sang Đăng nhập.';
+ return emailSendHelp(error);
+}
+function accountView(view){
  const content=$('accountContent');
- const anonymous=!!user.is_anonymous||!user.email;
+ if(!content)return;
+ const anonymous=!!user?.is_anonymous||!user?.email;
+ const heading=$('accountDialogTitle');
  if(anonymous){
-  content.innerHTML=`<p class="muted">Đầu tiên, liên kết email trên thiết bị đang giữ chuyến đi. Việc này giữ nguyên quyền chủ chuyến. Sau khi xác minh email và đặt mật khẩu, đăng nhập cùng tài khoản trên điện thoại.</p>
-   <form id="accountLinkForm"><label>Email để liên kết<input id="accountLinkEmail" type="email" required autocomplete="email" placeholder="ban@example.com"></label><button class="primary" id="accountLinkSave">Gửi email xác minh</button></form>
-   <hr><p class="muted">Đã liên kết tài khoản trên thiết bị khác? Đăng nhập bằng đúng email đã xác minh để dùng cùng thành viên và quyền chuyến đi trên thiết bị này.</p>
-   <form id="accountLoginForm"><label>Email<input id="accountLoginEmail" type="email" required autocomplete="email"></label><label>Mật khẩu<input id="accountLoginPassword" type="password" required autocomplete="current-password"></label><button class="secondary" id="accountLoginSave">Đăng nhập</button><button class="ghost compact" type="button" id="accountForgotPassword">Quên mật khẩu?</button></form>`;
-  $('accountLinkForm').onsubmit=async ev=>{ev.preventDefault();const button=$('accountLinkSave');await withButtonLoading(button,'Đang gửi…',async()=>{try{const email=$('accountLinkEmail').value.trim();const {error}=await db.auth.updateUser({email},{emailRedirectTo:location.origin+location.pathname+location.search});if(error)throw error;localStorage.setItem('tt_account_pending','true');alert('Đã gửi email xác minh. Mở email mới nhất, bấm xác minh rồi quay lại TripTogether để đặt mật khẩu.');$('accountDialog').close()}catch(error){alert('Không thể gửi email xác minh: '+emailSendHelp(error))}})};
-  $('accountLoginForm').onsubmit=async ev=>{ev.preventDefault();const button=$('accountLoginSave');await withButtonLoading(button,'Đang đăng nhập…',async()=>{try{const {error}=await db.auth.signInWithPassword({email:$('accountLoginEmail').value.trim(),password:$('accountLoginPassword').value});if(error)throw error;location.reload()}catch(error){const message=String(error.message||'');alert('Không thể đăng nhập: '+(/invalid login credentials/i.test(message)?'Email hoặc mật khẩu chưa đúng. Hãy dùng email đã xác minh và mật khẩu hiện tại. Nếu quên mật khẩu, chọn “Quên mật khẩu?” để nhận link đặt lại.':/email not confirmed/i.test(message)?'Email chưa được xác minh. Hãy mở email xác minh mới nhất rồi thử lại.':message))}})};
-  $('accountForgotPassword').onclick=async()=>{const emailInput=$('accountLoginEmail');if(!emailInput.value.trim()){emailInput.reportValidity();emailInput.focus();return}const button=$('accountForgotPassword');await withButtonLoading(button,'Đang gửi…',async()=>{try{const {error}=await db.auth.resetPasswordForEmail(emailInput.value.trim(),{redirectTo:location.origin+location.pathname+location.search});if(error)throw error;alert('Nếu email này có tài khoản TripTogether, Supabase sẽ gửi link đặt lại mật khẩu. Mở link trên thiết bị cần dùng rồi chọn mật khẩu mới.')}catch(error){alert('Không thể gửi link đặt lại mật khẩu: '+emailSendHelp(error))}})};
- }else{
-  const verified=!!user.email_confirmed_at;
-  content.innerHTML=verified?`<p class="muted">Email <strong>${esc(user.email)}</strong> đã được xác minh. Đặt mật khẩu mới để đăng nhập trên điện thoại và máy tính. Nếu bạn đã có mật khẩu, hãy dùng mật khẩu đó để đăng nhập; mật khẩu mới phải khác mật khẩu hiện tại.</p><form id="accountPasswordForm"><label>Mật khẩu mới<input id="accountNewPassword" type="password" required minlength="8" autocomplete="new-password" placeholder="Ít nhất 8 ký tự"></label><button class="primary" id="accountPasswordSave">Lưu mật khẩu mới</button></form>`:`<p class="muted">Email <strong>${esc(user.email||'')}</strong> đang chờ xác minh. Hãy mở email xác minh mới nhất. Sau khi xác minh, app sẽ tự mở bước đặt mật khẩu.</p><button class="secondary" id="accountResend">Gửi lại email xác minh</button>`;
-  if(verified)$('accountPasswordForm').onsubmit=async ev=>{ev.preventDefault();const button=$('accountPasswordSave');await withButtonLoading(button,'Đang lưu…',async()=>{try{const {error}=await db.auth.updateUser({password:$('accountNewPassword').value});if(error)throw error;localStorage.removeItem('tt_account_pending');alert('Đã lưu mật khẩu. Trên điện thoại, mở TripTogether → Liên kết thiết bị → đăng nhập bằng email và mật khẩu này.');$('accountDialog').close()}catch(error){const message=String(error.message||'');alert(/different from the old password|same as the old password/i.test(message)?'Mật khẩu này trùng mật khẩu hiện tại nên Supabase không lưu lại. Hãy đăng nhập bằng mật khẩu hiện tại; nếu quên, dùng “Quên mật khẩu?” ở phần đăng nhập để đặt mật khẩu khác.':'Không thể lưu mật khẩu: '+message)}})};
-  else $('accountResend').onclick=async()=>{const button=$('accountResend');await withButtonLoading(button,'Đang gửi…',async()=>{try{const {error}=await db.auth.updateUser({email:user.email},{emailRedirectTo:location.origin+location.pathname+location.search});if(error)throw error;alert('Đã gửi lại email xác minh.')}catch(error){alert('Không thể gửi email xác minh: '+emailSendHelp(error))}})};
-  content.insertAdjacentHTML('beforeend','<hr><button class="danger compact" type="button" id="accountLogout">Đăng xuất khỏi thiết bị này</button><p class="muted small">Chỉ đăng xuất thiết bị hiện tại; chuyến đi không bị xóa và thiết bị khác vẫn đăng nhập.</p>');
-  $('accountLogout').onclick=async()=>{if(!confirm('Đăng xuất khỏi tài khoản trên thiết bị này? Chuyến đi và phiên đăng nhập trên các thiết bị khác vẫn được giữ nguyên.'))return;const button=$('accountLogout');await withButtonLoading(button,'Đang đăng xuất…',async()=>{try{const {error}=await db.auth.signOut({scope:'local'});if(error)throw error;localStorage.removeItem('tt_account_pending');location.replace(location.pathname)}catch(error){alert('Không thể đăng xuất: '+error.message)}})};
+  heading.textContent='Tài khoản TripTogether';
+  content.innerHTML=`<div class="account-intro"><span class="account-intro-icon" aria-hidden="true">✳</span><p>Kết nối chuyến đi và quyền chỉnh sửa trên các thiết bị của bạn.</p></div>
+   <div class="account-switch" role="group" aria-label="Tài khoản">
+    <button type="button" class="account-tab ${view==='login'?'active':''}" data-account-view="login" aria-pressed="${view==='login'}">Đăng nhập</button>
+    <button type="button" class="account-tab ${view==='register'?'active':''}" data-account-view="register" aria-pressed="${view==='register'}">Tạo tài khoản</button>
+   </div>
+   <div id="accountFeedback" class="account-feedback hidden" role="status" aria-live="polite"></div>
+   ${view==='register'?`
+    <p class="muted account-helper">Đang dùng tài khoản khách? Liên kết email để giữ nguyên các chuyến đi và quyền Host trên thiết bị này. Sau khi xác minh email, bạn sẽ đặt mật khẩu.</p>
+    <form id="accountRegisterForm" class="account-form">
+      <label>Email<input id="accountRegisterEmail" type="email" autocomplete="email" inputmode="email" required maxlength="254" placeholder="ban@example.com"></label>
+      <button class="primary account-submit" id="accountRegisterSave" type="submit">Tiếp tục với email</button>
+    </form>`:`
+    <form id="accountLoginForm" class="account-form">
+      <label>Email<input id="accountLoginEmail" type="email" autocomplete="email" inputmode="email" required maxlength="254" placeholder="ban@example.com"></label>
+      <label>Mật khẩu<input id="accountLoginPassword" type="password" autocomplete="current-password" required placeholder="Nhập mật khẩu"></label>
+      <div class="account-form-actions"><button class="ghost compact" type="button" id="accountForgotPassword">Quên mật khẩu?</button></div>
+      <button class="primary account-submit" type="submit" id="accountLoginSave">Đăng nhập</button>
+    </form>
+    <p class="muted account-helper">Dùng đúng email đã liên kết với chuyến đi để khôi phục quyền Host hoặc quyền chỉnh sửa.</p>`}
+   `;
+  content.querySelectorAll('[data-account-view]').forEach(button=>button.onclick=()=>accountView(button.dataset.accountView));
+  if(view==='register'){
+   $('accountRegisterForm').onsubmit=async event=>{
+    event.preventDefault();
+    const button=$('accountRegisterSave');
+    await withButtonLoading(button,'Đang gửi email…',async()=>{
+     try{
+      const email=$('accountRegisterEmail').value.trim();
+      const {error}=await db.auth.updateUser({email},{emailRedirectTo:location.origin+location.pathname+location.search});
+      if(error)throw error;
+      localStorage.setItem('tt_account_pending','true');
+      accountNotice('Kiểm tra email để xác minh tài khoản. Sau khi xác minh, quay lại đây để tạo mật khẩu.','success');
+     }catch(error){accountNotice('Không thể gửi email: '+accountError(error),'error')}
+    });
+   };
+  }else{
+   $('accountLoginForm').onsubmit=async event=>{
+    event.preventDefault();
+    const button=$('accountLoginSave');
+    await withButtonLoading(button,'Đang đăng nhập…',async()=>{
+     try{
+      const {error}=await db.auth.signInWithPassword({email:$('accountLoginEmail').value.trim(),password:$('accountLoginPassword').value});
+      if(error)throw error;
+      location.reload();
+     }catch(error){accountNotice(accountError(error),'error')}
+    });
+   };
+   $('accountForgotPassword').onclick=async()=>{
+    const input=$('accountLoginEmail');
+    if(!input.value.trim()||!input.checkValidity()){input.reportValidity();input.focus();return}
+    const button=$('accountForgotPassword');
+    await withButtonLoading(button,'Đang gửi…',async()=>{
+     try{
+      const {error}=await db.auth.resetPasswordForEmail(input.value.trim(),{redirectTo:location.origin+location.pathname+location.search});
+      if(error)throw error;
+      accountNotice('Nếu email này có tài khoản, bạn sẽ nhận được liên kết đặt lại mật khẩu. Hãy kiểm tra hộp thư.','success');
+     }catch(error){accountNotice('Không thể gửi liên kết: '+accountError(error),'error')}
+    });
+   };
+  }
+  addPasswordVisibilityControls(content);
+  content.querySelector('input')?.focus({preventScroll:true});
+  return;
  }
+ const verified=!!user.email_confirmed_at;
+ heading.textContent=verified?'Quản lý tài khoản':'Xác minh email';
+ content.innerHTML=`<div class="account-profile"><span class="account-avatar" aria-hidden="true">@</span><div><strong>${esc(user.email||'')}</strong><small>${verified?'Email đã xác minh':'Đang chờ xác minh email'}</small></div></div>
+  <div id="accountFeedback" class="account-feedback hidden" role="status" aria-live="polite"></div>
+  ${verified?`
+   <p class="muted account-helper">Dùng cùng email và mật khẩu trên điện thoại hoặc máy tính để quản lý chuyến đi và quyền Host.</p>
+   <form id="accountPasswordForm" class="account-form">
+    <label>Mật khẩu mới<input id="accountNewPassword" type="password" autocomplete="new-password" minlength="8" required placeholder="Ít nhất 8 ký tự"></label>
+    <label>Xác nhận mật khẩu<input id="accountConfirmPassword" type="password" autocomplete="new-password" minlength="8" required placeholder="Nhập lại mật khẩu"></label>
+    <button class="primary account-submit" type="submit" id="accountPasswordSave">Lưu mật khẩu</button>
+   </form>`:`
+   <p class="muted account-helper">Mở liên kết xác minh được gửi tới email của bạn, sau đó quay lại TripTogether để tạo mật khẩu.</p>
+   <button class="secondary account-submit" type="button" id="accountResend">Gửi lại email xác minh</button>`}
+  <div class="account-signout"><button class="danger compact" type="button" id="accountLogout">Đăng xuất khỏi thiết bị</button><p class="muted small">Chỉ đăng xuất thiết bị này, không xóa chuyến đi.</p></div>`;
+ if(verified){
+  $('accountPasswordForm').onsubmit=async event=>{
+   event.preventDefault();
+   const password=$('accountNewPassword').value;
+   if(password!==$('accountConfirmPassword').value){accountNotice('Mật khẩu xác nhận chưa khớp.','error');return}
+   const button=$('accountPasswordSave');
+   await withButtonLoading(button,'Đang lưu…',async()=>{
+    try{
+     const {error}=await db.auth.updateUser({password});
+     if(error)throw error;
+     localStorage.removeItem('tt_account_pending');
+     $('accountPasswordForm').reset();
+     accountNotice('Đã lưu mật khẩu. Bạn có thể dùng tài khoản này để đăng nhập trên thiết bị khác.','success');
+    }catch(error){accountNotice('Không thể lưu mật khẩu: '+accountError(error),'error')}
+   });
+  };
+ }else{
+  $('accountResend').onclick=async()=>{
+   const button=$('accountResend');
+   await withButtonLoading(button,'Đang gửi…',async()=>{
+    try{
+     const {error}=await db.auth.updateUser({email:user.email},{emailRedirectTo:location.origin+location.pathname+location.search});
+     if(error)throw error;
+     accountNotice('Email xác minh đã được gửi. Hãy kiểm tra hộp thư.','success');
+    }catch(error){accountNotice('Không thể gửi email: '+accountError(error),'error')}
+   });
+  };
+ }
+ $('accountLogout').onclick=async()=>{
+  if(!confirm('Đăng xuất khỏi tài khoản trên thiết bị này? Chuyến đi trên thiết bị khác không bị ảnh hưởng.'))return;
+  const button=$('accountLogout');
+  await withButtonLoading(button,'Đang đăng xuất…',async()=>{
+   try{
+    const {error}=await db.auth.signOut({scope:'local'});
+    if(error)throw error;
+    localStorage.removeItem('tt_account_pending');
+    location.replace(location.pathname);
+   }catch(error){accountNotice('Không thể đăng xuất: '+accountError(error),'error')}
+  });
+ };
  addPasswordVisibilityControls(content);
- $('accountDialog').showModal();
+}
+function openAccount(view){
+ if(!db||!user)return;
+ accountView(view==='login'||view==='register'?view:'login');
+ if(!$('accountDialog').open)$('accountDialog').showModal();
 }
 $('accountBtn').onclick=openAccount;
 $('accountClose').onclick=()=>$('accountDialog').close();
