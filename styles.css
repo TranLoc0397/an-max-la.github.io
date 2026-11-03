@@ -460,3 +460,15 @@ button,input,select,textarea{font-family:inherit}
 @media(prefers-reduced-motion:reduce){
  .primary,.secondary,.ghost,.danger{transition:none!important;animation:none!important}
 }
+
+/* Shared-trip visitor actions: predictable spacing and clear mobile touch targets. */
+.shared-access-notice{padding:18px 20px;border-radius:17px}
+.shared-access-notice p{margin:10px 0 0;line-height:1.55}
+.shared-access-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:12px;margin:20px 0 0}
+.shared-access-actions>button{min-height:44px;max-width:100%;margin:0;padding:10px 16px;font:700 13px/1.35 'Roboto',Arial,sans-serif;text-align:center;white-space:normal}
+.shared-access-actions>button.hidden{display:none!important}
+@media(max-width:520px){
+ .shared-access-notice{padding:17px 16px}
+ .shared-access-actions{display:flex;flex-direction:column;align-items:stretch;gap:12px;margin-top:20px}
+ .shared-access-actions>button{width:100%;min-height:46px}
+}
