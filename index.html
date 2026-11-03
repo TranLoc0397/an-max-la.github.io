@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#6559e8"><meta name="description" content="Quản lý chi tiêu và quỹ chung cho chuyến đi">
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="triptogether-purple-icon.svg?v=1" type="image/svg+xml"><link rel="apple-touch-icon" href="triptogether-purple-icon.png?v=1">
-<title>TripTogether</title><link rel="stylesheet" href="styles.css?v=50">
+<title>TripTogether</title><link rel="stylesheet" href="styles.css?v=52">
 </head>
 <body>
 <div id="pageLoader" class="page-loader" role="status" aria-live="polite"><span class="loading-spinner" aria-hidden="true"></span><span id="pageLoaderText">Loading TripTogether…</span></div>
@@ -106,13 +106,57 @@
     <div class="member-table-head"><span>Thành viên</span><span>Đã chi cá nhân</span><span>Đã đóng quỹ</span><span>Phần chi</span></div>
     <div id="memberList" class="list ledger-list"></div>
     <div id="editRequestPanel" class="settlement member-permissions hidden"><h3>Xin quyền chỉnh sửa</h3><p class="muted small" id="editRequestState">Bạn có thể gửi yêu cầu để Host cấp quyền.</p><button class="primary compact" type="button" id="requestEditBtn">Gửi yêu cầu cấp quyền</button></div>
-    <div class="settlement"><h3>Đối soát quỹ</h3><p class="muted small">Gợi ý cân bằng khoản đóng quỹ giữa các thành viên. Các khoản quỹ còn nợ thành viên được theo dõi riêng và không tính lần hai vào đối soát này.</p><div id="expenseSettlements"></div></div>
-    <div class="sectionhead debt-heading"><div><h2>Khoản nợ riêng giữa thành viên</h2><p class="muted small">Ghi các khoản nợ cá nhân ngoài phần chia chi tiêu chung.</p></div></div>
-    <div id="debtList" class="list ledger-list"></div>
-    <div class="settlement"><h3>Gợi ý trả nợ riêng</h3><p class="muted small">Các khoản chuyển tối giản theo nợ riêng chưa thanh toán.</p><div id="debtSettlements"></div></div>
-    <div class="sectionhead debt-heading"><div><h2>Lịch sử thanh toán</h2><p class="muted small">Các khoản hoàn quỹ và trả nợ, kể cả thanh toán một phần hoặc hoàn tác.</p></div></div>
-    <div id="paymentHistory" class="list ledger-list" aria-live="polite"></div>
-    <div id="activityPanel" class="activity-panel"><div class="sectionhead"><div><h2>Nhật ký thay đổi</h2><p class="muted small">Xem ai đã cập nhật dữ liệu và khôi phục khoản chi hoặc khoản đóng bị xóa.</p></div></div><div id="activityList" class="list ledger-list"></div></div>
+    <section class="tt-reconciliation" aria-labelledby="reconciliationTitle">
+      <header class="tt-reconciliation-header">
+        <span class="tt-reconciliation-icon" aria-hidden="true">⇄</span>
+        <div>
+          <h2 id="reconciliationTitle">Đối soát quỹ</h2>
+          <p class="muted small">Tổng hợp cân bằng quỹ, nợ riêng và lịch sử thanh toán trong chuyến đi.</p>
+        </div>
+      </header>
+      <div class="tt-reconciliation-grid">
+        <section class="tt-reconciliation-card tt-reconciliation-card-primary" aria-labelledby="fundReconcileTitle">
+          <div class="tt-reconciliation-card-heading">
+            <span class="tt-reconciliation-card-icon" aria-hidden="true">◈</span>
+            <div><h3 id="fundReconcileTitle">Cân bằng quỹ chung</h3>
+              <p class="muted small">Gợi ý cân bằng tiền đóng quỹ giữa các thành viên. Khoản quỹ chưa hoàn trả được theo dõi riêng.</p></div>
+          </div>
+          <div id="expenseSettlements" class="tt-reconciliation-content"></div>
+        </section>
+        <section class="tt-reconciliation-card" aria-labelledby="personalDebtsTitle">
+          <div class="tt-reconciliation-card-heading">
+            <span class="tt-reconciliation-card-icon" aria-hidden="true">↔</span>
+            <div><h3 id="personalDebtsTitle">Khoản nợ riêng giữa thành viên</h3>
+              <p class="muted small">Các khoản nợ cá nhân ngoài phần chia chi tiêu chung.</p></div>
+          </div>
+          <div id="debtList" class="list ledger-list tt-reconciliation-content"></div>
+        </section>
+        <section class="tt-reconciliation-card" aria-labelledby="debtSuggestionsTitle">
+          <div class="tt-reconciliation-card-heading">
+            <span class="tt-reconciliation-card-icon" aria-hidden="true">⇢</span>
+            <div><h3 id="debtSuggestionsTitle">Gợi ý trả nợ riêng</h3>
+              <p class="muted small">Các khoản chuyển tiền tối giản theo nợ riêng chưa thanh toán.</p></div>
+          </div>
+          <div id="debtSettlements" class="tt-reconciliation-content"></div>
+        </section>
+        <section class="tt-reconciliation-card" aria-labelledby="paymentHistoryTitle">
+          <div class="tt-reconciliation-card-heading">
+            <span class="tt-reconciliation-card-icon" aria-hidden="true">◷</span>
+            <div><h3 id="paymentHistoryTitle">Lịch sử thanh toán</h3>
+              <p class="muted small">Hoàn quỹ, trả nợ, thanh toán một phần và hoàn tác.</p></div>
+          </div>
+          <div id="paymentHistory" class="list ledger-list tt-reconciliation-content" aria-live="polite"></div>
+        </section>
+        <section id="activityPanel" class="tt-reconciliation-card tt-reconciliation-activity" aria-labelledby="activityTitle">
+          <div class="tt-reconciliation-card-heading">
+            <span class="tt-reconciliation-card-icon" aria-hidden="true">☷</span>
+            <div><h3 id="activityTitle">Nhật ký thay đổi</h3>
+              <p class="muted small">Xem lịch sử cập nhật và khôi phục khoản chi hoặc đóng quỹ đã xóa.</p></div>
+          </div>
+          <div id="activityList" class="list ledger-list tt-reconciliation-content"></div>
+        </section>
+      </div>
+    </section>
   </section>
   <footer><span id="syncStatus">● Đang kết nối…</span><div class="footer-actions"><button id="deleteTripBtn" class="danger hidden">Xóa chuyến đi</button><button id="leaveBtn" class="ghost">Rời chuyến</button></div></footer>
 </section>
@@ -146,10 +190,10 @@
 <dialog id="fundDialog"><form method="dialog" id="fundForm"><input id="fundId" type="hidden"><h2 id="fundDialogTitle">Đóng quỹ thêm</h2><div class="formgrid"><label>Số tiền (VNĐ)<input id="fundAmount" required type="number" min="1" step="1"></label><label>Người đóng<select id="fundPayer"></select></label></div><label>Ghi chú<input id="fundNote" maxlength="100" placeholder="Ví dụ: Đóng quỹ lần 1"></label><label>Ngày đóng<input id="fundDate" type="date" required></label><menu><button class="secondary" id="fundCancel" type="button">Hủy</button><button class="primary" id="fundSave" value="default">Lưu khoản đóng</button></menu></form></dialog>
 <dialog id="initialFundDialog"><form method="dialog" id="initialFundForm"><h2>Sửa quỹ ban đầu</h2><p class="muted">Nhập số tiền trong quỹ trước các lần đóng thêm.</p><label>Quỹ ban đầu (VNĐ)<input id="initialFundInput" required type="number" min="0" step="1"></label><menu><button class="secondary" id="initialFundCancel" type="button">Hủy</button><button class="primary" id="initialFundSave" value="default">Lưu quỹ ban đầu</button></menu></form></dialog>
 <dialog id="memberAccessDialog" aria-labelledby="memberAccessTitle" class="member-access-dialog"><h2 id="memberAccessTitle">Quản lý quyền truy cập</h2><div id="hostEditRequestsPanel" class="settlement member-permissions hidden"><h3>Yêu cầu quyền chỉnh sửa</h3><div id="hostEditRequestsList"></div></div><div id="editPermissionsPanel" class="settlement member-permissions hidden"><h3>Quyền chỉnh sửa thành viên</h3><div id="memberPermissionList"></div></div><menu><button class="secondary" type="button" id="memberAccessClose">Đóng</button></menu></dialog>
-<dialog id="memberDialog"><form method="dialog" id="memberForm"><h2 id="memberDialogTitle">Thêm thành viên</h2><p class="muted" id="memberDialogHint">Thành viên được tính vào phần chia đều của chuyến đi.</p><input type="hidden" id="memberEditUserId"><label>Tên thành viên<input id="memberName" required maxlength="40" placeholder="Ví dụ: Minh"></label><menu><button class="secondary" id="memberCancel" type="button">Hủy</button><button class="primary" id="memberSave" value="default">Lưu thành viên</button></menu></form></dialog>
+<dialog id="memberDialog"><form method="dialog" id="memberForm"><h2 id="memberDialogTitle">Thêm thành viên</h2><p class="muted" id="memberDialogHint">Thành viên được tính vào phần chia đều của chuyến đi.</p><input type="hidden" id="memberEditUserId"><label>Tên thành viên<input id="memberName" required maxlength="40" placeholder="Ví dụ: Minh"></label><div id="memberOpeningFundField"><label for="memberOpeningFund">Đóng quỹ ban đầu (VNĐ) <span class="field-optional">Không bắt buộc</span><input id="memberOpeningFund" type="number" inputmode="numeric" min="0" step="1" placeholder="0"></label><p class="muted small member-fund-hint">Để trống nếu chưa đóng quỹ. Số tiền sẽ được ghi vào lịch sử Đóng quỹ của thành viên.</p></div><menu><button class="secondary" id="memberCancel" type="button">Hủy</button><button class="primary" id="memberSave" value="default">Lưu thành viên</button></menu></form></dialog>
 <dialog id="debtDialog"><form method="dialog" id="debtForm"><h2>Ghi khoản nợ thành viên</h2><p class="muted small">Khoản này hiển thị trong đối soát thành viên; không trừ vào quỹ chung.</p><div class="formgrid"><label>Người nợ<select id="debtDebtor" required></select></label><label>Người nhận nợ<select id="debtCreditor" required></select></label></div><label>Số tiền (VNĐ)<input id="debtAmount" type="number" min="1" step="1" required placeholder="250000"></label><div class="formgrid"><label>Ngày<input id="debtDate" type="date" required></label><label>Ghi chú<input id="debtNote" maxlength="200" placeholder="Lý do khoản nợ"></label></div><menu><button class="secondary" id="debtCancel" type="button">Hủy</button><button class="primary" id="debtSave" value="default">Lưu khoản nợ</button></menu></form></dialog>
 <script>
 window.__supabaseSdkReady=new Promise(resolve=>{const sources=['https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2','https://unpkg.com/@supabase/supabase-js@2'];let index=0;const load=()=>{if(window.supabase){resolve(true);return}if(index>=sources.length){resolve(false);return}const script=document.createElement('script');script.src=sources[index++];let finished=false;const timer=setTimeout(()=>{if(finished)return;finished=true;script.remove();load()},6000);script.onload=()=>{if(finished)return;finished=true;clearTimeout(timer);if(window.supabase)resolve(true);else load()};script.onerror=()=>{if(finished)return;finished=true;clearTimeout(timer);script.remove();load()};document.head.appendChild(script)};load()});
-</script><script src="i18n.js?v=5"></script><script src="finance.js?v=3"></script><script src="trip-ui.js?v=2"></script><script src="ui-shell.js?v=1"></script>
-<script src="app.js?v=50"></script>
+</script><script src="i18n.js?v=6"></script><script src="finance.js?v=3"></script><script src="trip-ui.js?v=2"></script><script src="ui-shell.js?v=1"></script>
+<script src="app.js?v=51"></script>
 </body></html>

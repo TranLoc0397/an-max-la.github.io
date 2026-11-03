@@ -279,6 +279,12 @@ Object.assign(dictionary,{
  "Chủ chuyến đi":"Trip Host",
  "Thành viên":"Members"
 });
+Object.assign(dictionary,{
+  "Đóng quỹ ban đầu (VNĐ)":"Opening contribution (VND)",
+  "Không bắt buộc":"Optional",
+  "Để trống nếu chưa đóng quỹ. Số tiền sẽ được ghi vào lịch sử Đóng quỹ của thành viên.":"Leave blank if they have not contributed. The amount will appear in the member's contribution history.",
+  "Số tiền đóng quỹ phải là số nguyên không âm (VNĐ).":"The contribution must be a non-negative whole amount in VND."
+});
 const reverse=new Map(Object.entries(dictionary).map(([vi,en])=>[en,vi]));
 let language=localStorage.getItem('tt_language')==='en'?'en':'vi';
 const sourceText=new WeakMap();
