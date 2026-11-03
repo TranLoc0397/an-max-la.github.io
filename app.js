@@ -7,7 +7,6 @@ let db, user, trip, members=[], expenses=[], contributions=[], debts=[], channel
 let editRequests=[], editRequestsAvailable=false, editRequestTimer=null;
 let pendingAction=null;
 let pendingTripTitleAction=null;
-let pendingPasscodeResolve=null;
 let actionInFlight=false;
 const authCallbackParams=new URLSearchParams(location.hash.replace(/^#/,''));
 const authSearchParams=new URLSearchParams(location.search);
@@ -265,14 +264,10 @@ async function loadMyTrips(){
  }catch(error){console.error('Could not load saved trips',error);$('savedTripsSection').classList.remove('hidden');$('savedTripList').innerHTML='';$('noSavedTrips').textContent='Could not load your saved trips. Paste the trip invitation link or code below to open one.';$('noSavedTrips').classList.remove('hidden')}
 }
 function askName(action){pendingAction=action;$('profileDialog').showModal();$('displayName').focus()}
-function askPasscode(hint='Nhập mã xem để tiếp tục.'){return new Promise(resolve=>{pendingPasscodeResolve=resolve;$('passcodeHint').textContent=hint;$('viewPasscode').value='';$('passcodeDialog').showModal();$('viewPasscode').focus()})}
 $('profileForm').addEventListener('submit',async ev=>{if(ev.submitter?.id!=='profileSave')return;ev.preventDefault();const name=$('displayName').value.trim();if(!name)return;localStorage.setItem('tt_name',name);$('profileDialog').close();await pendingAction(name);pendingAction=null});
 function askTripTitle(action){pendingTripTitleAction=action;$('tripTitle').value='';$('tripInitialFund').value='0';$('tripTitleDialog').showModal();$('tripTitle').focus()}
 $('profileCancel').onclick=()=>{pendingAction=null;$('profileDialog').close();$('profileForm').reset()};
 $('tripTitleCancel').onclick=()=>{$('tripTitleDialog').close()};
-$('passcodeCancel').onclick=()=>{$('passcodeDialog').close();const resolve=pendingPasscodeResolve;pendingPasscodeResolve=null;resolve?.(null)};
-$('passcodeForm').addEventListener('submit',ev=>{if(ev.submitter?.id!=='passcodeContinue')return;ev.preventDefault();const value=$('viewPasscode').value.trim();if(!value)return;$('passcodeDialog').close();const resolve=pendingPasscodeResolve;pendingPasscodeResolve=null;resolve?.(value)});
-$('passcodeDialog').addEventListener('close',()=>{if(pendingPasscodeResolve){const resolve=pendingPasscodeResolve;pendingPasscodeResolve=null;resolve(null)}});
 $('tripTitleForm').addEventListener('submit',async ev=>{if(ev.submitter?.id!=='tripTitleSave')return;ev.preventDefault();const title=$('tripTitle').value.trim(),initialFund=Number($('tripInitialFund').value||0);if(!title)return;const action=pendingTripTitleAction;pendingTripTitleAction=null;$('tripTitleDialog').close();if(action)await action(title,initialFund)});
 $('tripTitleDialog').addEventListener('close',()=>{if(pendingTripTitleAction){const action=pendingTripTitleAction;pendingTripTitleAction=null;action(null)}});
  $('createBtn').onclick=()=>{if(!ready()){alert('Hãy cấu hình Supabase theo SETUP.md trước nhé.');return}askName(async name=>askTripTitle(async(title,initialFund)=>{if(title===null)return;await withButtonLoading($('createBtn'),'Đang tạo…',async()=>{try{const inviteCode=crypto.randomUUID();const {error}=await db.from('trips').insert({name:title,created_by:user.id,invite_code:inviteCode,initial_fund:initialFund});if(error){alert(error.message);return}const {data:tripId,error:memberError}=await db.rpc('join_trip',{p_invite_code:inviteCode,p_name:name,p_passcode:null});if(memberError){alert(memberError.message);return}await joinTrip(tripId,false)}catch(error){alert('Không thể tạo chuyến: '+error.message)}})}))};
@@ -280,19 +275,20 @@ $('tripTitleDialog').addEventListener('close',()=>{if(pendingTripTitleAction){co
 async function openSharedTrip(code){
  pageLoading(true,'Đang mở chuyến đi…');
  try{
-  let passcode=null,result=await db.rpc('get_shared_trip',{p_invite_code:code,p_passcode:null});
-  if(result.error){const message=result.error.message||'';if(message.toLowerCase().includes('not set')){alert('Chủ chuyến đi chưa đặt mã xem. Hãy nhờ chủ chuyến đặt mã rồi gửi lại link.');return}if(!message.toLowerCase().includes('passcode')){alert('Không thể mở chuyến đi. '+message);return}while(result.error){passcode=await askPasscode(result.error.message.toLowerCase().includes('incorrect')?'Mã xem chưa đúng. Hãy thử lại.':'Chuyến đi này cần mã xem để tiếp tục.');if(passcode===null)return;result=await db.rpc('get_shared_trip',{p_invite_code:code,p_passcode:passcode});if(result.error&&!result.error.message.toLowerCase().includes('passcode')){alert('Không thể mở chuyến đi. '+result.error.message);return}}}
-  const data=result.data;if(!data?.trip){alert('Không tìm thấy chuyến đi hoặc link không hợp lệ.');return}if((data.members||[]).some(m=>m.user_id===user.id)){await joinTrip(data.trip.id,false);return}readOnly=true;sharedCode=code;sharedPasscode=passcode;trip=data.trip;members=data.members||[];expenses=data.expenses||[];contributions=data.contributions||[];debts=data.debts||[];render();await showTrip();if(viewerTimer)clearInterval(viewerTimer);viewerTimer=setInterval(refresh,20000)
+  // The unguessable invitation token grants view-only access; no second passcode is needed.
+  const result=await db.rpc('get_shared_trip',{p_invite_code:code,p_passcode:null});
+  if(result.error){alert('Không thể mở chuyến đi: '+result.error.message);return}
+  const data=result.data;if(!data?.trip){alert('Không tìm thấy chuyến đi hoặc link không hợp lệ.');return}if((data.members||[]).some(m=>m.user_id===user.id)){await joinTrip(data.trip.id,false);return}readOnly=true;sharedCode=code;sharedPasscode=null;trip=data.trip;members=data.members||[];expenses=data.expenses||[];contributions=data.contributions||[];debts=data.debts||[];render();await showTrip();if(viewerTimer)clearInterval(viewerTimer);viewerTimer=setInterval(refresh,20000)
  }catch(error){alert('Không thể mở chuyến đi. '+error.message)}finally{pageLoading(false)}
 }
-// A viewing passcode proves access to shared data, never permission to edit.
+// A private invitation link allows viewing, never permission to edit.
 // The viewer must first join as a member; only the trip creator can grant can_edit.
 async function joinFromSharedView(name){
  if(!readOnly||!sharedCode||!user)return;
- const code=sharedCode,passcode=sharedPasscode;
+ const code=sharedCode;
  await withButtonLoading($('joinSharedTripBtn'),'Đang tham gia…',async()=>{
   try{
-   const {data:tripId,error}=await db.rpc('join_trip',{p_invite_code:code,p_name:name,p_passcode:passcode});
+   const {data:tripId,error}=await db.rpc('join_trip',{p_invite_code:code,p_name:name,p_passcode:null});
    if(error)throw error;
    await joinTrip(tripId,false);
    if(!readOnly)alert('Đã tham gia chuyến đi. Mở tab Thành viên → Xin quyền chỉnh sửa để gửi yêu cầu cho Host.');
@@ -301,17 +297,30 @@ async function joinFromSharedView(name){
 }
 $('joinSharedTripBtn').onclick=()=>askName(joinFromSharedView);
 $('sharedAccountBtn').onclick=openAccount;
-async function showTrip(){$('welcome').classList.add('hidden');$('app').classList.remove('hidden');$('shareBtn').classList.toggle('hidden',readOnly||!trip.view_passcode_set);$('inviteBtn').classList.toggle('hidden',readOnly||!trip.view_passcode_set);$('setPasscodeBtn').classList.toggle('hidden',readOnly||trip.created_by!==user.id);$('setPasscodeBtn').textContent=trip.view_passcode_set?'Đổi mã xem':'Đặt mã xem trước khi chia sẻ';$('tripName').textContent=trip.name;$('sharedAccessPanel').classList.toggle('hidden',!readOnly);status(readOnly?'Chỉ xem':'Đã đồng bộ')}
+async function showTrip(){
+ $('welcome').classList.add('hidden');
+ $('app').classList.remove('hidden');
+ $('shareBtn').classList.toggle('hidden',readOnly);
+ $('inviteBtn').classList.toggle('hidden',readOnly);
+ $('tripName').textContent=trip.name;
+ $('sharedAccessPanel').classList.toggle('hidden',!readOnly);
+ status(readOnly?'Chỉ xem':'Đã đồng bộ');
+}
 async function joinTrip(id,ask=true){
  readOnly=false;sharedCode=null;sharedPasscode=null;if(editRequestTimer){clearInterval(editRequestTimer);editRequestTimer=null}if(viewerTimer){clearInterval(viewerTimer);viewerTimer=null}
  if(!user){status('Not connected');return}
  pageLoading(true,'Opening shared trip…');
  try{
   let tripId=id;
-  if(ask){const name=localStorage.getItem('tt_name')||'Guest';let result=await db.rpc('join_trip',{p_invite_code:id,p_name:name,p_passcode:null});if(result.error&&result.error.message.toLowerCase().includes('not set')){alert('Chủ chuyến đi chưa đặt mã xem. Hãy nhờ chủ chuyến đặt mã rồi gửi lại link.');return}if(result.error&&result.error.message.toLowerCase().includes('passcode')){const passcode=await askPasscode('Chuyến đi này cần mã xem để tiếp tục.');if(passcode===null)return;result=await db.rpc('join_trip',{p_invite_code:id,p_name:name,p_passcode:passcode})}if(result.error){alert('Không thể tham gia chuyến đi. '+result.error.message);return}tripId=result.data}
-  const {data:tdata,error}=await db.from('trips').select('id,invite_code,name,initial_fund,created_by,created_at,view_passcode_hash').eq('id',tripId).single();
+  if(ask){
+   const name=localStorage.getItem('tt_name')||'Guest';
+   const result=await db.rpc('join_trip',{p_invite_code:id,p_name:name,p_passcode:null});
+   if(result.error){alert('Không thể tham gia chuyến đi: '+result.error.message);return}
+   tripId=result.data;
+  }
+  const {data:tdata,error}=await db.from('trips').select('id,invite_code,name,initial_fund,created_by,created_at').eq('id',tripId).single();
   if(error){alert('Không tìm thấy chuyến đi hoặc link không hợp lệ. '+error.message);return}
-  trip={...tdata,view_passcode_set:!!tdata.view_passcode_hash};delete trip.view_passcode_hash;await refresh();await loadMyTrips();await showTrip();
+  trip=tdata;await refresh();await loadMyTrips();await showTrip();
   if(channel)db.removeChannel(channel);
   channel=db.channel('trip-'+id).on('postgres_changes',{event:'*',schema:'public',table:'expenses',filter:'trip_id=eq.'+id},refresh).on('postgres_changes',{event:'*',schema:'public',table:'contributions',filter:'trip_id=eq.'+id},refresh).on('postgres_changes',{event:'*',schema:'public',table:'members',filter:'trip_id=eq.'+id},refresh).on('postgres_changes',{event:'*',schema:'public',table:'member_debts',filter:'trip_id=eq.'+id},refresh).subscribe(s=>status(s==='SUBSCRIBED'?'Live sync':'Connecting…'));
   // Refresh request statuses and pending Host approvals while this trip is open.
@@ -373,7 +382,7 @@ function render(){
  const balances=members.map(m=>({id:m.user_id,name:m.name,b:openDebts.reduce((sum,d)=>sum+(d.creditor_id===m.user_id?Number(d.amount):d.debtor_id===m.user_id?-Number(d.amount):0),0)}));
  const transfers=settle(balances);$('debtSettlements').innerHTML=transfers.length?transfers.map(t=>`<div class="settlement-row"><span>${esc(t.from)} → ${esc(t.to)}</span><b>${money(t.amount)}</b></div>`).join(''):'<p class="muted small">Không có khoản nợ chưa thanh toán.</p>';
  const opts=members.map(m=>`<option value="${m.user_id}">${esc(m.name)}</option>`).join('');$('expensePayer').innerHTML='<option value="shared_fund">Lấy từ quỹ chung</option>'+opts;$('fundPayer').innerHTML=opts;
- $('deleteTripBtn').classList.toggle('hidden',readOnly||trip.created_by!==user.id);$('setPasscodeBtn').classList.toggle('hidden',readOnly||trip.created_by!==user.id);$('setPasscodeBtn').textContent=trip.view_passcode_set?'Đổi mã xem':'Đặt mã xem trước khi chia sẻ';$('shareBtn').classList.toggle('hidden',readOnly||!trip.view_passcode_set);$('inviteBtn').classList.toggle('hidden',readOnly||!trip.view_passcode_set);$('leaveBtn').classList.toggle('hidden',readOnly);$('addExpense').classList.toggle('hidden',!canEdit);$('addContribution').classList.toggle('hidden',!canEdit);$('editInitialFundBtn').classList.toggle('hidden',!canEdit);$('addMember').classList.toggle('hidden',!canEdit);$('addDebt').classList.toggle('hidden',!canEdit);$('syncStatus').textContent=readOnly?'● Chế độ chỉ xem':canEdit?'● Đã đồng bộ':'● Chỉ xem · chưa được cấp quyền sửa';
+ $('deleteTripBtn').classList.toggle('hidden',readOnly||trip.created_by!==user.id);$('shareBtn').classList.toggle('hidden',readOnly);$('inviteBtn').classList.toggle('hidden',readOnly);$('leaveBtn').classList.toggle('hidden',readOnly);$('addExpense').classList.toggle('hidden',!canEdit);$('addContribution').classList.toggle('hidden',!canEdit);$('editInitialFundBtn').classList.toggle('hidden',!canEdit);$('addMember').classList.toggle('hidden',!canEdit);$('addDebt').classList.toggle('hidden',!canEdit);$('syncStatus').textContent=readOnly?'● Chế độ chỉ xem':canEdit?'● Đã đồng bộ':'● Chỉ xem · chưa được cấp quyền sửa';
 }
 async function toggleReimbursement(button){const reimbursed=button.dataset.reimbursed==='true';return withButtonLoading(button,'Đang lưu…',async()=>{try{const {error}=await db.from('expenses').update({reimbursed,reimbursed_at:reimbursed?new Date().toISOString():null}).eq('id',button.dataset.id).eq('trip_id',trip.id);if(error){alert('Không thể cập nhật hoàn trả: '+error.message);return}await refresh()}catch(error){alert('Không thể cập nhật hoàn trả: '+error.message)}})}
 async function toggleDebt(button){const is_settled=button.dataset.settled==='true';return withButtonLoading(button,'Đang lưu…',async()=>{try{const {error}=await db.from('member_debts').update({is_settled,settled_at:is_settled?new Date().toISOString():null}).eq('id',button.dataset.id).eq('trip_id',trip.id);if(error){alert('Không thể cập nhật khoản nợ: '+error.message);return}await refresh()}catch(error){alert('Không thể cập nhật khoản nợ: '+error.message)}})}
@@ -382,7 +391,7 @@ function openExpense(record=null){$('expenseForm').reset();$('expenseId').value=
 function openContribution(record=null){$('fundForm').reset();$('fundId').value=record?.id||'';$('fundAmount').value=record?.amount||'';$('fundDate').value=record?.paid_on||dateToday();$('fundNote').value=record?.note||'';if(record?.payer_id)$('fundPayer').value=record.payer_id;$('fundDialogTitle').textContent=record?'Sửa khoản đóng quỹ':'Đóng quỹ thêm';$('fundSave').textContent=record?'Lưu thay đổi':'Lưu khoản đóng';$('fundDialog').showModal()}
 function settle(bs){let debt=bs.filter(x=>x.b<-.5).map(x=>({...x,b:-x.b})),credit=bs.filter(x=>x.b>.5).map(x=>({...x})),out=[];let i=0,j=0;while(i<debt.length&&j<credit.length){let n=Math.min(debt[i].b,credit[j].b);out.push({from:debt[i].name,to:credit[j].name,amount:Math.round(n)});debt[i].b-=n;credit[j].b-=n;if(debt[i].b<.5)i++;if(credit[j].b<.5)j++}return out}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function invite(ev){const button=ev?.currentTarget;if(!button)return;return withButtonLoading(button,'Đang tạo link…',async()=>{const url=location.origin+location.pathname+'?trip='+trip.invite_code;try{await navigator.clipboard.writeText(url);alert('Đã sao chép link xem chuyến đi.\n'+url)}catch{alert('Link xem chuyến đi:\n'+url)}})}
+function invite(ev){const button=ev?.currentTarget;if(!button)return;return withButtonLoading(button,'Đang tạo link…',async()=>{const url=location.origin+location.pathname+'?trip='+trip.invite_code;try{await navigator.clipboard.writeText(url);alert('Đã sao chép link xem (không cần mã). Chỉ chia sẻ với người đáng tin cậy.\n'+url)}catch{alert('Link xem chuyến đi (không cần mã, hãy giữ kín):\n'+url)}})}
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));['expenses','fund','people'].forEach(k=>$(k+'Tab').classList.toggle('hidden',b.dataset.tab!==k))});
 $('addExpense').onclick=()=>{if(!members.length)return;openExpense()};
 $('expenseCancel').onclick=()=>{$('expenseDialog').close();$('expenseForm').reset()};
@@ -404,9 +413,6 @@ $('expenseForm').addEventListener('submit',async ev=>{
 $('addContribution').onclick=()=>openContribution();
 $('fundCancel').onclick=()=>{$('fundDialog').close();$('fundForm').reset()};
 $('fundForm').addEventListener('submit',async ev=>{if(ev.submitter?.id!=='fundSave')return;ev.preventDefault();const id=$('fundPayer').value,p=members.find(x=>x.user_id===id);if(!p)return;await withButtonLoading($('fundSave'),'Đang lưu…',async()=>{try{const payload={amount:Number($('fundAmount').value),payer_id:id,payer_name:p.name,note:$('fundNote').value.trim(),paid_on:$('fundDate').value};const editId=$('fundId').value;const result=editId?await db.from('contributions').update(payload).eq('id',editId).eq('trip_id',trip.id):await db.from('contributions').insert({...payload,trip_id:trip.id,created_by:user.id});if(result.error){alert('Không thể lưu khoản đóng quỹ: '+result.error.message);return}$('fundDialog').close();$('fundForm').reset();await refresh()}catch(error){alert('Không thể lưu khoản đóng quỹ: '+error.message)}})});
-$('setPasscodeBtn').onclick=()=>{$('setPasscodeTitle').textContent=trip.view_passcode_set?'Đổi mã xem chuyến đi':'Đặt mã xem chuyến đi';$('newPasscode').value='';$('confirmPasscode').value='';$('setPasscodeDialog').showModal();$('newPasscode').focus()};
-$('setPasscodeCancel').onclick=()=>{$('setPasscodeDialog').close();$('setPasscodeForm').reset()};
-$('setPasscodeForm').addEventListener('submit',async ev=>{if(ev.submitter?.id!=='setPasscodeSave')return;ev.preventDefault();const passcode=$('newPasscode').value.trim(),confirmCode=$('confirmPasscode').value.trim();if(passcode.length<8||passcode.length>64){alert('Mã xem cần dài từ 8 đến 64 ký tự.');return}if(passcode!==confirmCode){alert('Hai mã xem không khớp.');return}await withButtonLoading($('setPasscodeSave'),'Đang lưu…',async()=>{try{const {error}=await db.rpc('set_trip_view_passcode',{p_trip_id:trip.id,p_passcode:passcode});if(error){alert('Không thể lưu mã xem: '+error.message);return}trip.view_passcode_set=true;$('setPasscodeDialog').close();$('setPasscodeForm').reset();await showTrip()}catch(error){alert('Không thể lưu mã xem: '+error.message)}})});
 $('editInitialFundBtn').onclick=()=>{$('initialFundInput').value=Number(trip.initial_fund||0);$('initialFundDialog').showModal()};
 $('initialFundCancel').onclick=()=>{$('initialFundDialog').close();$('initialFundForm').reset()};
 $('initialFundForm').addEventListener('submit',async ev=>{if(ev.submitter?.id!=='initialFundSave')return;ev.preventDefault();const amount=Number($('initialFundInput').value);await withButtonLoading($('initialFundSave'),'Đang lưu…',async()=>{try{const {error}=await db.from('trips').update({initial_fund:amount}).eq('id',trip.id);if(error){alert('Không thể lưu quỹ ban đầu: '+error.message);return}trip.initial_fund=amount;$('initialFundDialog').close();await refresh()}catch(error){alert('Không thể lưu quỹ ban đầu: '+error.message)}})});
