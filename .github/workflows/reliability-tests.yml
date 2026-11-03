@@ -18,6 +18,7 @@ jobs:
           node --check app.js
           node --check finance.js
           node --check trip-ui.js
+          node --check ui-shell.js
           node --check sw.js
       - name: Verify financial calculations and Vietnam dates
         run: node --test tests/*.test.cjs
