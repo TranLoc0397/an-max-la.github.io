@@ -68,3 +68,42 @@ body,button,input,select,textarea,h1,h2,h3,.brand,.hero-total,.stat b{font-famil
 .topbar .language-option:focus-visible{outline:2px solid #b9e5d8;outline-offset:2px}
 #createLoginHint{margin:11px 0 0;max-width:400px}
 @media(max-width:520px){.topbar-actions{gap:5px;max-width:76%}.topbar .language-option{min-width:32px;padding:7px 5px}.topbar #accountBtn{font-size:11px;padding:9px 7px;max-width:160px}}
+
+/* Responsive app header — brand and controls must not compete for a single line. */
+.topbar{min-height:74px;height:auto;gap:18px;padding-top:11px;padding-bottom:11px}
+.topbar .brand{display:inline-flex;align-items:center;gap:10px;min-width:0;flex:0 1 auto;font-family:var(--font-vietnam);font-size:21px;font-weight:800;letter-spacing:-.7px;white-space:nowrap}
+.brand-icon{display:grid;place-items:center;flex-shrink:0;width:44px;height:44px;border-radius:13px;overflow:hidden;background:#fff}
+.brand-icon img{display:block;width:40px;height:40px;object-fit:contain}
+.brand-wordmark{overflow:hidden;text-overflow:ellipsis}
+.topbar .topbar-actions{display:flex;align-items:center;justify-content:flex-end;gap:9px;max-width:none;min-width:0;flex:1 1 0}
+.topbar #accountBtn{max-width:200px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:11px;padding:11px 13px;font-size:12px;text-align:center}
+.topbar #accountBtn:hover{background:rgba(255,255,255,.2)}
+/* The trip title already has a Share control; do not duplicate it in the app bar. */
+#shareBtn{display:none!important}
+.triphead{flex-wrap:wrap}
+.triphead>div:first-child{min-width:0;flex:1 1 200px}
+.triphead h1{overflow-wrap:anywhere}
+.triphead-actions{flex:0 0 auto}
+.triphead-actions #inviteBtn{white-space:normal;text-align:center}
+@media(max-width:600px){
+ .topbar{display:grid;grid-template-columns:minmax(0,1fr) minmax(108px,auto);align-items:center;gap:10px;padding:12px 14px;min-height:94px}
+ .topbar .brand{font-size:clamp(15px,4.4vw,19px);gap:7px;min-width:0;letter-spacing:-.55px}
+ .brand-icon{width:39px;height:39px;border-radius:11px}
+ .brand-icon img{width:36px;height:36px}
+ .topbar .topbar-actions{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:7px;max-width:100%;width:100%}
+ .topbar .language-switch{padding:2px}
+ .topbar #accountBtn{width:100%;max-width:164px;padding:8px 10px;min-height:34px;font-size:11px}
+ .triphead{align-items:flex-start;gap:11px}
+ .triphead h1{font-size:clamp(29px,7vw,36px)}
+ .triphead-actions{flex:0 0 auto;margin-left:auto}
+ .triphead-actions #inviteBtn{font-size:12px;line-height:1.25;padding:10px 12px}
+}
+@media(max-width:380px){
+ .topbar{grid-template-columns:minmax(0,1fr) minmax(100px,125px);padding:11px 10px;gap:5px}
+ .topbar .brand{font-size:15px;gap:5px}
+ .brand-icon{width:34px;height:34px}
+ .brand-icon img{width:31px;height:31px}
+ .topbar .language-option{min-width:30px}
+ .triphead-actions{width:100%}
+ .triphead-actions #inviteBtn{width:100%}
+}
