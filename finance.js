@@ -55,6 +55,18 @@
     });
   }
 
+  function calculateDebtBalances(members, debts) {
+    return members.map(member => ({
+      id: member.user_id, name: member.name,
+      b: debts.reduce((sum, debt) => {
+        const due = Math.max(0, Number(debt.amount) -
+          Number(debt.paid_amount == null ? (debt.is_settled ? debt.amount : 0) : debt.paid_amount));
+        return sum + (debt.creditor_id === member.user_id ? due :
+                      debt.debtor_id === member.user_id ? -due : 0);
+      }, 0)
+    }));
+  }
+
   // Preserve the existing transfer order, threshold and rounding behavior.
   function settle(balances) {
     const debt = balances.filter(item => item.b < -.5).map(item => ({ ...item, b: -item.b }));
@@ -81,5 +93,5 @@
     return get('year') + '-' + get('month') + '-' + get('day');
   }
 
-  return { calculateTotals, calculateMemberBalances, applyPayments, settle, vietnamDate };
+  return { calculateTotals, calculateMemberBalances, calculateDebtBalances, applyPayments, settle, vietnamDate };
 });
