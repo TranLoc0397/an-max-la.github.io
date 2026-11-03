@@ -12,7 +12,7 @@ create table if not exists public.trip_edit_requests (
 create index if not exists trip_edit_requests_pending_idx on public.trip_edit_requests(trip_id,status);
 alter table public.trip_edit_requests enable row level security;
 -- No direct table access: all changes go through checked RPCs.
-revoke all on public.trip_edit_requests from anon,authenticated;
+revoke all on public.trip_edit_requests from public,anon,authenticated;
 
 create or replace function public.request_trip_edit_access(p_trip_id uuid)
 returns void language plpgsql security definer set search_path=public
@@ -80,4 +80,8 @@ end;
 $$;
 revoke all on function public.review_trip_edit_request(uuid,uuid,boolean) from public;
 grant execute on function public.review_trip_edit_request(uuid,uuid,boolean) to authenticated;
+-- Supabase may grant EXECUTE to anon explicitly through default privileges.
+revoke execute on function public.request_trip_edit_access(uuid) from anon;
+revoke execute on function public.list_trip_edit_requests(uuid) from anon;
+revoke execute on function public.review_trip_edit_request(uuid,uuid,boolean) from anon;
 notify pgrst, 'reload schema';
