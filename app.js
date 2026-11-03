@@ -246,7 +246,7 @@ function openAccount(view){
  if(!db||!user)return;
  accountView(view==='login'||view==='register'?view:'login');
  if(!$('accountDialog').open)$('accountDialog').showModal();
- $('accountContent input')?.focus({preventScroll:true});
+ document.querySelector('#accountContent input')?.focus({preventScroll:true});
 }
 $('accountBtn').onclick=openAccount;
 $('accountClose').onclick=()=>$('accountDialog').close();
