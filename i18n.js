@@ -227,7 +227,7 @@ function translateNode(node){
  const trim=original.trim();
  const canonical=info.canonical;
  const target=translation(canonical);
- const next=(trim===canonical)?original.replace(trim,target):original;
+ const next=trim?original.replace(trim,target):original;
  if(current!==next){info.rendered=next;node.nodeValue=next}
 }
 function translateAttributes(el){
