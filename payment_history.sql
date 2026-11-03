@@ -154,3 +154,61 @@ $$;
 revoke all on function public.record_trip_payment(uuid,text,uuid,numeric,text) from public, anon, authenticated;
 grant execute on function public.record_trip_payment(uuid,text,uuid,numeric,text) to authenticated;
 notify pgrst, 'reload schema';
+
+-- Shared-link viewers can see payment totals with the same invite-code possession as the trip.
+create or replace function public.get_shared_trip_payments(p_invite_code uuid)
+returns jsonb language plpgsql security definer set search_path=public,pg_temp as $$
+declare trip_key uuid;
+begin
+ if auth.uid() is null then raise exception 'Authentication required'; end if;
+ select id into trip_key from public.trips where invite_code=p_invite_code;
+ if trip_key is null then raise exception 'Invalid invitation link'; end if;
+ return coalesce((
+  select jsonb_agg(jsonb_build_object(
+   'id',p.id,'expense_id',p.expense_id,'debt_id',p.debt_id,
+   'amount',p.amount,'paid_on',p.paid_on,'note',p.note,'created_at',p.created_at
+  ) order by p.created_at,p.id)
+  from public.trip_payments p where p.trip_id=trip_key
+ ),'[]'::jsonb);
+end;
+$$;
+revoke all on function public.get_shared_trip_payments(uuid) from public, anon, authenticated;
+grant execute on function public.get_shared_trip_payments(uuid) to authenticated;
+
+-- Editors can restore an accidentally deleted expense or contribution using its immutable audit snapshot.
+create or replace function public.restore_trip_record(p_trip_id uuid,p_activity_id uuid)
+returns uuid language plpgsql security definer set search_path=public,pg_temp as $$
+declare event public.trip_activity%rowtype; d jsonb; restored_id uuid;
+begin
+ if auth.uid() is null or not public.can_edit_trip(p_trip_id) then
+  raise exception 'Editing permission required';
+ end if;
+ select * into event from public.trip_activity
+ where id=p_activity_id and trip_id=p_trip_id and action='DELETE'
+   and source_table in ('expenses','contributions');
+ if not found then raise exception 'Restorable record not found'; end if;
+ d:=event.before_data;restored_id:=event.record_id;
+ if event.source_table='expenses' then
+  if exists(select 1 from public.expenses where id=restored_id) then raise exception 'Expense already restored'; end if;
+  if d->>'payer_id' is not null and not exists(select 1 from public.members where trip_id=p_trip_id and user_id=(d->>'payer_id')::uuid)
+   then raise exception 'Cannot restore: original payer is no longer in this trip'; end if;
+  insert into public.expenses(id,trip_id,title,amount,payer_id,payer_name,category,spent_on,
+                              note,created_by,created_at,reimbursed,reimbursed_at)
+  values(restored_id,p_trip_id,d->>'title',(d->>'amount')::numeric,(d->>'payer_id')::uuid,
+         d->>'payer_name',d->>'category',(d->>'spent_on')::date,
+         coalesce(d->>'note',''),(d->>'created_by')::uuid,(d->>'created_at')::timestamptz,
+         coalesce((d->>'reimbursed')::boolean,false),(d->>'reimbursed_at')::timestamptz);
+ elsif event.source_table='contributions' then
+  if exists(select 1 from public.contributions where id=restored_id) then raise exception 'Contribution already restored'; end if;
+  if not exists(select 1 from public.members where trip_id=p_trip_id and user_id=(d->>'payer_id')::uuid)
+   then raise exception 'Cannot restore: original contributor is no longer in this trip'; end if;
+  insert into public.contributions(id,trip_id,amount,payer_id,payer_name,note,paid_on,created_by,created_at)
+  values(restored_id,p_trip_id,(d->>'amount')::numeric,(d->>'payer_id')::uuid,d->>'payer_name',
+         coalesce(d->>'note',''),(d->>'paid_on')::date,(d->>'created_by')::uuid,(d->>'created_at')::timestamptz);
+ end if;
+ return restored_id;
+end;
+$$;
+revoke all on function public.restore_trip_record(uuid,uuid) from public, anon, authenticated;
+grant execute on function public.restore_trip_record(uuid,uuid) to authenticated;
+notify pgrst, 'reload schema';
