@@ -50,3 +50,7 @@ This starter build does not yet include receipt uploads, offline write queues, p
 ## Member requests for editing access
 
 Run `member_edit_permissions.sql`, then `trip_edit_requests.sql` **once** in the Supabase SQL Editor. A viewer must join the trip as a member before requesting edit access. A joined member who has no edit access can select **Gửi yêu cầu cấp quyền** under Thành viên. The Host reviews pending requests there using **Duyệt** or **Từ chối**. Only the Host can approve requests. The viewing passcode alone never grants editing rights.
+
+## View trips via invitation link (no viewing passcode)
+
+Run `trip_link_access.sql` in the connected Supabase project before deploying a frontend build using this flow. A trip's random UUID invitation link is a bearer credential: anyone possessing it can view the trip's member names and financial ledger. Members can join through this link but remain view-only until the Host grants edit permissions. Do not post trip links publicly. Existing passcode hashes are left in the database for compatibility, but are no longer required for access.
