@@ -77,3 +77,11 @@ node --test tests/*.test.cjs
 GitHub Actions runs syntax validation and the same tests on each pull request and push to `main`.
 
 **Important:** In production, deploy the SQL migration before the updated JavaScript bundle. The app requires the new payment and activity tables and RPC functions.
+
+## Edit and remove members
+
+For existing Supabase projects, apply `member_management.sql` once. It adds two permission-checked RPCs: `update_trip_member_name` and `remove_trip_member_safe`.
+
+From the Members tab, editors can rename members. They can remove manually-added guests if those members have no linked expenses, contributions, personal debts, or recorded payments. The Host may also remove joined accounts with no financial references. The Host cannot be removed. Removing a member reduces the participant count and can change each remaining member's equal expense share; the UI asks for confirmation.
+
+To keep the Members tab uncluttered, the Host's edit access requests and member permissions are now in **Trip header → ⚙ Quyền truy cập**. Members still request access from their own access request panel.
