@@ -415,14 +415,8 @@ function render(){
  const categories=[...new Set(displayExpenses.map(x=>x.category||'Khác'))].sort((a,b)=>a.localeCompare(b,'vi'));
  categoryFilter.innerHTML='<option value="">Tất cả danh mục</option>'+categories.map(category=>`<option value="${esc(category)}">${esc(category)}</option>`).join('');
  categoryFilter.value=categories.includes(existingCategory)?existingCategory:'';
- const query=searchInput.value.trim().toLocaleLowerCase('vi');
- const visibleExpenses=displayExpenses.filter(x=>{
-   const paid=Number(x.paid_amount||0),remaining=Number(x.amount)-paid;
-   const matchesText=!query||[x.title,x.note,x.payer_name,x.category].some(v=>String(v||'').toLocaleLowerCase('vi').includes(query));
-   const matchesStatus=!statusFilter.value||(statusFilter.value==='due'&&!!x.payer_id&&remaining>0&&paid===0)||
-     (statusFilter.value==='partial'&&!!x.payer_id&&remaining>0&&paid>0)||
-     (statusFilter.value==='paid'&&(!x.payer_id||remaining===0));
-   return matchesText&&(!categoryFilter.value||(x.category||'Khác')===categoryFilter.value)&&matchesStatus;
+ const visibleExpenses=window.TripTogetherUI.filterExpenses(displayExpenses,{
+   query:searchInput.value,category:categoryFilter.value,status:statusFilter.value
  });
  expenseList.innerHTML=visibleExpenses.length?visibleExpenses.map(x=>{
    const isPersonal=!!x.payer_id,paid=Number(x.paid_amount||0),remaining=Number(x.amount)-paid;
