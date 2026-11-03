@@ -1143,3 +1143,103 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   #peopleTab .tt-reconciliation-card,
   #peopleTab .tt-reconciliation-content .item{animation:none!important;transition:none!important}
 }
+
+/* Account dialog action hierarchy: equal-width buttons, consistent typography,
+   predictable mobile hit targets, and a clearly separated sign-out action. */
+#accountDialog{
+  width:min(94vw,460px);
+  max-height:min(90dvh,760px);
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+}
+#accountDialog .account-dialog-content{min-width:0}
+#accountDialog .account-form{min-width:0}
+#accountDialog .account-form .account-submit,
+#accountDialog #accountResend{
+  display:flex;
+  width:100%;
+  min-height:48px;
+  padding:12px 16px;
+  margin:20px 0 0;
+  align-items:center;
+  justify-content:center;
+  border-radius:12px;
+  font:700 14px/1.3 'Roboto',Arial,sans-serif;
+  white-space:normal;
+  text-align:center;
+}
+#accountDialog .account-signout{
+  margin-top:22px;
+  padding-top:20px;
+  border-top:1px solid #e9e7f4;
+}
+#accountDialog #accountLogout{
+  display:flex;
+  width:100%;
+  min-height:44px;
+  padding:11px 16px;
+  justify-content:center;
+  align-items:center;
+  border:1px solid #f3d6d2;
+  border-radius:12px;
+  background:#fff4f2;
+  color:#b34033;
+  font:700 13px/1.3 'Roboto',Arial,sans-serif;
+  white-space:normal;
+  text-align:center;
+  box-shadow:none;
+}
+#accountDialog #accountLogout:hover{background:#ffeae6;border-color:#e9bdb6}
+#accountDialog .account-signout p{
+  margin:9px 0 0;
+  font-size:12px;
+  line-height:1.55;
+}
+#accountDialog .account-dialog-content>menu{
+  display:block;
+  margin:20px 0 0;
+  padding:18px 0 0;
+  border-top:1px solid #e9e7f4;
+}
+#accountDialog #accountClose{
+  display:flex;
+  width:100%;
+  min-height:44px;
+  margin:0;
+  padding:11px 16px;
+  align-items:center;
+  justify-content:center;
+  border-radius:12px;
+  background:#f0eeff;
+  color:#5045c9;
+  font:700 13px/1.3 'Roboto',Arial,sans-serif;
+  white-space:normal;
+  text-align:center;
+}
+#accountDialog #accountClose:hover{background:#e7e3ff}
+#accountDialog .account-form-actions{margin-top:0}
+#accountDialog .account-form-actions .ghost{min-height:38px}
+#accountDialog .account-switch button{min-height:42px}
+#accountDialog button:focus-visible{
+  outline:3px solid #a89df6;
+  outline-offset:2px;
+}
+@media(max-width:520px){
+  #accountDialog{
+    width:calc(100vw - 24px);
+    max-height:calc(100dvh - 32px);
+    padding:20px 18px calc(20px + env(safe-area-inset-bottom));
+  }
+  #accountDialog .account-form .account-submit,
+  #accountDialog #accountResend{min-height:48px}
+  #accountDialog #accountLogout,
+  #accountDialog #accountClose{min-height:46px}
+  #accountDialog .account-dialog-content>menu{
+    display:block;
+    margin-top:18px;
+    padding-top:16px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #accountDialog button{transition:none!important}
+}
