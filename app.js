@@ -87,6 +87,7 @@ async function init(){
   if(!data.session){const x=await db.auth.signInAnonymously();if(x.error){alert('Không thể kết nối: '+x.error.message);return}}
   user=(await db.auth.getUser()).data.user;
   updateAccountButton();
+  updateCreateTripAccess();
   await loadMyTrips();
   const code=new URLSearchParams(location.search).get('trip');
   if(code)await openSharedTrip(code)
@@ -94,6 +95,16 @@ async function init(){
   if(authCallbackError){history.replaceState({},'',location.pathname+location.search);alert(authCallbackError.toLowerCase().includes('expired')?'Link xác minh đã hết hạn. Hãy nhập lại email trong mục Liên kết thiết bị để nhận link mới.':'Không thể xác minh email. Hãy gửi lại email xác minh trong mục Liên kết thiết bị.')}
  }catch(error){console.error(error);alert('Could not load TripTogether: '+error.message)}
  finally{pageLoading(false)}
+}
+function canCreateTrip(){return !!user&&!user.is_anonymous}
+function updateCreateTripAccess(){
+ const button=$('createBtn');
+ const hint=$('createLoginHint');
+ if(!button)return;
+ const signedIn=canCreateTrip();
+ button.textContent=signedIn?'＋ Tạo chuyến đi':'Đăng nhập để tạo chuyến đi';
+ if(hint)hint.classList.toggle('hidden',signedIn);
+ window.TripTogetherI18n?.refresh();
 }
 function updateAccountButton(){
  const button=$('accountBtn');
@@ -270,7 +281,7 @@ $('profileCancel').onclick=()=>{pendingAction=null;$('profileDialog').close();$(
 $('tripTitleCancel').onclick=()=>{$('tripTitleDialog').close()};
 $('tripTitleForm').addEventListener('submit',async ev=>{if(ev.submitter?.id!=='tripTitleSave')return;ev.preventDefault();const title=$('tripTitle').value.trim(),initialFund=Number($('tripInitialFund').value||0);if(!title)return;const action=pendingTripTitleAction;pendingTripTitleAction=null;$('tripTitleDialog').close();if(action)await action(title,initialFund)});
 $('tripTitleDialog').addEventListener('close',()=>{if(pendingTripTitleAction){const action=pendingTripTitleAction;pendingTripTitleAction=null;action(null)}});
- $('createBtn').onclick=()=>{if(!ready()){alert('Hãy cấu hình Supabase theo SETUP.md trước nhé.');return}askName(async name=>askTripTitle(async(title,initialFund)=>{if(title===null)return;await withButtonLoading($('createBtn'),'Đang tạo…',async()=>{try{const inviteCode=crypto.randomUUID();const {error}=await db.from('trips').insert({name:title,created_by:user.id,invite_code:inviteCode,initial_fund:initialFund});if(error){alert(error.message);return}const {data:tripId,error:memberError}=await db.rpc('join_trip',{p_invite_code:inviteCode,p_name:name,p_passcode:null});if(memberError){alert(memberError.message);return}await joinTrip(tripId,false)}catch(error){alert('Không thể tạo chuyến: '+error.message)}})}))};
+ $('createBtn').onclick=()=>{if(!ready()){alert('Hãy cấu hình Supabase theo SETUP.md trước nhé.');return}if(!canCreateTrip()){openAccount('register');accountNotice('Đăng nhập hoặc tạo tài khoản để tạo và quản lý chuyến đi.');return}askName(async name=>askTripTitle(async(title,initialFund)=>{if(title===null)return;await withButtonLoading($('createBtn'),'Đang tạo…',async()=>{try{const inviteCode=crypto.randomUUID();const {error}=await db.from('trips').insert({name:title,created_by:user.id,invite_code:inviteCode,initial_fund:initialFund});if(error){alert(error.message);return}const {data:tripId,error:memberError}=await db.rpc('join_trip',{p_invite_code:inviteCode,p_name:name,p_passcode:null});if(memberError){alert(memberError.message);return}await joinTrip(tripId,false)}catch(error){alert('Không thể tạo chuyến: '+error.message)}})}))};
  $('joinBtn').onclick=()=>{let raw=$('joinCode').value.trim();let code=raw.match(/[?&]trip=([a-f0-9-]+)/i)?.[1]||raw;if(!code)return;if(!ready()){alert('Hãy cấu hình Supabase theo SETUP.md trước nhé.');return}askName(async name=>withButtonLoading($('joinBtn'),'Opening…',()=>joinTrip(code,true)))};
 async function openSharedTrip(code){
  pageLoading(true,'Đang mở chuyến đi…');
