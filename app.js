@@ -270,12 +270,31 @@ async function loadMyTrips(){
   const {data:memberships,error}=await db.from('members').select('trip_id').eq('user_id',user.id);
   if(error)throw error;
   const tripIds=[...new Set((memberships||[]).map(m=>m.trip_id))];
-  if(!tripIds.length){$('savedTripsSection').classList.remove('hidden');$('savedTripList').innerHTML='';$('noSavedTrips').classList.remove('hidden');return}
-  const {data:trips,error:tripError}=await db.from('trips').select('id,name,created_at').in('id',tripIds).order('created_at',{ascending:false});
+  if(!tripIds.length){
+    $('savedTripsSection').classList.remove('hidden');
+    $('savedTripList').innerHTML='<button type="button" class="tt-trip-create-tile" id="createTripTile"><span aria-hidden="true">＋</span><b>Tạo chuyến đi mới</b><small>Bắt đầu hành trình tiếp theo của bạn.</small></button>';
+    $('createTripTile').onclick=()=>$('createBtn').click();
+    $('noSavedTrips').classList.remove('hidden');return
+  }
+  const {data:trips,error:tripError}=await db.from('trips').select('id,name,created_at,created_by').in('id',tripIds).order('created_at',{ascending:false});
   if(tripError)throw tripError;
-  $('savedTripList').innerHTML=(trips||[]).map(t=>`<div class="item"><div class="item-title">${esc(t.name)}</div><button class="secondary compact trip-open" data-trip-id="${esc(t.id)}">Mở</button></div>`).join('');
+  $('savedTripList').innerHTML=(trips||[]).map((t,i)=>{
+   const cover=['🏞️','🧳','✈️','🌴','⛰️'][i%5];
+   const isHost=t.created_by===user.id;
+   const created=t.created_at?new Date(t.created_at).toLocaleDateString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'}):'';
+   return `<article class="tt-trip-card">
+     <div class="tt-trip-cover" aria-hidden="true"><span>${cover}</span></div>
+     <div class="tt-trip-card-body">
+       <span class="tt-trip-role">${isHost?'♛ Chủ chuyến đi':'✓ Thành viên'}</span>
+       <h3>${esc(t.name)}</h3>
+       <p class="muted small">${created?'📅 '+esc(created):'TripTogether'} · ${isHost?'Quản lý chuyến đi':'Chuyến đi đã tham gia'}</p>
+       <button class="primary trip-open" type="button" data-trip-id="${esc(t.id)}">Xem chuyến đi →</button>
+     </div>
+   </article>`;
+ }).join('')+`<button type="button" class="tt-trip-create-tile" id="createTripTile"><span aria-hidden="true">＋</span><b>Tạo chuyến đi mới</b><small>Bắt đầu hành trình tiếp theo của bạn.</small></button>`;
   $('savedTripsSection').classList.remove('hidden');$('noSavedTrips').classList.toggle('hidden',!!trips?.length);
   $('savedTripList').querySelectorAll('.trip-open').forEach(button=>button.onclick=()=>withButtonLoading(button,'Opening…',()=>joinTrip(button.dataset.tripId,false)));
+  $('createTripTile')?.addEventListener('click',()=>$('createBtn')?.click());
  }catch(error){console.error('Could not load saved trips',error);$('savedTripsSection').classList.remove('hidden');$('savedTripList').innerHTML='';$('noSavedTrips').textContent='Could not load your saved trips. Paste the trip invitation link or code below to open one.';$('noSavedTrips').classList.remove('hidden')}
 }
 function askName(action){pendingAction=action;$('profileDialog').showModal();$('displayName').focus()}
@@ -285,6 +304,7 @@ $('profileCancel').onclick=()=>{pendingAction=null;$('profileDialog').close();$(
 $('tripTitleCancel').onclick=()=>{$('tripTitleDialog').close()};
 $('tripTitleForm').addEventListener('submit',async ev=>{if(ev.submitter?.id!=='tripTitleSave')return;ev.preventDefault();const title=$('tripTitle').value.trim(),initialFund=Number($('tripInitialFund').value||0);if(!title)return;const action=pendingTripTitleAction;pendingTripTitleAction=null;$('tripTitleDialog').close();if(action)await action(title,initialFund)});
 $('tripTitleDialog').addEventListener('close',()=>{if(pendingTripTitleAction){const action=pendingTripTitleAction;pendingTripTitleAction=null;action(null)}});
+ $('createTripCardButton').onclick=()=>$('createBtn').click();
  $('createBtn').onclick=()=>{if(!ready()){localizedAlert('Hãy cấu hình Supabase theo SETUP.md trước nhé.');return}if(!canCreateTrip()){openAccount('register');accountNotice('Đăng nhập hoặc tạo tài khoản để tạo và quản lý chuyến đi.');return}askName(async name=>askTripTitle(async(title,initialFund)=>{if(title===null)return;await withButtonLoading($('createBtn'),'Đang tạo…',async()=>{try{const inviteCode=crypto.randomUUID();const {error}=await db.from('trips').insert({name:title,created_by:user.id,invite_code:inviteCode,initial_fund:initialFund});if(error){localizedAlert(error.message);return}const {data:tripId,error:memberError}=await db.rpc('join_trip',{p_invite_code:inviteCode,p_name:name,p_passcode:null});if(memberError){localizedAlert(memberError.message);return}await joinTrip(tripId,false)}catch(error){localizedAlert('Không thể tạo chuyến: '+error.message)}})}))};
  $('joinBtn').onclick=()=>{let raw=$('joinCode').value.trim();let code=raw.match(/[?&]trip=([a-f0-9-]+)/i)?.[1]||raw;if(!code)return;if(!ready()){localizedAlert('Hãy cấu hình Supabase theo SETUP.md trước nhé.');return}askName(async name=>withButtonLoading($('joinBtn'),'Opening…',()=>joinTrip(code,true)))};
 async function openSharedTrip(code){
