@@ -242,6 +242,20 @@ Object.assign(dictionary,{
   "Đang lưu…":"Saving…",
   "Đang khôi phục…":"Restoring…"
 });
+Object.assign(dictionary,{
+ "KHÔNG GIAN":"WORKSPACE",
+ "Tổng quan":"Overview",
+ "Khoản chi gần đây":"Recent expenses",
+ "Xem tất cả →":"View all →",
+ "Xem chi tiết →":"View details →",
+ "Tình hình quỹ":"Fund overview",
+ "Đóng quỹ →":"Contribute →",
+ "Chi tiêu minh bạch hơn khi mọi người cùng theo dõi.":"Clearer expenses when everyone stays informed.",
+ "Thêm":"Add",
+ "Chưa có khoản chi.":"No expenses yet.",
+ "Quỹ còn lại sau khi trừ khoản cần hoàn cho thành viên.":"Fund remaining after outstanding reimbursements.",
+ "Cần quyền chỉnh sửa để thêm khoản chi":"Editing permission required to add an expense"
+});
 const reverse=new Map(Object.entries(dictionary).map(([vi,en])=>[en,vi]));
 let language=localStorage.getItem('tt_language')==='en'?'en':'vi';
 const sourceText=new WeakMap();
