@@ -577,6 +577,8 @@ function openMemberEditor(memberId=null){
  $('memberDialogTitle').textContent=member?'Sửa tên thành viên':'Thêm thành viên';
  $('memberDialogHint').textContent=member?'Cập nhật tên hiển thị. Khoản chi và đóng quỹ hiện có vẫn được giữ nguyên.':'Thành viên được tính vào phần chia đều của chuyến đi.';
  $('memberSave').textContent=member?'Lưu thay đổi':'Thêm thành viên';
+ $('memberOpeningFundField').classList.toggle('hidden',!!member);
+ $('memberOpeningFund').value='';
  $('memberDialog').showModal();$('memberName').focus();
 }
 async function removeMemberSafely(button){
@@ -618,12 +620,18 @@ $('debtForm').addEventListener('submit',async ev=>{if(ev.submitter?.id!=='debtSa
 $('memberForm').addEventListener('submit',async ev=>{
  if(ev.submitter?.id!=='memberSave')return;ev.preventDefault();
  const name=$('memberName').value.trim(),memberId=$('memberEditUserId').value;
- if(!name||!canEdit)return;
+ if(!name||!canEdit||readOnly||!trip)return;
+ const amountText=$('memberOpeningFund').value.trim();
+ const amount=amountText===''?0:Number(amountText);
+ if(!memberId&&(!Number.isSafeInteger(amount)||amount<0)){
+  localizedAlert('Số tiền đóng quỹ phải là số nguyên không âm (VNĐ).');return;
+ }
+ const tripId=trip.id;
  await withButtonLoading($('memberSave'),'Đang lưu…',async()=>{
   try{
    const {error}=memberId
-    ?await db.rpc('update_trip_member_name',{p_trip_id:trip.id,p_member_user_id:memberId,p_name:name})
-    :await db.rpc('add_guest_member',{p_trip_id:trip.id,p_name:name});
+    ?await db.rpc('update_trip_member_name',{p_trip_id:tripId,p_member_user_id:memberId,p_name:name})
+    :await db.rpc('add_guest_member_with_fund',{p_trip_id:tripId,p_name:name,p_amount:amount});
    if(error)throw error;
    $('memberDialog').close();$('memberForm').reset();await refresh();
   }catch(error){localizedAlert('Không thể lưu thành viên: '+error.message)}
