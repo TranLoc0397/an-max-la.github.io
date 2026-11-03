@@ -15,7 +15,7 @@
   <path d="M138 153c5-11 14-18 26-18 15 0 27 12 27 29v11h-48c0-9-2-17-5-22Z" fill="#B9E5D8"/>
   <path d="M99 173c0-20 13-34 29-34s29 14 29 34v8H99v-8Z" fill="#F5F7F6"/>
   <!-- Shared expense: receipt and settling checkmark -->
-  <path d="M78 168h100v48l-10-6-10 6-10 6-10-6-10 6-10-6-10 6-10 6-10-6v-48Z" fill="#F5F7F6" stroke="#142B3A" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M78 168h100v48l-10-6-10 6-10-6-10 6-10-6-10 6-10-6-10 6-10-6-10 6v-48Z" fill="#F5F7F6" stroke="#142B3A" stroke-width="6" stroke-linejoin="round"/>
   <path d="M98 186h35M98 199h24" stroke="#287F78" stroke-width="6" stroke-linecap="round"/>
   <circle cx="157" cy="192" r="15" fill="#B9E5D8"/>
   <path d="m150 192 5 5 9-11" stroke="#142B3A" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
