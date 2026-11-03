@@ -283,3 +283,40 @@ dialog::backdrop{background:rgba(11,37,48,.57);backdrop-filter:blur(3px)}
  }
  .stat:hover,.item:hover,.primary:hover,.secondary:hover{transform:none}
 }
+
+/* Phase 3: compact filters, financial history and accessible member cards. */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.expense-toolbar{display:grid;grid-template-columns:minmax(0,2fr) minmax(130px,1fr) minmax(145px,1fr);gap:9px;margin:15px 0 12px}
+.expense-toolbar input,.expense-toolbar select{min-width:0;min-height:44px;font-size:13px}
+.expense-toolbar input[type=search]{appearance:none;background:#fff}
+.expense-toolbar select{padding-right:27px}
+.payment-progress{font-size:11px;color:#287f78;font-weight:600;margin-top:5px}
+.payment-history-entry,.activity-entry{align-items:flex-start;gap:9px}
+.payment-history-entry>div:first-child,.activity-entry>div:first-child{flex:1;min-width:0}
+.payment-meta,.activity-meta{display:block;font-size:11px;color:var(--muted);line-height:1.6;margin-top:3px}
+.payment-amount{font-weight:800;white-space:nowrap;color:var(--teal)}
+.payment-amount.payment-reversed{color:#a35b13}
+.activity-panel{margin-top:27px;padding-top:13px;border-top:1px solid var(--line)}
+.activity-entry .compact{flex-shrink:0;align-self:center}
+.member-mobile-label{display:none}
+.member-cell{min-width:0}
+.member-cell .member-value{display:block;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.record-status-partial{color:#946313}
+@media(max-width:650px){
+ .expense-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .expense-toolbar>input{grid-column:1/-1}
+}
+@media(max-width:520px){
+ .member-table-head{display:none}
+ .member-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px 16px;padding:15px 16px}
+ .member-row>.item-title{grid-column:1/-1;padding-bottom:9px;border-bottom:1px solid #e9f0eb}
+ .member-row>.member-cell:last-child{grid-column:1/-1}
+ .member-mobile-label{display:block;font-size:10px;font-weight:600;color:var(--muted);margin-bottom:4px}
+ .member-cell .member-value{font-size:13px;font-weight:800}
+ .payment-history-entry,.activity-entry{flex-wrap:wrap}
+ .expense-toolbar{gap:7px}
+ .expense-toolbar input,.expense-toolbar select{font-size:12px;min-height:44px}
+}
+@media(prefers-reduced-motion:reduce){
+ .expense-toolbar *,.member-row,.activity-entry,.payment-history-entry{animation:none!important;transition:none!important}
+}
