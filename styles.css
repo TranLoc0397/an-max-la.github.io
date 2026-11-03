@@ -362,3 +362,6 @@ dialog::backdrop{background:rgba(11,37,48,.57);backdrop-filter:blur(3px)}
  .member-actions .compact{font-size:11px;padding:10px 7px}
  .triphead-actions #memberAccessBtn,.triphead-actions #inviteBtn{flex:1 1 auto}
 }
+
+/* Match desktop column headings with the member action column. */
+@media(min-width:761px){.member-table-head,.member-row{grid-template-columns:minmax(145px,1.2fr) repeat(3,minmax(86px,1fr)) 140px}}
