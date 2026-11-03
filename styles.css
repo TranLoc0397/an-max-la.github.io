@@ -113,3 +113,10 @@ body,button,input,select,textarea,h1,h2,h3,.brand,.hero-total,.stat b{font-famil
 .topbar .brand-icon img{display:block;width:50px;height:50px;object-fit:contain}
 @media(max-width:600px){.topbar .brand-icon{width:45px;height:45px}.topbar .brand-icon img{width:45px;height:45px}}
 @media(max-width:380px){.topbar .brand-icon{width:40px;height:40px}.topbar .brand-icon img{width:40px;height:40px}}
+
+/* Project copyright: visible on the welcome and trip pages. */
+.site-copyright{max-width:850px;margin:22px auto 0;padding:18px 20px 26px;display:flex;align-items:center;justify-content:space-between;gap:8px 20px;flex-wrap:wrap;border-top:1px solid var(--line);color:var(--muted);font-size:12px;line-height:1.6}
+.site-copyright strong{font-weight:700;color:var(--ink)}
+.site-copyright a{color:var(--teal);font-weight:700;text-decoration:none}
+.site-copyright a:hover,.site-copyright a:focus-visible{text-decoration:underline}
+@media(max-width:520px){.site-copyright{margin-top:12px;padding:16px 14px 28px;justify-content:center;flex-direction:column;text-align:center;gap:4px}}
