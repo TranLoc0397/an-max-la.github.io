@@ -107,3 +107,9 @@ body,button,input,select,textarea,h1,h2,h3,.brand,.hero-total,.stat b{font-famil
  .triphead-actions{width:100%}
  .triphead-actions #inviteBtn{width:100%}
 }
+
+/* Transparent supplied PNG; slightly larger icon without a white tile. */
+.topbar .brand-icon{background:transparent;border-radius:0;box-shadow:none;overflow:visible;width:50px;height:50px;flex-shrink:0}
+.topbar .brand-icon img{display:block;width:50px;height:50px;object-fit:contain}
+@media(max-width:600px){.topbar .brand-icon{width:45px;height:45px}.topbar .brand-icon img{width:45px;height:45px}}
+@media(max-width:380px){.topbar .brand-icon{width:40px;height:40px}.topbar .brand-icon img{width:40px;height:40px}}
