@@ -60,3 +60,11 @@ body,button,input,select,textarea,h1,h2,h3,.brand,.hero-total,.stat b{font-famil
 .account-signout p{margin:7px 0 0}
 #accountDialog menu{margin:12px 0 0}
 @media(max-width:520px){#accountDialog{width:calc(100vw - 24px);padding:20px;border-radius:18px}.account-switch{gap:3px}.account-form input{font-size:16px}.account-tab{min-height:42px}}
+
+/* Language picker: compact, persistent, touch-friendly on mobile. */
+.language-switch{display:inline-flex;align-items:center;flex-shrink:0;padding:3px;gap:2px;border:1px solid rgba(255,255,255,.25);border-radius:11px;background:rgba(255,255,255,.1)}
+.topbar .language-option{min-width:36px;min-height:34px;border:0;padding:7px 9px;border-radius:8px;background:transparent;color:#d6e5e8;font:700 12px var(--font-vietnam);cursor:pointer}
+.topbar .language-option.active{background:#fff;color:#142b3a;box-shadow:0 1px 4px #0014}
+.topbar .language-option:focus-visible{outline:2px solid #b9e5d8;outline-offset:2px}
+#createLoginHint{margin:11px 0 0;max-width:400px}
+@media(max-width:520px){.topbar-actions{gap:5px;max-width:76%}.topbar .language-option{min-width:32px;padding:7px 5px}.topbar #accountBtn{font-size:11px;padding:9px 7px;max-width:160px}}
