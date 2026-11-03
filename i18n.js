@@ -193,6 +193,7 @@ function translation(original){
  if(language==='vi')return original;
  if(translated)return translated;
  const variablePrefixes={
+  'Quỹ còn nợ: ':'Fund owes: ',
   'Không thể tạo chuyến: ':'Could not create trip: ',
   'Không thể mở chuyến đi: ':'Could not open trip: ',
   'Không thể tham gia chuyến đi: ':'Could not join trip: ',
