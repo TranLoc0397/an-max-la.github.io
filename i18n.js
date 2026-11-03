@@ -226,6 +226,22 @@ Object.assign(dictionary,{
   "Không thể ghi thanh toán: ":"Could not record payment: ",
   "Trạng thái không khả dụng":"Status unavailable"
 });
+Object.assign(dictionary,{
+  "Quản lý quyền truy cập":"Manage access",
+  "Theo dõi phần chi, đóng quỹ và khoản quỹ còn nợ của mỗi người.":"Track each member's expenses, contributions and outstanding fund reimbursements.",
+  "Sửa tên thành viên":"Edit member name",
+  "Tên thành viên":"Member name",
+  "Lưu thành viên":"Save member",
+  "Lưu thay đổi":"Save changes",
+  "Thành viên được tính vào phần chia đều của chuyến đi.":"Members are included in the equal expense split.",
+  "Cập nhật tên hiển thị. Khoản chi và đóng quỹ hiện có vẫn được giữ nguyên.":"Update the display name without changing existing expenses or contributions.",
+  "Không thể lưu thành viên: ":"Unable to save member: ",
+  "Không thể xóa thành viên: ":"Unable to remove member: ",
+  "Không thể xóa thành viên có giao dịch. Dữ liệu tài chính cần được giữ nguyên.":"A member with transactions cannot be removed. Financial data must be preserved.",
+  "Đang xóa…":"Removing…",
+  "Đang lưu…":"Saving…",
+  "Đang khôi phục…":"Restoring…"
+});
 const reverse=new Map(Object.entries(dictionary).map(([vi,en])=>[en,vi]));
 let language=localStorage.getItem('tt_language')==='en'?'en':'vi';
 const sourceText=new WeakMap();

@@ -320,3 +320,48 @@ dialog::backdrop{background:rgba(11,37,48,.57);backdrop-filter:blur(3px)}
 @media(prefers-reduced-motion:reduce){
  .expense-toolbar *,.member-row,.activity-entry,.payment-history-entry{animation:none!important;transition:none!important}
 }
+
+/* Member management and compact mobile controls. */
+.members-sectionhead{align-items:flex-start;gap:16px}
+.members-sectionhead>div:first-child{flex:1 1 300px;min-width:0}
+.members-sectionhead .muted{max-width:510px}
+.member-actions{display:flex;flex:0 0 auto;align-items:center;justify-content:flex-end;gap:8px}
+.member-actions .compact{font-size:12px;font-weight:700;line-height:1.3;min-height:42px;white-space:nowrap;padding:10px 13px}
+.member-row{grid-template-columns:minmax(145px,1.25fr) repeat(3,minmax(86px,1fr)) auto}
+.member-row>.item-title{min-width:0;overflow-wrap:anywhere}
+.member-edit-actions{display:flex;gap:6px;align-items:center;justify-content:flex-end}
+.member-edit-actions .compact{min-height:36px;font-size:11px;padding:8px 10px}
+.member-access-dialog{max-height:min(85vh,750px);overflow:auto}
+.member-access-dialog>.settlement{margin-top:12px}
+.member-access-dialog .member-permissions h3{font-size:15px}
+.member-access-dialog menu{position:sticky;bottom:0;background:#fff;padding-top:12px}
+#memberAccessBtn{white-space:nowrap}
+@media(max-width:760px){
+ .members-sectionhead{display:flex;flex-direction:column;align-items:stretch;gap:12px}
+ .members-sectionhead>div:first-child{width:100%}
+ .member-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:9px}
+ .member-actions button{width:100%;min-width:0;white-space:normal}
+ .member-row{grid-template-columns:minmax(120px,1.2fr) repeat(3,minmax(72px,1fr));gap:7px}
+ .member-edit-actions{grid-column:1/-1;justify-content:flex-end;padding-top:7px;border-top:1px solid var(--line)}
+ .member-edit-actions button{min-width:72px}
+}
+@media(max-width:520px){
+ .members-sectionhead .muted{font-size:12px;line-height:1.55}
+ .members-sectionhead h2{font-size:21px;line-height:1.3}
+ .member-actions .compact{min-height:46px;font-size:12px;padding:11px 10px;border-radius:11px}
+ .member-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px 14px;padding:15px}
+ .member-row>.item-title{grid-column:1/-1}
+ .member-row>.member-cell:last-of-type{grid-column:1/-1}
+ .member-edit-actions{grid-column:1/-1;padding-top:10px}
+ .member-edit-actions .compact{min-height:40px}
+ .triphead-actions{display:flex;flex-wrap:wrap;align-items:center;gap:7px}
+ .triphead-actions #memberAccessBtn{min-height:40px;white-space:normal}
+}
+@media(max-width:380px){
+ .member-actions{gap:6px}
+ .member-actions .compact{font-size:11px;padding:10px 7px}
+ .triphead-actions #memberAccessBtn,.triphead-actions #inviteBtn{flex:1 1 auto}
+}
+
+/* Match desktop column headings with the member action column. */
+@media(min-width:761px){.member-table-head,.member-row{grid-template-columns:minmax(145px,1.2fr) repeat(3,minmax(86px,1fr)) 140px}}

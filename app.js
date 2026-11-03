@@ -431,7 +431,9 @@ function render(){
  contributionList.querySelectorAll('.delete-contribution').forEach(button=>button.onclick=()=>removeRecord('contributions',button,`Xóa khoản đóng quỹ “${button.dataset.note}”? Thao tác này không thể hoàn tác.`));
  const memberName=id=>members.find(m=>m.user_id===id)?.name||'Thành viên';
  const expenseBalances=window.TripTogetherFinance.calculateMemberBalances(members,displayExpenses,contributions,{spent,initial,actualFund});
- $('memberList').innerHTML=expenseBalances.length?expenseBalances.map(m=>`<div class="item member-row"><span class="item-title">${esc(m.name)}${m.id===trip.created_by?'<span class="creator-label" title="Trip creator">Host</span>':''}${m.outstanding?`<small class="member-outstanding">Quỹ còn nợ: ${money(m.outstanding)}</small>`:''}</span><span class="member-cell"><small class="member-mobile-label">Đã chi cá nhân</small><span class="member-value">${money(m.paid)}</span></span><span class="member-cell"><small class="member-mobile-label">Đã đóng quỹ</small><span class="member-value">${money(m.contributed)}</span></span><span class="member-cell"><small class="member-mobile-label">Phần chi</small><span class="member-value">${money(m.share)}</span></span></div>`).join(''):'<p class="muted ledger-empty">Chưa có thành viên.</p>';
+ $('memberList').innerHTML=expenseBalances.length?expenseBalances.map(m=>`<div class="item member-row"><span class="item-title">${esc(m.name)}${m.id===trip.created_by?'<span class="creator-label" title="Trip creator">Host</span>':''}${m.outstanding?`<small class="member-outstanding">Quỹ còn nợ: ${money(m.outstanding)}</small>`:''}</span><span class="member-cell"><small class="member-mobile-label">Đã chi cá nhân</small><span class="member-value">${money(m.paid)}</span></span><span class="member-cell"><small class="member-mobile-label">Đã đóng quỹ</small><span class="member-value">${money(m.contributed)}</span></span><span class="member-cell"><small class="member-mobile-label">Phần chi</small><span class="member-value">${money(m.share)}</span></span>${canEdit?`<div class="member-edit-actions"><button type="button" class="secondary compact edit-member" data-user-id="${esc(m.id)}">Sửa</button>${m.id!==trip.created_by&& (m.is_guest||trip.created_by===user?.id)?`<button type="button" class="danger compact remove-member" data-user-id="${esc(m.id)}">Xóa</button>`:''}</div>`:''}</div>`).join(''):'<p class="muted ledger-empty">Chưa có thành viên.</p>';
+ $('memberList').querySelectorAll('.edit-member').forEach(button=>button.onclick=()=>openMemberEditor(button.dataset.userId));
+ $('memberList').querySelectorAll('.remove-member').forEach(button=>button.onclick=()=>removeMemberSafely(button));
  const requestPanel=$('editRequestPanel'), requestState=$('editRequestState'), requestBtn=$('requestEditBtn');
  const isHost=trip.created_by===user?.id, joined=members.some(m=>m.user_id===user?.id);
  requestPanel.classList.toggle('hidden',readOnly||!joined||isHost||canEdit);
@@ -443,6 +445,7 @@ function render(){
  const pendingRequests=editRequests.filter(r=>r.status==='pending');
  const hostRequestPanel=$('hostEditRequestsPanel'),hostRequestList=$('hostEditRequestsList');
  hostRequestPanel.classList.toggle('hidden',readOnly||!isHost);
+ $('memberAccessBtn').classList.toggle('hidden',readOnly||!isHost);
  if(!readOnly&&isHost){
   hostRequestList.innerHTML=!editRequestsAvailable?'<p class="muted small">Hãy chạy trip_edit_requests.sql trong Supabase để nhận yêu cầu.</p>':pendingRequests.length?pendingRequests.map(r=>`<div class="member-permission-row"><span><b>${esc(r.name)}</b><small class="member-permission-status">Đang xin quyền chỉnh sửa</small></span><div class="section-actions"><button class="primary compact edit-request-review" data-user-id="${esc(r.user_id)}" data-approve="true">Duyệt</button><button class="secondary compact edit-request-review" data-user-id="${esc(r.user_id)}" data-approve="false">Từ chối</button></div></div>`).join(''):'<p class="muted small">Chưa có yêu cầu cấp quyền mới.</p>';
   hostRequestList.querySelectorAll('.edit-request-review').forEach(b=>b.onclick=()=>reviewEditRequest(b));
@@ -534,6 +537,31 @@ async function restoreActivity(button){
 }
 
 async function removeRecord(table,button,message){if(!localizedConfirm(message))return;return withButtonLoading(button,'Removing…',async()=>{try{const {error}=await db.from(table).delete().eq('id',button.dataset.id).eq('trip_id',trip.id);if(error){localizedAlert(`Could not remove item: ${error.message}`);return}await refresh()}catch(error){localizedAlert(`Could not remove item: ${error.message}`)}})}
+function openMemberEditor(memberId=null){
+ if(!canEdit)return;
+ const member=memberId?members.find(m=>m.user_id===memberId):null;
+ $('memberEditUserId').value=member?.user_id||'';
+ $('memberName').value=member?.name||'';
+ $('memberDialogTitle').textContent=member?'Sửa tên thành viên':'Thêm thành viên';
+ $('memberDialogHint').textContent=member?'Cập nhật tên hiển thị. Khoản chi và đóng quỹ hiện có vẫn được giữ nguyên.':'Thành viên được tính vào phần chia đều của chuyến đi.';
+ $('memberSave').textContent=member?'Lưu thay đổi':'Thêm thành viên';
+ $('memberDialog').showModal();$('memberName').focus();
+}
+async function removeMemberSafely(button){
+ if(!canEdit||readOnly)return;
+ const member=members.find(m=>m.user_id===button.dataset.userId);
+ if(!member||member.user_id===trip.created_by)return;
+ const connected=expenses.some(x=>x.payer_id===member.user_id)||
+   contributions.some(x=>x.payer_id===member.user_id)||
+   debts.some(x=>x.debtor_id===member.user_id||x.creditor_id===member.user_id);
+ if(connected){localizedAlert('Không thể xóa thành viên có giao dịch. Dữ liệu tài chính cần được giữ nguyên.');return}
+ if(!localizedConfirm('Xóa thành viên “'+member.name+'” khỏi chuyến đi? Phần chi sẽ được chia lại cho các thành viên còn lại.'))return;
+ await withButtonLoading(button,'Đang xóa…',async()=>{
+  const {error}=await db.rpc('remove_trip_member_safe',{p_trip_id:trip.id,p_member_user_id:member.user_id});
+  if(error){localizedAlert('Không thể xóa thành viên: '+error.message);return}
+  await refresh();
+ });
+}
 function openExpense(record=null){$('expenseForm').reset();$('expenseId').value=record?.id||'';$('expenseTitle').value=record?.title||'';$('expenseAmount').value=record?.amount||'';$('expenseDate').value=record?.spent_on||dateToday();$('expenseNote').value=record?.note||'';if(record?.category&&!Array.from($('expenseCategory').options).some(o=>o.value===record.category))$('expenseCategory').add(new Option(record.category,record.category));$('expenseCategory').value=record?.category||'Food';if(record?.payer_id)$('expensePayer').value=record.payer_id;$('expenseDialogTitle').textContent=record?'Sửa khoản chi':'Thêm khoản chi';$('expenseSave').textContent=record?'Lưu thay đổi':'Lưu khoản chi';$('expenseDialog').showModal()}
 function openContribution(record=null){$('fundForm').reset();$('fundId').value=record?.id||'';$('fundAmount').value=record?.amount||'';$('fundDate').value=record?.paid_on||dateToday();$('fundNote').value=record?.note||'';if(record?.payer_id)$('fundPayer').value=record.payer_id;$('fundDialogTitle').textContent=record?'Sửa khoản đóng quỹ':'Đóng quỹ thêm';$('fundSave').textContent=record?'Lưu thay đổi':'Lưu khoản đóng';$('fundDialog').showModal()}
 const settle = balances => window.TripTogetherFinance.settle(balances);
@@ -545,12 +573,30 @@ $('expenseStatusFilter').addEventListener('change',()=>{if(trip)render()});
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));['expenses','fund','people'].forEach(k=>$(k+'Tab').classList.toggle('hidden',b.dataset.tab!==k))});
 $('addExpense').onclick=()=>{if(!members.length)return;openExpense()};
 $('expenseCancel').onclick=()=>{$('expenseDialog').close();$('expenseForm').reset()};
-$('addMember').onclick=()=>{$('memberName').value='';$('memberDialog').showModal();$('memberName').focus()};
+$('addMember').onclick=()=>openMemberEditor();
 $('memberCancel').onclick=()=>{$('memberDialog').close();$('memberForm').reset()};
+$('memberAccessBtn').onclick=()=>{
+ if(trip?.created_by!==user?.id||readOnly)return;
+ $('memberAccessDialog').showModal();
+};
+$('memberAccessClose').onclick=()=>$('memberAccessDialog').close();
 $('addDebt').onclick=()=>{if(members.length<2){localizedAlert('Cần ít nhất hai thành viên để ghi khoản nợ.');return}$('debtCreditor').innerHTML=members.map(m=>`<option value="${esc(m.user_id)}">${esc(m.name)}</option>`).join('');$('debtDebtor').innerHTML=$('debtCreditor').innerHTML;$('debtAmount').value='';$('debtNote').value='';$('debtDate').value=dateToday();$('debtDialog').showModal()};
 $('debtCancel').onclick=()=>{$('debtDialog').close();$('debtForm').reset()};
 $('debtForm').addEventListener('submit',async ev=>{if(ev.submitter?.id!=='debtSave')return;ev.preventDefault();const debtorId=$('debtDebtor').value,creditorId=$('debtCreditor').value;if(debtorId===creditorId){localizedAlert('Người nợ và người nhận nợ phải khác nhau.');return}await withButtonLoading($('debtSave'),'Đang lưu…',async()=>{try{const {error}=await db.from('member_debts').insert({trip_id:trip.id,debtor_id:debtorId,creditor_id:creditorId,amount:Number($('debtAmount').value),note:$('debtNote').value.trim(),incurred_on:$('debtDate').value,created_by:user.id});if(error){localizedAlert('Không thể lưu khoản nợ: '+error.message);return}$('debtDialog').close();$('debtForm').reset();await refresh()}catch(error){localizedAlert('Không thể lưu khoản nợ: '+error.message)}})});
-$('memberForm').addEventListener('submit',async ev=>{if(ev.submitter?.id!=='memberSave')return;ev.preventDefault();const name=$('memberName').value.trim();if(!name)return;await withButtonLoading($('memberSave'),'Saving…',async()=>{try{const {error}=await db.rpc('add_guest_member',{p_trip_id:trip.id,p_name:name});if(error){localizedAlert('Could not add member: '+error.message+' If this feature is not installed in Supabase yet, run add_member.sql from the TripTogether folder in SQL Editor.');return}$('memberDialog').close();$('memberForm').reset();await refresh()}catch(error){localizedAlert('Could not add member: '+error.message)}})});
+$('memberForm').addEventListener('submit',async ev=>{
+ if(ev.submitter?.id!=='memberSave')return;ev.preventDefault();
+ const name=$('memberName').value.trim(),memberId=$('memberEditUserId').value;
+ if(!name||!canEdit)return;
+ await withButtonLoading($('memberSave'),'Đang lưu…',async()=>{
+  try{
+   const {error}=memberId
+    ?await db.rpc('update_trip_member_name',{p_trip_id:trip.id,p_member_user_id:memberId,p_name:name})
+    :await db.rpc('add_guest_member',{p_trip_id:trip.id,p_name:name});
+   if(error)throw error;
+   $('memberDialog').close();$('memberForm').reset();await refresh();
+  }catch(error){localizedAlert('Không thể lưu thành viên: '+error.message)}
+ });
+});
 $('expenseForm').addEventListener('submit',async ev=>{
  if(ev.submitter?.id!=='expenseSave')return;ev.preventDefault();
  const id=$('expensePayer').value,p=members.find(x=>x.user_id===id),editId=$('expenseId').value,existing=expenses.find(x=>x.id===editId),reimbursed=!!p&&!!existing?.reimbursed;
