@@ -293,7 +293,9 @@ async function openSharedTrip(code){
   // The unguessable invitation token grants view-only access; no second passcode is needed.
   const result=await db.rpc('get_shared_trip',{p_invite_code:code,p_passcode:null});
   if(result.error){localizedAlert('Không thể mở chuyến đi: '+result.error.message);return}
-  const data=result.data;if(!data?.trip){localizedAlert('Không tìm thấy chuyến đi hoặc link không hợp lệ.');return}if((data.members||[]).some(m=>m.user_id===user.id)){await joinTrip(data.trip.id,false);return}
+  const data=result.data;if(!data?.trip){localizedAlert('Không tìm thấy chuyến đi hoặc link không hợp lệ.');return}const access=window.TripTogetherUI.sharedAccess(user,data.trip,data.members||[]);
+  // Permissions are tied to the authenticated user ID, never to a matching email string.
+  if(access.joined){await joinTrip(data.trip.id,false);return}
   const ledger=await db.rpc('get_shared_trip_payments',{p_invite_code:code});
   if(ledger.error)throw ledger.error;
   ++refreshSequence;readOnly=true;sharedCode=code;sharedPasscode=null;trip=data.trip;members=data.members||[];expenses=data.expenses||[];contributions=data.contributions||[];debts=data.debts||[];payments=ledger.data||[];activityEvents=[];render();await showTrip();if(viewerTimer)clearInterval(viewerTimer);viewerTimer=setInterval(()=>{if(readOnly&&trip)void refresh()},20000)
@@ -322,6 +324,14 @@ async function showTrip(){
  $('inviteBtn').classList.toggle('hidden',readOnly);
  $('tripName').textContent=trip.name;
  $('sharedAccessPanel').classList.toggle('hidden',!readOnly);
+ if(readOnly){
+   const access=window.TripTogetherUI.sharedAccess(user,trip,members);
+   $('sharedAccountBtn').classList.toggle('hidden',access.signedIn);
+   $('joinSharedTripBtn').textContent=access.signedIn?'Tham gia chuyến đi để xin quyền sửa':'Tham gia để xin quyền sửa';
+   $('sharedAccessDescription').textContent=access.signedIn
+    ?'Bạn đã đăng nhập nhưng tài khoản này chưa là thành viên của chuyến đi. Tham gia chuyến đi rồi gửi yêu cầu để Host cấp quyền chỉnh sửa.'
+    :'Link chia sẻ chỉ cho phép xem. Đăng nhập bằng tài khoản đã tham gia chuyến đi hoặc tham gia để gửi yêu cầu chỉnh sửa.';
+ }
  status(readOnly?'Chỉ xem':'Đã đồng bộ');
 }
 async function joinTrip(id,ask=true){
