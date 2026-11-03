@@ -896,3 +896,103 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 @media(max-width:1050px){
  .tt-sidebar{display:none!important}
 }
+
+/* Trip footer: sync status never competes with destructive/leave actions.
+   At phone sizes, status occupies its own line above two equal-width buttons. */
+#app > footer{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  column-gap:18px;
+  row-gap:12px;
+}
+#app > footer #syncStatus{
+  display:flex;
+  align-items:center;
+  min-width:0;
+  margin:0;
+  font:600 12px/1.5 'Roboto',Arial,sans-serif;
+  letter-spacing:0;
+  overflow-wrap:normal;
+  word-break:normal;
+}
+#app > footer .footer-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  flex-wrap:nowrap;
+  gap:10px;
+  width:auto;
+  min-width:0;
+}
+#app > footer .footer-actions button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:44px;
+  min-width:120px;
+  width:auto;
+  padding:10px 15px;
+  font:700 13px/1.3 'Roboto',Arial,sans-serif;
+  white-space:normal;
+  text-align:center;
+  border-radius:12px;
+}
+#app > footer #leaveBtn{
+  background:#f0eeff;
+  color:#5045c9;
+  border:1px solid #e9e5ff;
+}
+#app > footer #leaveBtn:hover{background:#e8e3ff}
+#app > footer #deleteTripBtn{
+  background:#fff0ed;
+  color:#b34033;
+  border:1px solid #f2d5d0;
+}
+#memberOpeningFundField{margin-top:7px}
+#memberOpeningFundField label{margin-bottom:0}
+#memberOpeningFundField input{min-height:46px}
+.field-optional{
+  display:inline-block;
+  margin-left:5px;
+  font-size:11px;
+  color:#81879b;
+  font-weight:500;
+}
+.member-fund-hint{margin:8px 0 12px;font-size:12px;line-height:1.6}
+@media(max-width:650px){
+  #app > footer{
+    grid-template-columns:minmax(0,1fr);
+    justify-items:stretch;
+    gap:13px;
+    padding-top:16px;
+  }
+  #app > footer #syncStatus{
+    grid-column:1;
+    width:100%;
+    min-height:22px;
+    font-size:12px;
+    line-height:1.5;
+  }
+  #app > footer .footer-actions{
+    grid-column:1;
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+    width:100%;
+  }
+  #app > footer .footer-actions button{
+    min-width:0;
+    width:100%;
+    min-height:46px;
+    padding:11px 9px;
+    font-size:13px;
+  }
+  #app > footer .footer-actions button:not(.hidden):only-child{
+    grid-column:1/-1;
+  }
+}
+@media(max-width:360px){
+  #app > footer .footer-actions{gap:8px}
+  #app > footer .footer-actions button{font-size:12px;padding:10px 7px}
+}
