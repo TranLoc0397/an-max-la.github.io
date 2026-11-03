@@ -51,7 +51,7 @@
       const contributed = contributions.filter(item => item.payer_id === member.user_id)
         .reduce((sum, item) => sum + Number(item.amount), 0);
       const b = totals.initial / memberCount + contributed - sharePerMember - totals.actualFund / memberCount;
-      return { id: member.user_id, name: member.name, paid, outstanding, contributed, share: sharePerMember, b };
+      return { id: member.user_id, name: member.name, is_guest: !!member.is_guest, paid, outstanding, contributed, share: sharePerMember, b };
     });
   }
 
