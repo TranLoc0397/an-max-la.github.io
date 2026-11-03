@@ -22,7 +22,7 @@ Upload the entire folder to a static HTTPS host such as Netlify, Cloudflare Page
 - Android: open the HTTPS site in Chrome → Install app / Add to Home screen.
 
 ## 5) Invite people
-Create a trip and tap “Chia sẻ link xem”. Anyone with that link can open a read-only view without entering a name or being added to the member list. To join as a member, paste the link into the home screen and enter a name. New members are view-only until the trip creator grants edit permission in the Members tab. Treat the link like a password; anyone holding it can view trip details. The trip creator must set a passcode (at least 8 characters) before sharing. Viewers enter it to open the read-only link; send the passcode separately. For an existing database, run `trip_passcode.sql` once in Supabase SQL Editor.
+Create a trip and tap “Chia sẻ link xem”. Anyone with that link can open a read-only view without entering a name or being added to the member list. To join as a member, paste the link into the home screen and enter a name. New members are view-only until the trip creator grants edit permission in the Members tab. Treat the link like a password; anyone holding it can view trip details. There is no separate passcode. Anyone with the private invite link can view the trip; only joined members approved by the Host can edit.
 
 ## Grant edit access to members
 For a database set up before this feature, run `member_edit_permissions.sql` once in Supabase SQL Editor. Existing joined members keep their current access; new members start as view-only. In a trip you created, open **Thành viên** and use **Cấp quyền sửa** or **Thu hồi quyền** for each joined account. Manually added guest names do not have an app login and cannot sign in.
@@ -34,7 +34,7 @@ On the device/browser that currently owns your trips, tap **Tài khoản → G�
 To include someone who will not open an invitation link, first run `add_member.sql` in Supabase SQL Editor. Then open the trip → Members & settle → Add member and enter their name. Manually added members appear in equal expense splits and can be selected as the payer, but they do not get access to the app or the shared trip. Invite them if they need to use the app themselves.
 
 ## Remove data
-Expenses and deposits can be removed from their lists by any trip member. Only the trip creator can delete the trip; deleting it also deletes its members, expenses and deposits. If Supabase was configured before this feature was added, run `delete_trip.sql` once in SQL Editor.
+Expenses and contributions can be removed by members with edit permission. Deletions are logged in the activity history; editors can restore deleted records when no related payment history would be lost. Only the trip creator can delete the trip; deleting it also deletes its members, expenses and deposits. If Supabase was configured before this feature was added, run `delete_trip.sql` once in SQL Editor.
 
 ## Match the expense workbook
 The app tracks an initial fund separately from later contributions and stores a note on each expense. The payer is optional for expenses paid from the shared fund. If the database was configured before this field became optional, run `expense_payer_optional.sql` in Supabase SQL Editor. If the database was configured before these fields were added, run `excel_workflow.sql` once in Supabase SQL Editor.
@@ -54,3 +54,26 @@ Run `member_edit_permissions.sql`, then `trip_edit_requests.sql` **once** in the
 ## View trips via invitation link (no viewing passcode)
 
 Run `trip_link_access.sql` in the connected Supabase project before deploying a frontend build using this flow. A trip's random UUID invitation link is a bearer credential: anyone possessing it can view the trip's member names and financial ledger. Members can join through this link but remain view-only until the Host grants edit permissions. Do not post trip links publicly. Existing passcode hashes are left in the database for compatibility, but are no longer required for access.
+
+## Payment and audit history (Phase 2)
+For an existing project, run `payment_history.sql` **once** in Supabase SQL Editor, or apply the corresponding migration. The migration adds:
+- `trip_payments`: an append-only, signed payment ledger for partial fund reimbursements and member-to-member debt payments. Negative amounts reverse a previously recorded payment.
+- `trip_activity`: a read-only audit trail of expense, contribution, debt, and payment inserts, changes, and deletions.
+- `record_trip_payment`: checks edit permission and prevents paying more than the original amount or reversing more than paid.
+- `restore_trip_record`: restores a deleted expense or contribution when the original member still exists. Paid expenses with deleted payment history require coordinated manual recovery.
+
+Existing financial amounts, membership and permissions are not reset. Fully settled historic records are backfilled into the ledger to preserve amounts; no money is transferred through TripTogether.
+
+## Expense filtering and mobile components (Phase 3)
+The Expenses tab supports text search, category, and reimbursement status filtering. The Members tab switches from a four-column grid to readable member cards on narrow screens. Payment and activity history are available in the Members tab.
+
+## Maintainability and automated checks (Phase 4)
+`finance.js` isolates all financial calculations and is shared by the app and automated tests. `trip-ui.js` holds pure expense search and filtering logic. `app.js` coordinates Supabase data access, authentication, rendering and actions.
+
+Run the regression suite locally with Node.js 22 or newer:
+```sh
+node --test tests/*.test.cjs
+```
+GitHub Actions runs syntax validation and the same tests on each pull request and push to `main`.
+
+**Important:** In production, deploy the SQL migration before the updated JavaScript bundle. The app requires the new payment and activity tables and RPC functions.
