@@ -19,3 +19,12 @@ test('menu explicitly handles taps, preserving all existing action callbacks',()
   assert.match(js,new RegExp("querySelectorAll\\('\\."+action+"'" ));
  }
 });
+
+test('three-dot menu uses one accessible SVG icon and consistent dimensions',()=>{
+ const app=read('app.js'),css=read('styles.css');
+ assert.match(app,/<svg class="member-menu-icon" viewBox="0 0 24 24"/);
+ for(const x of [5,12,19])assert.match(app,new RegExp('cx="'+x+'" cy="12" r="1\\.8"'));
+ assert.match(app,/aria-label="Thao tác thành viên:/);
+ assert.match(css,/\.member-edit-actions \.member-actions-menu>summary\{[\s\S]*?width:44px;[\s\S]*?height:44px;/);
+ assert.match(css,/\.member-actions-menu>summary \.member-menu-icon\{/);
+});
