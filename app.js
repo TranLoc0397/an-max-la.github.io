@@ -306,7 +306,7 @@ $('tripTitleForm').addEventListener('submit',async ev=>{if(ev.submitter?.id!=='t
 $('tripTitleDialog').addEventListener('close',()=>{if(pendingTripTitleAction){const action=pendingTripTitleAction;pendingTripTitleAction=null;action(null)}});
  $('createTripCardButton').onclick=()=>$('createBtn').click();
  $('createBtn').onclick=()=>{if(!ready()){localizedAlert('Hãy cấu hình Supabase theo SETUP.md trước nhé.');return}if(!canCreateTrip()){openAccount('register');accountNotice('Đăng nhập hoặc tạo tài khoản để tạo và quản lý chuyến đi.');return}askName(async name=>askTripTitle(async(title,initialFund)=>{if(title===null)return;await withButtonLoading($('createBtn'),'Đang tạo…',async()=>{try{const inviteCode=crypto.randomUUID();const {error}=await db.from('trips').insert({name:title,created_by:user.id,invite_code:inviteCode,initial_fund:initialFund});if(error){localizedAlert(error.message);return}const {data:tripId,error:memberError}=await db.rpc('join_trip',{p_invite_code:inviteCode,p_name:name,p_passcode:null});if(memberError){localizedAlert(memberError.message);return}await joinTrip(tripId,false)}catch(error){localizedAlert('Không thể tạo chuyến: '+error.message)}})}))};
- $('joinBtn').onclick=()=>{let raw=$('joinCode').value.trim();let code=raw.match(/[?&]trip=([a-f0-9-]+)/i)?.[1]||raw;if(!code)return;if(!ready()){localizedAlert('Hãy cấu hình Supabase theo SETUP.md trước nhé.');return}askName(async name=>withButtonLoading($('joinBtn'),'Opening…',()=>joinTrip(code,true)))};
+ $('joinBtn').onclick=()=>{let raw=$('joinCode').value.trim();let code=raw.match(/[?&]trip=([a-f0-9-]+)/i)?.[1]||raw;if(!code)return;if(!ready()){localizedAlert('Hãy cấu hình Supabase theo SETUP.md trước nhé.');return}void withButtonLoading($('joinBtn'),'Opening…',()=>openSharedTrip(code))};
 async function openSharedTrip(code){
  pageLoading(true,'Đang mở chuyến đi…');
  try{
@@ -323,19 +323,6 @@ async function openSharedTrip(code){
 }
 // A private invitation link allows viewing, never permission to edit.
 // The viewer must first join as a member; only the trip creator can grant can_edit.
-async function joinFromSharedView(name){
- if(!readOnly||!sharedCode||!user)return;
- const code=sharedCode;
- await withButtonLoading($('joinSharedTripBtn'),'Đang tham gia…',async()=>{
-  try{
-   const {data:tripId,error}=await db.rpc('join_trip',{p_invite_code:code,p_name:name,p_passcode:null});
-   if(error)throw error;
-   await joinTrip(tripId,false);
-   if(!readOnly)localizedAlert('Đã tham gia chuyến đi. Mở tab Thành viên → Xin quyền chỉnh sửa để gửi yêu cầu cho Host.');
-  }catch(error){localizedAlert('Không thể tham gia chuyến đi: '+error.message)}
- });
-}
-$('joinSharedTripBtn').onclick=()=>askName(joinFromSharedView);
 $('sharedAccountBtn').onclick=openAccount;
 async function showTrip(){
  $('welcome').classList.add('hidden');
@@ -347,10 +334,10 @@ async function showTrip(){
  if(readOnly){
    const access=window.TripTogetherUI.sharedAccess(user,trip,members);
    $('sharedAccountBtn').classList.toggle('hidden',access.signedIn);
-   $('joinSharedTripBtn').textContent=access.signedIn?'Tham gia chuyến đi để xin quyền sửa':'Tham gia để xin quyền sửa';
+
    $('sharedAccessDescription').textContent=access.signedIn
-    ?'Bạn đã đăng nhập nhưng tài khoản này chưa là thành viên của chuyến đi. Tham gia chuyến đi rồi gửi yêu cầu để Host cấp quyền chỉnh sửa.'
-    :'Link chia sẻ chỉ cho phép xem. Đăng nhập bằng tài khoản đã tham gia chuyến đi hoặc tham gia để gửi yêu cầu chỉnh sửa.';
+    ?'Tài khoản này chưa có quyền truy cập chuyến đi. Hãy liên hệ Host để được liên kết với thành viên có sẵn.'
+    :'Đây là liên kết chỉ xem. Đăng nhập bằng tài khoản đã được Host cấp quyền để truy cập chuyến đi.';
  }
  status(readOnly?'Chỉ xem':'Đã đồng bộ');
  window.TripTogetherShell?.openTrip();
