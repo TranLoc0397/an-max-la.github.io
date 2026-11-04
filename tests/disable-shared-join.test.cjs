@@ -26,6 +26,7 @@ test('backend prevents member creation from shared link but allows Host initiali
  assert.match(sql,/if owner_id<>auth\.uid\(\) then/);
  assert.match(sql,/Joining by shared link is disabled/);
  assert.match(sql,/if exists\(select 1 from public\.members/);
+ assert.match(sql,/account_user_id=auth\.uid\(\)/);
  assert.match(sql,/insert into public\.members/);
  assert.doesNotMatch(sql,/delete from public\.members|update public\.expenses|update public\.contributions/i);
 });

@@ -1,5 +1,6 @@
 -- Prevent creating duplicate trip members from a shared invitation link.
--- Existing Host trip creation still works, and existing joined members can reopen.
+-- Existing Host trip creation still works; linked-email members can reopen.
+-- Requires verified_email_member_linking.sql before installation.
 -- Does not modify or delete any existing data.
 create or replace function public.join_trip(
  p_invite_code uuid,
@@ -14,11 +15,11 @@ begin
   where invite_code=p_invite_code;
  if tid is null then raise exception 'Invalid invitation link'; end if;
  if exists(select 1 from public.members
-   where trip_id=tid and user_id=auth.uid()) then
+   where trip_id=tid and (user_id=auth.uid() or account_user_id=auth.uid())) then
   return tid;
  end if;
  if owner_id<>auth.uid() then
-  raise exception 'Joining by shared link is disabled. Ask the Host to link you to an existing member';
+  raise exception 'Joining by shared link is disabled. Ask the Host to link your verified email to an existing member';
  end if;
  if nullif(trim(coalesce(p_name,'')),'') is null then
   raise exception 'A display name is required';

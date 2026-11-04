@@ -24,7 +24,7 @@
  function sharedAccess(user,trip,members=[]){
    const signedIn=!!(user&&user.email&&!user.is_anonymous);
    const owner=!!(user?.id&&trip?.created_by===user.id);
-   const member=members.find(m=>m.user_id===user?.id);
+   const member=members.find(m=>m.user_id===user?.id||m.account_user_id===user?.id);
    const joined=owner||!!member;
    const canEdit=owner||!!member?.can_edit;
    return {

@@ -1243,3 +1243,31 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 @media(prefers-reduced-motion:reduce){
   #accountDialog button{transition:none!important}
 }
+
+/* Invite by verified email, without creating duplicate financial participants. */
+.tt-claim-form{display:flex;flex-direction:column;align-items:stretch;gap:10px;margin-top:13px;max-width:430px}
+.tt-claim-form.hidden{display:none}
+.tt-claim-form label{font:700 13px/1.45 'Roboto',Arial,sans-serif;color:#49426e}
+.tt-claim-form input{min-height:46px;border:1px solid #dad5f2;border-radius:12px;background:white;padding:10px 13px;font-size:14px;width:100%}
+.tt-claim-form button{width:100%;min-height:46px}
+#memberInviteEmailField{margin:12px 0}
+#memberInviteEmailField label{display:block}
+#memberInviteEmailField input{width:100%;min-height:44px;margin-top:7px}
+#memberInviteEmailField p{margin:6px 0 0;font-size:12px;line-height:1.6}
+.member-invite-email{display:block;font-size:11px;font-weight:500;color:#6559e8;overflow-wrap:anywhere;margin-top:4px}
+@media(max-width:520px){.tt-claim-form{max-width:none;width:100%}.tt-claim-form button{white-space:normal}}
+
+/* Host-only duplicate financial member merge */
+.tt-merge-dialog{width:min(94vw,480px);max-height:calc(100dvh - 30px);overflow:auto}
+.tt-merge-dialog form{display:flex;flex-direction:column;gap:13px}
+.tt-merge-dialog form>h2{margin:0}
+.tt-merge-dialog form>label{font-weight:700;font-size:14px}
+.tt-merge-dialog select{min-height:46px;width:100%;border:1px solid #dcd6f2;border-radius:11px;padding:9px 12px;background:white;color:#28243c;font:inherit}
+.tt-merge-source{display:flex;flex-direction:column;gap:4px;border:1px solid #e2dcf7;border-radius:12px;background:#f7f5ff;padding:12px}
+.tt-merge-source span{font-size:12px;color:#645d83}
+.tt-merge-source strong{font-size:16px}
+.tt-merge-confirm{display:flex!important;gap:9px;align-items:flex-start;font-weight:500!important;line-height:1.5}
+.tt-merge-confirm input{width:18px;height:18px;margin:1px 0 0;flex:none;accent-color:#6559e8}
+.tt-merge-dialog menu{display:flex;gap:10px;margin:6px 0 0;padding:0}
+.tt-merge-dialog menu button{flex:1;min-height:44px}
+@media(max-width:520px){.tt-merge-dialog{width:calc(100vw - 24px);padding:20px 16px}.tt-merge-dialog menu button{font-size:13px}.member-edit-actions .merge-member{min-height:38px}}
