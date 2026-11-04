@@ -7,7 +7,7 @@ const money = n => new Intl.NumberFormat('vi-VN',{style:'currency',currency:'VND
 const dateToday = () => window.TripTogetherFinance.vietnamDate();
 let db, user, trip, members=[], expenses=[], contributions=[], debts=[], channel, readOnly=false, canEdit=false, editPermissionsReady=false, sharedCode=null, sharedPasscode=null, viewerTimer=null;
 let editRequests=[], editRequestsAvailable=false, editRequestTimer=null;
-let payments=[],activityEvents=[],memberInviteEmails=[];
+let payments=[],activityEvents=[],memberInviteEmails=[],memberInviteEmailsAvailable=false;
 let refreshSequence=0;
 let pendingAction=null;
 let pendingTripTitleAction=null;
@@ -81,6 +81,18 @@ async function reviewEditRequest(button){
 }
 $('requestEditBtn').onclick=requestEditAccess;
 async function withButtonLoading(button,message,action){if(!button||actionInFlight)return;actionInFlight=true;const controls=[...document.querySelectorAll('button')],disabled=controls.map(b=>b.disabled),label=button.textContent;controls.forEach(b=>b.disabled=true);button.classList.add('is-loading');button.setAttribute('aria-busy','true');button.textContent=message;try{return await action()}finally{controls.forEach((b,i)=>{if(b.isConnected)b.disabled=disabled[i]});button.classList.remove('is-loading');button.removeAttribute('aria-busy');button.textContent=label;actionInFlight=false}}
+// Close member action menus on outside click or Escape; native <details> handles keyboard opening.
+document.addEventListener('pointerdown',event=>{
+ if(event.target.closest('.member-actions-menu'))return;
+ document.querySelectorAll('.member-actions-menu[open]').forEach(menu=>{menu.open=false});
+});
+document.addEventListener('keydown',event=>{
+ if(event.key!=='Escape')return;
+ const menus=[...document.querySelectorAll('.member-actions-menu[open]')];
+ if(!menus.length)return;
+ menus.forEach(menu=>{menu.open=false});
+ if(!document.querySelector('dialog[open]'))menus[0].querySelector('summary')?.focus();
+});
 async function init(){
  addPasswordVisibilityControls();
  pageLoading(true,'Connecting to your trip…');
@@ -428,17 +440,18 @@ async function refresh(){
    db.from('expenses').select('*').eq('trip_id',tripId).order('spent_on',{ascending:false}),
    db.from('contributions').select('*').eq('trip_id',tripId).order('paid_on',{ascending:false}),
    db.from('member_debts').select('*').eq('trip_id',tripId).order('incurred_on',{ascending:false}),
-   Promise.resolve({items:[],available:false}),
+   fetchEditRequests(tripId),
    db.from('trip_payments').select('*').eq('trip_id',tripId).order('created_at',{ascending:false}),
    db.from('trip_activity').select('*').eq('trip_id',tripId).order('recorded_at',{ascending:false}).limit(40),
    trip.created_by===user?.id?db.rpc('get_trip_member_invite_emails',{p_trip_id:tripId}):Promise.resolve({data:[],error:null})
   ]);
   if(!current())return; // Never commit an older or different-trip response.
-  if(a.error||b.error||c.error||d.error||ledger.error||history.error||invites.error){
-   console.error('Trip refresh failed',{members:a.error,expenses:b.error,contributions:c.error,debts:d.error,payments:ledger.error,activity:history.error,invites:invites.error});
+  if(a.error||b.error||c.error||d.error||ledger.error||history.error){
+   console.error('Trip refresh failed',{members:a.error,expenses:b.error,contributions:c.error,debts:d.error,payments:ledger.error,activity:history.error});
    if(await handleDeletedTrip(tripId))return;
    status('Sync error');return;
   }
+  if(invites.error&&invites.error.code!=='PGRST202')console.warn('Member email invitations unavailable:',invites.error);
   let nextExpenses=b.data||[],nextContributions=c.data||[],nextDebts=d.data||[],nextPayments=ledger.data||[];
   // A joined member without edit rights may see 0 rows under older Supabase RLS.
   // Confirm that an apparently empty trip really is empty before replacing its
@@ -463,7 +476,7 @@ async function refresh(){
    }
   }
   if(!current())return;
-  members=a.data||[];expenses=nextExpenses;contributions=nextContributions;debts=nextDebts;payments=nextPayments;activityEvents=history.data||[];memberInviteEmails=invites.data||[];
+  members=a.data||[];expenses=nextExpenses;contributions=nextContributions;debts=nextDebts;payments=nextPayments;activityEvents=history.data||[];memberInviteEmails=invites.error?[]:(invites.data||[]);memberInviteEmailsAvailable=!invites.error;
   editRequests=requests.items;editRequestsAvailable=requests.available;
   render();status(usedSharedFallback?'Chỉ xem · dữ liệu chia sẻ':'Synced');
  }catch(error){if(current()){console.error('Trip refresh failed',error);if(await handleDeletedTrip(trip?.id))return;status('Sync error')}}
@@ -498,9 +511,24 @@ function render(){
  contributionList.querySelectorAll('.delete-contribution').forEach(button=>button.onclick=()=>removeRecord('contributions',button,`Xóa khoản đóng quỹ “${button.dataset.note}”? Thao tác này không thể hoàn tác.`));
  const memberName=id=>members.find(m=>m.user_id===id)?.name||'Thành viên';
  const expenseBalances=window.TripTogetherFinance.calculateMemberBalances(members,displayExpenses,contributions,{spent,initial,actualFund});
- $('memberList').innerHTML=expenseBalances.length?expenseBalances.map(m=>`<div class="item member-row"><span class="item-title">${esc(m.name)}${m.id===trip.created_by?'<span class="creator-label" title="Trip creator">Host</span>':''}${trip.created_by===user?.id&&memberInviteEmails.some(x=>x.member_user_id===m.id)?`<small class="member-invite-email">${TTIcon('mail')} ${esc(memberInviteEmails.find(x=>x.member_user_id===m.id)?.email)}</small>`:''}${m.outstanding?`<small class="member-outstanding">Quỹ còn nợ: ${money(m.outstanding)}</small>`:''}</span><span class="member-cell"><small class="member-mobile-label">Đã chi cá nhân</small><span class="member-value">${money(m.paid)}</span></span><span class="member-cell"><small class="member-mobile-label">Đã đóng quỹ</small><span class="member-value">${money(m.contributed)}</span></span><span class="member-cell"><small class="member-mobile-label">Phần chi</small><span class="member-value">${money(m.share)}</span></span>${canEdit?`<div class="member-edit-actions"><button type="button" class="secondary compact edit-member" data-user-id="${esc(m.id)}">Sửa</button>${m.id!==trip.created_by&& (m.is_guest||trip.created_by===user?.id)?`<button type="button" class="danger compact remove-member" data-user-id="${esc(m.id)}">Xóa</button>`:''}</div>`:''}</div>`).join(''):'<p class="muted ledger-empty">Chưa có thành viên.</p>';
+ $('memberList').innerHTML=expenseBalances.length?expenseBalances.map(m=>`<div class="item member-row"><span class="item-title">${esc(m.name)}${m.id===trip.created_by?'<span class="creator-label" title="Trip creator">Host</span>':''}${trip.created_by===user?.id&&memberInviteEmails.some(x=>x.member_user_id===m.id)?`<small class="member-invite-email">${TTIcon('mail')} ${esc(memberInviteEmails.find(x=>x.member_user_id===m.id)?.email)}</small>`:''}${m.outstanding?`<small class="member-outstanding">Quỹ còn nợ: ${money(m.outstanding)}</small>`:''}</span><span class="member-cell"><small class="member-mobile-label">Đã chi cá nhân</small><span class="member-value">${money(m.paid)}</span></span><span class="member-cell"><small class="member-mobile-label">Đã đóng quỹ</small><span class="member-value">${money(m.contributed)}</span></span><span class="member-cell"><small class="member-mobile-label">Phần chi</small><span class="member-value">${money(m.share)}</span></span>${canEdit?`<div class="member-edit-actions"><details class="member-actions-menu"><summary aria-label="Thao tác thành viên: ${esc(m.name)}" title="Thao tác thành viên">${TTIcon('more')}</summary><div class="member-actions-dropdown" role="group" aria-label="Các thao tác của ${esc(m.name)}"><button type="button" class="secondary compact edit-member" data-user-id="${esc(m.id)}">Sửa</button>${trip.created_by===user?.id&&m.is_guest&&!m.account_user_id&&memberInviteEmailsAvailable?`<button type="button" class="secondary compact link-member-email" data-user-id="${esc(m.id)}">${TTIcon('mail')} Liên kết email</button>`:''}${trip.created_by===user?.id&&m.id!==trip.created_by?`<button type="button" class="secondary compact merge-member" data-user-id="${esc(m.id)}">Hợp nhất</button>`:''}${m.id!==trip.created_by&& (m.is_guest||trip.created_by===user?.id)?`<button type="button" class="danger compact remove-member" data-user-id="${esc(m.id)}">Xóa</button>`:''}</div></details></div>`:''}</div>`).join(''):'<p class="muted ledger-empty">Chưa có thành viên.</p>';
  $('memberList').querySelectorAll('.edit-member').forEach(button=>button.onclick=()=>openMemberEditor(button.dataset.userId));
+ $('memberList').querySelectorAll('.link-member-email').forEach(button=>button.onclick=()=>openMemberEditor(button.dataset.userId,true));
  $('memberList').querySelectorAll('.remove-member').forEach(button=>button.onclick=()=>removeMemberSafely(button));
+ $('memberList').querySelectorAll('.merge-member').forEach(button=>button.onclick=()=>openMergeMemberDialog(button.dataset.userId));
+ // Keep one compact menu open at a time and close it when an action is selected.
+ $('memberList').querySelectorAll('.member-actions-menu').forEach(menu=>{
+  // Explicitly toggle the native details element for reliable mobile taps.
+  menu.querySelector('summary')?.addEventListener('click',event=>{
+   event.preventDefault();
+   menu.open=!menu.open;
+  });
+  menu.addEventListener('toggle',()=>{
+   if(menu.open)$('memberList').querySelectorAll('.member-actions-menu').forEach(other=>{if(other!==menu)other.open=false});
+  });
+  menu.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>{menu.open=false}));
+ });
+ // Close open member menus when clicking elsewhere or pressing Escape.
  const requestPanel=$('editRequestPanel'), requestState=$('editRequestState'), requestBtn=$('requestEditBtn');
  const isHost=trip.created_by===user?.id, joined=members.some(m=>m.user_id===user?.id||m.account_user_id===user?.id);
  requestPanel.classList.add('hidden');
@@ -620,25 +648,40 @@ async function restoreActivity(button){
 }
 
 async function removeRecord(table,button,message){if(!localizedConfirm(message))return;return withButtonLoading(button,'Removing…',async()=>{try{const {error}=await db.from(table).delete().eq('id',button.dataset.id).eq('trip_id',trip.id);if(error){localizedAlert(`Could not remove item: ${error.message}`);return}await refresh()}catch(error){localizedAlert(`Could not remove item: ${error.message}`)}})}
-function openMemberEditor(memberId=null){
+function openMemberEditor(memberId=null,focusEmail=false){
  if(!canEdit)return;
  const member=memberId?members.find(m=>m.user_id===memberId):null;
+ const isHost=trip?.created_by===user?.id;
+ const pendingEmail=member?memberInviteEmails.find(x=>x.member_user_id===member.user_id)?.email||'':'';
+ const alreadyLinked=!!member?.account_user_id;
+ const canInvite=isHost&&memberInviteEmailsAvailable&&(!member||(member.is_guest&&!alreadyLinked));
  $('memberEditUserId').value=member?.user_id||'';
  $('memberName').value=member?.name||'';
- $('memberDialogTitle').textContent=member?'Sửa tên thành viên':'Thêm thành viên';
- $('memberDialogHint').textContent=member?'Cập nhật tên hiển thị. Khoản chi và đóng quỹ hiện có vẫn được giữ nguyên.':'Thành viên được tính vào phần chia đều của chuyến đi.';
+ $('memberDialogTitle').textContent=member?'Sửa thành viên':'Thêm thành viên';
+ $('memberDialogHint').textContent=member?'Cập nhật thành viên mà không thay đổi khoản chi và đóng quỹ đã ghi.':'Thành viên được tính vào phần chia đều của chuyến đi.';
  $('memberSave').textContent=member?'Lưu thay đổi':'Thêm thành viên';
  $('memberOpeningFundField').classList.toggle('hidden',!!member);
  $('memberOpeningFund').value='';
- const mayAssignEmail=trip?.created_by===user?.id&&(!member||member.is_guest&&!member.account_user_id);
- $('memberInviteEmailField').classList.toggle('hidden',!mayAssignEmail);
- $('memberInviteEmail').value=member?memberInviteEmails.find(x=>x.member_user_id===member.user_id)?.email||'':'';
- // Merging duplicates is rare and destructive: offer it from the edit dialog, Host only, never for the Host row.
- const mayMerge=!!member&&!readOnly&&trip?.created_by===user?.id&&member.user_id!==trip.created_by
-  &&members.some(m=>m.user_id!==member.user_id&&m.user_id!==trip.created_by&&(member.is_guest||m.is_guest&&!m.account_user_id));
- $('memberMergeField').classList.toggle('hidden',!mayMerge);
- $('memberMergeBtn').onclick=()=>{$('memberDialog').close();openMergeMemberDialog(member.user_id)};
- $('memberDialog').showModal();$('memberName').focus();
+ $('memberInviteEmailField').classList.toggle('hidden',!canInvite);
+ $('memberInviteEmail').value=pendingEmail;
+ const status=$('memberAccountLinkStatus');
+ const statusText=$('memberAccountLinkStatusText');
+ const statusEmail=$('memberAccountLinkedEmail');
+ status.classList.toggle('hidden',!isHost||!member||canInvite);
+ statusEmail.classList.add('hidden');
+ statusEmail.textContent='';
+ if(isHost&&member&&!canInvite){
+   if(alreadyLinked){
+     statusText.textContent='Đã liên kết tài khoản. Email không thể được gán lại từ màn hình này.';
+     if(pendingEmail){statusEmail.textContent=pendingEmail;statusEmail.classList.remove('hidden')}
+   }else if(!memberInviteEmailsAvailable){
+     statusText.textContent='Chức năng liên kết email chưa khả dụng. Kiểm tra kết nối Supabase và tải lại trang.';
+   }else{
+     statusText.textContent='Thành viên này đã tham gia bằng một tài khoản riêng. Không thể gán một email khác để tránh tạo liên kết trùng.';
+   }
+ }
+ $('memberDialog').showModal();
+ (canInvite&&focusEmail?$('memberInviteEmail'):$('memberName')).focus();
 }
 function openMergeMemberDialog(sourceId){
  if(readOnly||trip?.created_by!==user?.id)return;
@@ -734,9 +777,11 @@ $('addDebt').onclick=()=>{if(members.length<2){localizedAlert('Cần ít nhất 
 $('debtCancel').onclick=()=>{$('debtDialog').close();$('debtForm').reset()};
 $('debtForm').addEventListener('submit',async ev=>{if(ev.submitter?.id!=='debtSave')return;ev.preventDefault();const debtorId=$('debtDebtor').value,creditorId=$('debtCreditor').value;if(debtorId===creditorId){localizedAlert('Người nợ và người nhận nợ phải khác nhau.');return}await withButtonLoading($('debtSave'),'Đang lưu…',async()=>{try{const {error}=await db.from('member_debts').insert({trip_id:trip.id,debtor_id:debtorId,creditor_id:creditorId,amount:Number($('debtAmount').value),note:$('debtNote').value.trim(),incurred_on:$('debtDate').value,created_by:user.id});if(error){localizedAlert('Không thể lưu khoản nợ: '+error.message);return}$('debtDialog').close();$('debtForm').reset();await refresh()}catch(error){localizedAlert('Không thể lưu khoản nợ: '+error.message)}})});
 $('memberForm').addEventListener('submit',async ev=>{
- if(ev.submitter?.id!=='memberSave')return;ev.preventDefault();
+ ev.preventDefault();
+ if(actionInFlight)return;
  const name=$('memberName').value.trim(),memberId=$('memberEditUserId').value;
- if(!name||!canEdit||readOnly||!trip)return;
+ if(!name){localizedAlert('Vui lòng nhập tên thành viên.');return}
+ if(!trip||readOnly||!canEdit){localizedAlert('Bạn cần quyền chỉnh sửa của chuyến đi để thêm hoặc sửa thành viên.');return}
  const amountText=$('memberOpeningFund').value.trim();
  const amount=amountText===''?0:Number(amountText);
  if(!memberId&&(!Number.isSafeInteger(amount)||amount<0)){
@@ -750,10 +795,10 @@ $('memberForm').addEventListener('submit',async ev=>{
    const email=isHost&&!$('memberInviteEmailField').classList.contains('hidden')
     ?$('memberInviteEmail').value.trim().toLowerCase():'';
    const {error}=memberId
-    ?(isHost&&existing?.is_guest&&!existing?.account_user_id
+    ?(isHost&&existing?.is_guest&&!existing?.account_user_id&&memberInviteEmailsAvailable
       ?await db.rpc('update_trip_guest_invitation',{p_trip_id:tripId,p_member_user_id:memberId,p_name:name,p_email:email})
       :await db.rpc('update_trip_member_name',{p_trip_id:tripId,p_member_user_id:memberId,p_name:name}))
-    :(isHost
+    :(isHost&&email
       ?await db.rpc('add_guest_member_with_email_and_fund',{p_trip_id:tripId,p_name:name,p_amount:amount,p_email:email})
       :await db.rpc('add_guest_member_with_fund',{p_trip_id:tripId,p_name:name,p_amount:amount}));
    if(error)throw error;

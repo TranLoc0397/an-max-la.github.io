@@ -4,13 +4,15 @@ const fs=require('node:fs');
 const path=require('node:path');
 const read=file=>fs.readFileSync(path.join(__dirname,'..',file),'utf8');
 
-test('Host sees merge action for non-Host members only, inside the edit dialog',()=>{
- const app=read('app.js'),html=read('index.html');
- assert.doesNotMatch(app,/class="secondary compact merge-member"/,'merge must not be a per-row button');
- assert.match(html,/id="memberMergeField" class="member-merge-field hidden"/);
- assert.match(app,/const mayMerge=!!member&&!readOnly&&trip\?\.created_by===user\?\.id&&member\.user_id!==trip\.created_by/);
- assert.match(app,/\$\('memberMergeBtn'\)\.onclick=\(\)=>\{\$\('memberDialog'\)\.close\(\);openMergeMemberDialog\(member\.user_id\)\}/);
+test('Host sees merge action for non-Host members only, inside the row overflow menu',()=>{
+ const app=read('app.js');
+ assert.match(app,/class="secondary compact merge-member"/);
+ assert.match(app,/trip\.created_by===user\?\.id&&m\.id!==trip\.created_by/);
+ assert.match(app,/openMergeMemberDialog\(button\.dataset\.userId\)/);
  assert.match(app,/if\(readOnly\|\|trip\?\.created_by!==user\?\.id\)return/);
+ const menu=app.slice(app.indexOf('<details class="member-actions-menu">'));
+ assert.ok(menu.indexOf('merge-member')>0&&menu.indexOf('merge-member')<menu.indexOf('</details>'),'merge must live inside the overflow menu, not as a row button');
+ assert.doesNotMatch(read('index.html'),/memberMergeField/,'no duplicate merge entry point in the edit dialog');
 });
 
 test('merge requires explicit target, checkbox and final confirmation',()=>{

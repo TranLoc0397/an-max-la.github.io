@@ -1334,12 +1334,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
  body.tt-trip-open .topbar .brand{display:none}
  body.tt-trip-open .topbar .topbar-actions{margin-left:auto}
 }
-/* Merge-duplicate option lives in the member edit dialog */
-.member-merge-field{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0 4px;padding:12px 14px;border:1px dashed #e3dff6;border-radius:12px;background:#faf9ff}
-.member-merge-field.hidden{display:none}
-.member-merge-field b{font-size:13px}
-.member-merge-field p{margin:3px 0 0}
-.member-merge-field button{flex:none}
 /* Selects: custom chevron with breathing room instead of the native arrow hugging the edge */
 select,dialog select,.expense-toolbar select,.tt-merge-dialog select{
  -webkit-appearance:none;appearance:none;
@@ -1356,3 +1350,73 @@ select:hover{border-color:#cfc9ef}
 /* Trip card covers use SVG icons */
 .tt-trip-cover span{display:grid;place-items:center;color:#fff}
 .tt-trip-cover span .tt-icon{width:56px;height:56px;stroke-width:1.4}
+
+/* Host member-account linking: visible, accessible states in the member editor. */
+.member-account-link-status{margin:14px 0;padding:14px 15px;border:1px solid #d9d4fa;background:#f5f3ff;border-radius:13px}
+.member-account-link-status strong{font:700 13px/1.5 'Roboto',Arial,sans-serif;color:#4f46a9}
+.member-account-link-status p{font-size:12px;line-height:1.6;margin:7px 0 0;color:#59566d}
+.member-account-link-status .member-linked-email{font-weight:700;color:#5145c7;overflow-wrap:anywhere}
+.member-edit-actions .link-member-email{color:#5145c7;background:#eeebff;white-space:normal}
+.member-edit-actions .link-member-email:hover{background:#e1dcff}
+
+/* Compact member actions: one keyboard-accessible overflow menu per row. */
+.member-row{position:relative;overflow:visible}
+.member-row:has(.member-actions-menu[open]){z-index:8}
+.member-edit-actions{position:relative;min-width:0}
+.member-edit-actions .member-actions-menu{position:relative}
+.member-actions-menu>summary{list-style:none;display:flex;align-items:center;justify-content:center;width:42px;height:40px;padding:0;border:1px solid #e5e1f8;border-radius:12px;background:#f2efff;color:#5c4dd9;font:800 26px/1 'Roboto',Arial,sans-serif;cursor:pointer;user-select:none;touch-action:manipulation}
+.member-actions-menu>summary::-webkit-details-marker{display:none}
+.member-actions-menu>summary::marker{content:''}
+.member-actions-menu>summary:hover,.member-actions-menu[open]>summary{background:#e9e4ff;color:#4738c4}
+.member-actions-menu>summary:focus-visible{outline:3px solid #786bf1;outline-offset:2px}
+.member-actions-dropdown{position:absolute;right:0;top:calc(100% + 7px);width:190px;max-width:calc(100vw - 42px);display:flex;flex-direction:column;gap:3px;padding:7px;border:1px solid #e9e6f5;border-radius:14px;background:#fff;box-shadow:0 15px 38px #20234226;z-index:30}
+.member-actions-dropdown button,.member-edit-actions .member-actions-dropdown .compact{display:block;width:100%;min-height:40px;min-width:0;border:0;border-radius:9px;padding:10px 12px;text-align:left;font:600 13px/1.3 'Roboto',Arial,sans-serif;background:transparent;color:#25284a;white-space:normal;cursor:pointer}
+.member-actions-dropdown button:hover,.member-edit-actions .member-actions-dropdown .link-member-email:hover{background:#f2efff}
+.member-edit-actions .member-actions-dropdown .link-member-email{background:transparent;color:#5145c7}
+.member-edit-actions .member-actions-dropdown .remove-member{background:transparent;color:#c24a46}
+.member-edit-actions .member-actions-dropdown .remove-member:hover{background:#fff0ee}
+.member-row:last-child .member-actions-dropdown{top:auto;bottom:calc(100% + 7px)}
+@media(max-width:760px){.member-edit-actions .member-actions-menu>summary{min-width:44px;min-height:44px}.member-edit-actions{border-top:0}.member-row{isolation:isolate}.member-row:has(.member-actions-menu[open]){isolation:auto}}
+
+/* Member actions: pin the three-dot trigger beside the member name, not below balances. */
+.member-row{position:relative;overflow:visible}
+.member-row>.item-title{padding-right:56px;min-width:0}
+.member-row>.member-edit-actions{
+ position:absolute;
+ top:12px;
+ right:12px;
+ left:auto;
+ bottom:auto;
+ grid-column:auto;
+ width:auto;
+ padding:0;
+ margin:0;
+ border:0;
+ display:block;
+ z-index:12;
+}
+.member-edit-actions .member-actions-menu{position:relative;z-index:12}
+.member-actions-menu>summary{
+ display:flex;
+ width:44px;
+ height:44px;
+ min-width:44px;
+ min-height:44px;
+ position:relative;
+ z-index:13;
+ pointer-events:auto;
+ cursor:pointer;
+}
+.member-actions-menu[open]>.member-actions-dropdown{z-index:40}
+.member-row:last-child .member-actions-dropdown{top:calc(100% + 7px);bottom:auto}
+@media(max-width:760px){
+ .member-row>.member-edit-actions{top:12px;right:12px;padding:0;border:0;grid-column:auto}
+ .member-row>.item-title{padding-right:58px}
+}
+@media(max-width:520px){
+ .member-row>.member-edit-actions{top:12px;right:12px;padding:0;border:0;grid-column:auto}
+ .member-row>.item-title{padding-right:58px}
+}
+/* Overflow trigger uses the shared SVG icon */
+.member-actions-menu>summary .tt-icon{width:20px;height:20px;vertical-align:0}
+.member-actions-dropdown .tt-icon{width:15px;height:15px;margin-right:6px;vertical-align:-2px}
