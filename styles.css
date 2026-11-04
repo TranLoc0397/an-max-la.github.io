@@ -364,7 +364,15 @@ dialog::backdrop{background:rgba(11,37,48,.57);backdrop-filter:blur(3px)}
 }
 
 /* Match desktop column headings with the member action column. */
-@media(min-width:761px){.member-table-head,.member-row{grid-template-columns:minmax(145px,1.2fr) repeat(3,minmax(86px,1fr)) 140px}}
+/* The settings trigger is absolutely positioned and must NOT consume a fifth
+   grid track. Reserve space at the edge instead, so headings and values align. */
+@media(min-width:761px){
+ .member-table-head,.member-row{
+  grid-template-columns:minmax(145px,1.2fr) repeat(3,minmax(86px,1fr));
+  padding-right:68px;
+ }
+ .member-row>.member-edit-actions{position:absolute;top:12px;right:12px}
+}
 
 /* Use Roboto for all languages, including form controls and dialog content. */
 html,body,button,input,select,textarea,option,dialog,summary,legend,output{font-family:'Roboto',Arial,sans-serif}
