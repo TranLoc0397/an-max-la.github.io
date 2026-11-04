@@ -503,7 +503,7 @@ function render(){
  contributionList.querySelectorAll('.delete-contribution').forEach(button=>button.onclick=()=>removeRecord('contributions',button,`Xóa khoản đóng quỹ “${button.dataset.note}”? Thao tác này không thể hoàn tác.`));
  const memberName=id=>members.find(m=>m.user_id===id)?.name||'Thành viên';
  const expenseBalances=window.TripTogetherFinance.calculateMemberBalances(members,displayExpenses,contributions,{spent,initial,actualFund});
- $('memberList').innerHTML=expenseBalances.length?expenseBalances.map(m=>`<div class="item member-row"><span class="item-title">${esc(m.name)}${m.id===trip.created_by?'<span class="creator-label" title="Trip creator">Host</span>':''}${trip.created_by===user?.id&&memberInviteEmails.some(x=>x.member_user_id===m.id)?`<small class="member-invite-email">✉ ${esc(memberInviteEmails.find(x=>x.member_user_id===m.id)?.email)}</small>`:''}${m.outstanding?`<small class="member-outstanding">Quỹ còn nợ: ${money(m.outstanding)}</small>`:''}</span><span class="member-cell"><small class="member-mobile-label">Đã chi cá nhân</small><span class="member-value">${money(m.paid)}</span></span><span class="member-cell"><small class="member-mobile-label">Đã đóng quỹ</small><span class="member-value">${money(m.contributed)}</span></span><span class="member-cell"><small class="member-mobile-label">Phần chi</small><span class="member-value">${money(m.share)}</span></span>${canEdit?`<div class="member-edit-actions"><details class="member-actions-menu"><summary aria-label="Thao tác thành viên: ${esc(m.name)}" title="Thao tác thành viên">⋯</summary><div class="member-actions-dropdown" role="group" aria-label="Các thao tác của ${esc(m.name)}"><button type="button" class="secondary compact edit-member" data-user-id="${esc(m.id)}">Sửa</button>${trip.created_by===user?.id&&m.is_guest&&!m.account_user_id&&memberInviteEmailsAvailable?`<button type="button" class="secondary compact link-member-email" data-user-id="${esc(m.id)}">✉ Liên kết email</button>`:''}${trip.created_by===user?.id&&m.id!==trip.created_by?`<button type="button" class="secondary compact merge-member" data-user-id="${esc(m.id)}">Hợp nhất</button>`:''}${m.id!==trip.created_by&& (m.is_guest||trip.created_by===user?.id)?`<button type="button" class="danger compact remove-member" data-user-id="${esc(m.id)}">Xóa</button>`:''}</div></details></div>`:''}</div>`).join(''):'<p class="muted ledger-empty">Chưa có thành viên.</p>';
+ $('memberList').innerHTML=expenseBalances.length?expenseBalances.map(m=>`<div class="item member-row"><span class="item-title">${esc(m.name)}${m.id===trip.created_by?'<span class="creator-label" title="Trip creator">Host</span>':''}${trip.created_by===user?.id&&memberInviteEmails.some(x=>x.member_user_id===m.id)?`<small class="member-invite-email">✉ ${esc(memberInviteEmails.find(x=>x.member_user_id===m.id)?.email)}</small>`:''}${m.outstanding?`<small class="member-outstanding">Quỹ còn nợ: ${money(m.outstanding)}</small>`:''}</span><span class="member-cell"><small class="member-mobile-label">Đã chi cá nhân</small><span class="member-value">${money(m.paid)}</span></span><span class="member-cell"><small class="member-mobile-label">Đã đóng quỹ</small><span class="member-value">${money(m.contributed)}</span></span><span class="member-cell"><small class="member-mobile-label">Phần chi</small><span class="member-value">${money(m.share)}</span></span>${canEdit?`<div class="member-edit-actions"><details class="member-actions-menu"><summary aria-label="Thao tác thành viên: ${esc(m.name)}" title="Thao tác thành viên"><svg class="member-menu-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></summary><div class="member-actions-dropdown" role="group" aria-label="Các thao tác của ${esc(m.name)}"><button type="button" class="secondary compact edit-member" data-user-id="${esc(m.id)}">Sửa</button>${trip.created_by===user?.id&&m.is_guest&&!m.account_user_id&&memberInviteEmailsAvailable?`<button type="button" class="secondary compact link-member-email" data-user-id="${esc(m.id)}">✉ Liên kết email</button>`:''}${trip.created_by===user?.id&&m.id!==trip.created_by&&m.is_guest&&!m.account_user_id&&!memberInviteEmails.some(invite=>invite.member_user_id===m.id)?`<button type="button" class="secondary compact merge-member" data-user-id="${esc(m.id)}">Hợp nhất</button>`:''}${m.id!==trip.created_by&& (m.is_guest||trip.created_by===user?.id)?`<button type="button" class="danger compact remove-member" data-user-id="${esc(m.id)}">Xóa</button>`:''}</div></details></div>`:''}</div>`).join(''):'<p class="muted ledger-empty">Chưa có thành viên.</p>';
  $('memberList').querySelectorAll('.edit-member').forEach(button=>button.onclick=()=>openMemberEditor(button.dataset.userId));
  $('memberList').querySelectorAll('.link-member-email').forEach(button=>button.onclick=()=>openMemberEditor(button.dataset.userId,true));
  $('memberList').querySelectorAll('.remove-member').forEach(button=>button.onclick=()=>removeMemberSafely(button));
@@ -664,10 +664,13 @@ function openMergeMemberDialog(sourceId){
  if(readOnly||trip?.created_by!==user?.id)return;
  const source=members.find(m=>m.user_id===sourceId);
  if(!source||source.user_id===trip.created_by)return;
- // The Host is not a valid merge target and two independent sign-in accounts
- // must never be combined automatically.
- const candidates=members.filter(m=>m.user_id!==sourceId&&m.user_id!==trip.created_by
-   &&(source.is_guest||m.is_guest&&!m.account_user_id));
+ // Merging a linked account (or a pending email invitation) can break the
+ // one-account-per-trip constraint and silently remove access. Only unlinked
+ // manual guest records are eligible on either side.
+ const unlinkedGuest=m=>m.is_guest&&!m.account_user_id&&
+   !memberInviteEmails.some(invite=>invite.member_user_id===m.user_id);
+ if(!unlinkedGuest(source)){localizedAlert('Không thể hợp nhất thành viên đã liên kết hoặc được mời qua email.');return}
+ const candidates=members.filter(m=>m.user_id!==sourceId&&m.user_id!==trip.created_by&&unlinkedGuest(m));
  if(!candidates.length){localizedAlert('Không có thành viên phù hợp để hợp nhất.');return}
  $('mergeSourceId').value=source.user_id;
  $('mergeSourceName').textContent=source.name;
@@ -683,6 +686,10 @@ $('mergeMemberForm').addEventListener('submit',async event=>{
  const sourceId=$('mergeSourceId').value,targetId=$('mergeTargetId').value;
  const source=members.find(m=>m.user_id===sourceId),target=members.find(m=>m.user_id===targetId);
  if(!source||!target||sourceId===targetId||sourceId===trip.created_by||targetId===trip.created_by)return;
+ if(!source.is_guest||source.account_user_id||!target.is_guest||target.account_user_id||
+    memberInviteEmails.some(invite=>invite.member_user_id===sourceId||invite.member_user_id===targetId)){
+  localizedAlert('Không thể hợp nhất thành viên đã liên kết hoặc được mời qua email.');return;
+ }
  if(!localizedConfirm('Hợp nhất “'+source.name+'” vào “'+target.name+'”?\n'+
   'Số thành viên sẽ giảm 1 và phần chia chi phí sẽ được tính lại. Không thể hoàn tác tự động.'))return;
  await withButtonLoading($('mergeMemberSave'),'Đang hợp nhất…',async()=>{

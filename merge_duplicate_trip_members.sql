@@ -14,7 +14,6 @@ declare
  host_id uuid;
  source_member public.members%rowtype;
  target_member public.members%rowtype;
- source_login uuid;
  n_expenses integer;
  n_contributions integer;
  n_debts integer;
@@ -43,19 +42,21 @@ begin
   where trip_id=p_trip_id and user_id=p_target_user_id;
  if not found then raise exception 'Destination member not found'; end if;
 
- -- Never merge two distinct signed-in accounts or silently revoke access.
- if not source_member.is_guest and not target_member.is_guest then
-  raise exception 'Two linked accounts cannot be merged automatically';
+ -- An email-linked member is a separate authenticated identity. Never move
+ -- or delete that membership while merging financial records. In particular,
+ -- assigning its account_user_id to a second row before deleting the first
+ -- violates members_trip_account_unique. Both rows must be unlinked guests.
+ if not source_member.is_guest or source_member.account_user_id is not null
+    or not target_member.is_guest or target_member.account_user_id is not null then
+  raise exception 'Cannot merge a member linked to an email account';
  end if;
- if source_member.account_user_id is not null and target_member.account_user_id is not null then
-  raise exception 'Both members have linked accounts';
- end if;
- if not source_member.is_guest then
-  if not target_member.is_guest or target_member.account_user_id is not null then
-   raise exception 'Destination must be an unlinked manually added member';
-  end if;
-  source_login:=coalesce(source_member.account_user_id,source_member.user_id);
- end if;
+ -- Pending email invitations are also protected: merging must not silently
+ -- remove an invitation that the intended member has not accepted yet.
+ if exists (
+  select 1 from trip_private.member_email_invites i
+  where i.trip_id=p_trip_id
+    and i.member_user_id in (p_source_user_id,p_target_user_id)
+ ) then raise exception 'Cannot merge a member with an email invitation'; end if;
 
  -- Two different financial parties may owe one another. Collapsing those
  -- into a single member would erase the distinction. Block these cases.
@@ -75,15 +76,9 @@ begin
   where trip_id=p_trip_id
     and (debtor_id=p_source_user_id or creditor_id=p_source_user_id);
 
- -- Preserve the signed-in account and edit privilege of the deleted row.
- -- The destination user_id stays unchanged for expense/debt foreign keys.
- if source_login is not null then
-  update public.members
-   set account_user_id=source_login,
-       is_guest=false,
-       can_edit=(target_member.can_edit or source_member.can_edit)
-   where trip_id=p_trip_id and user_id=p_target_user_id;
- end if;
+ -- Neither row has a login account or pending invitation. Preserve all
+ -- payment amounts and reference the surviving member's financial identity.
+ -- Do not transfer account_user_id or change the unique account mapping.
 
  update public.expenses
   set payer_id=p_target_user_id,payer_name=target_member.name
@@ -103,11 +98,6 @@ begin
  -- Payment actor IDs and audit history are retained as historical attribution.
  delete from public.trip_edit_requests
   where trip_id=p_trip_id and user_id=p_source_user_id;
- -- Discard any outstanding unclaimed email invitation for these rows:
- -- the Host may reassign a fresh email to the destination afterwards.
- delete from trip_private.member_email_invites
-  where trip_id=p_trip_id and member_user_id in (p_source_user_id,p_target_user_id);
-
  delete from public.members
   where trip_id=p_trip_id and user_id=p_source_user_id;
  if not found then raise exception 'Source member could not be deleted'; end if;
