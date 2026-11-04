@@ -5,7 +5,7 @@ const path = require('node:path');
 const read = name => fs.readFileSync(path.join(__dirname, '..', name), 'utf8');
 test('trip card shows Host, not the former Vietnamese owner label', () => {
   const app = read('app.js');
-  assert.match(app, /isHost\?'♛ Host':'✓ Thành viên'/);
+  assert.match(app, /isHost\?TTIcon\('crown'\)\+' Host':TTIcon\('check'\)\+' Thành viên'/);
   assert.doesNotMatch(app, /♛ Chủ chuyến đi/);
 });
 test('app script and offline cache use refreshed versions', () => {
