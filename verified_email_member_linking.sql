@@ -101,6 +101,46 @@ begin
 end;
 $$;
 
+-- Host-only, atomic guest creation + optional email assignment.
+create or replace function public.add_guest_member_with_email_and_fund(
+ p_trip_id uuid,p_name text,p_amount numeric default 0,p_email text default ''
+) returns uuid language plpgsql security definer set search_path=public,pg_temp as $
+declare mid uuid;
+begin
+ if auth.uid() is null or not exists(
+  select 1 from public.trips where id=p_trip_id and created_by=auth.uid()
+ ) then raise exception 'Host permission required'; end if;
+ mid:=public.add_guest_member_with_fund(p_trip_id,p_name,p_amount);
+ if trim(coalesce(p_email,''))<>'' then
+  perform public.set_trip_member_invite_email(p_trip_id,mid,p_email);
+ end if;
+ return mid;
+end;
+$;
+
+-- Save a guest's display name and email in one transaction.
+create or replace function public.update_trip_guest_invitation(
+ p_trip_id uuid,p_member_user_id uuid,p_name text,p_email text
+) returns void language plpgsql security definer set search_path=public,pg_temp as $
+begin
+ if auth.uid() is null or not exists(
+  select 1 from public.trips where id=p_trip_id and created_by=auth.uid()
+ ) then raise exception 'Host permission required'; end if;
+ if length(trim(coalesce(p_name,''))) not between 1 and 40 then
+  raise exception 'Member name must be 1-40 characters'; end if;
+ if not exists(select 1 from public.members
+  where trip_id=p_trip_id and user_id=p_member_user_id and is_guest and account_user_id is null)
+ then raise exception 'This member is already linked to an account'; end if;
+ perform public.set_trip_member_invite_email(p_trip_id,p_member_user_id,p_email);
+ update public.members set name=trim(p_name)
+ where trip_id=p_trip_id and user_id=p_member_user_id;
+ update public.expenses set payer_name=trim(p_name)
+ where trip_id=p_trip_id and payer_id=p_member_user_id;
+ update public.contributions set payer_name=trim(p_name)
+ where trip_id=p_trip_id and payer_id=p_member_user_id;
+end;
+$;
+
 -- Old join_trip RPC must not add new rows via the public share link.
 -- Host can still initialize its own member record when creating a trip.
 create or replace function public.join_trip(
@@ -150,5 +190,9 @@ revoke all on function public.claim_existing_trip_member(uuid) from public,anon,
 grant execute on function public.set_trip_member_invite_email(uuid,uuid,text) to authenticated;
 grant execute on function public.get_trip_member_invite_emails(uuid) to authenticated;
 grant execute on function public.claim_existing_trip_member(uuid) to authenticated;
+revoke all on function public.add_guest_member_with_email_and_fund(uuid,text,numeric,text) from public,anon,authenticated;
+revoke all on function public.update_trip_guest_invitation(uuid,uuid,text,text) from public,anon,authenticated;
+grant execute on function public.add_guest_member_with_email_and_fund(uuid,text,numeric,text) to authenticated;
+grant execute on function public.update_trip_guest_invitation(uuid,uuid,text,text) to authenticated;
 notify pgrst,'reload schema';
 commit;
