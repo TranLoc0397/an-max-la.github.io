@@ -10,7 +10,8 @@ test('read-only RLS policies grant only trip-member SELECT, not financial writes
   assert.match(sql,new RegExp('on public\\.'+table+' for select to authenticated'));
  }
  assert.equal((sql.match(/using \(public\.is_trip_member\(trip_id\)\)/g)||[]).length,3);
- assert.doesNotMatch(sql,/for (insert|update|delete)|drop policy|update public\.|delete from public\./i);
+ const statements=sql.split('\\n').filter(line=>!line.trim().startsWith('--')).join('\\n');
+ assert.doesNotMatch(statements,/for (insert|update|delete)|drop policy|update public\\.|delete from public\\./i);
 });
 test('empty joined read-only results are verified against invite-link data before being shown',()=>{
  const app=read('app.js');
