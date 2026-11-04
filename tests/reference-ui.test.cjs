@@ -9,10 +9,12 @@ test('reference dashboard has live-data slots, not hard-coded demo balances',()=
    assert.match(html,new RegExp('id="'+id+'"'));
  assert.doesNotMatch(html,/8\.450\.000|12\.800\.000|Phương Văn|demo1234/);
 });
-test('navigation maps to existing tabs and uses their click actions',()=>{
+test('navigation synchronizes existing tabs and panels using shared controller',()=>{
  const shell=read('ui-shell.js');
  const app=read('app.js');
- assert.match(shell,/tab\?\.click\(\)/);
+ assert.match(shell,/pick\(key\+'Tab'\)\?\.classList\.toggle\('hidden',key!==view\)/);
+ assert.match(app,/window\.TripTogetherShell\.activate\(view,false\)/);
+ assert.doesNotMatch(shell,/tab\?\.click\(\)/);
  assert.match(app,/window\.TripTogetherShell\?\.openTrip\(\)/);
  assert.match(app,/window\.TripTogetherShell\?\.render\(/);
  assert.match(app,/window\.TripTogetherShell\?\.closeTrip\(\)/);
