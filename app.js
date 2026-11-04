@@ -628,7 +628,21 @@ function invite(ev){const button=ev?.currentTarget;if(!button)return;return with
 $('expenseSearch').addEventListener('input',()=>{if(trip)render()});
 $('expenseCategoryFilter').addEventListener('change',()=>{if(trip)render()});
 $('expenseStatusFilter').addEventListener('change',()=>{if(trip)render()});
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));['expenses','fund','people'].forEach(k=>$(k+'Tab').classList.toggle('hidden',b.dataset.tab!==k))});
+document.querySelectorAll('.tabs .tab[data-tab]').forEach(button=>button.onclick=()=>{
+  const view=button.dataset.tab;
+  if(window.TripTogetherShell?.activate){
+    window.TripTogetherShell.activate(view,false);
+  }else{
+    // Fallback for older/cached ui-shell.js.
+    $('app').classList.remove('tt-overview-mode');
+    document.querySelectorAll('.tabs .tab[data-tab]').forEach(tab=>{
+      const selected=tab===button;
+      tab.classList.toggle('active',selected);
+      tab.setAttribute('aria-selected',String(selected));
+    });
+    ['expenses','fund','people'].forEach(key=>$(key+'Tab').classList.toggle('hidden',key!==view));
+  }
+});
 $('addExpense').onclick=()=>{if(!members.length)return;openExpense()};
 $('expenseCancel').onclick=()=>{$('expenseDialog').close();$('expenseForm').reset()};
 $('addMember').onclick=()=>openMemberEditor();
