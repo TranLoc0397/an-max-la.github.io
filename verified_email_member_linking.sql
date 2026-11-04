@@ -104,7 +104,7 @@ $$;
 -- Host-only, atomic guest creation + optional email assignment.
 create or replace function public.add_guest_member_with_email_and_fund(
  p_trip_id uuid,p_name text,p_amount numeric default 0,p_email text default ''
-) returns uuid language plpgsql security definer set search_path=public,pg_temp as $
+) returns uuid language plpgsql security definer set search_path=public,pg_temp as $$
 declare mid uuid;
 begin
  if auth.uid() is null or not exists(
@@ -116,12 +116,12 @@ begin
  end if;
  return mid;
 end;
-$;
+$$;
 
 -- Save a guest's display name and email in one transaction.
 create or replace function public.update_trip_guest_invitation(
  p_trip_id uuid,p_member_user_id uuid,p_name text,p_email text
-) returns void language plpgsql security definer set search_path=public,pg_temp as $
+) returns void language plpgsql security definer set search_path=public,pg_temp as $$
 begin
  if auth.uid() is null or not exists(
   select 1 from public.trips where id=p_trip_id and created_by=auth.uid()
@@ -139,7 +139,7 @@ begin
  update public.contributions set payer_name=trim(p_name)
  where trip_id=p_trip_id and payer_id=p_member_user_id;
 end;
-$;
+$$;
 
 -- Old join_trip RPC must not add new rows via the public share link.
 -- Host can still initialize its own member record when creating a trip.
