@@ -427,9 +427,33 @@ async function refresh(){
   ]);
   if(!current())return; // Never commit an older or different-trip response.
   if(a.error||b.error||c.error||d.error||ledger.error||history.error){status('Sync error');return}
-  members=a.data||[];expenses=b.data||[];contributions=c.data||[];debts=d.data||[];payments=ledger.data||[];activityEvents=history.data||[];
+  let nextExpenses=b.data||[],nextContributions=c.data||[],nextDebts=d.data||[],nextPayments=ledger.data||[];
+  // A joined member without edit rights may see 0 rows under older Supabase RLS.
+  // Confirm that an apparently empty trip really is empty before replacing its
+  // previously visible shared-link finances with misleading zero balances.
+  const joinedMember=(a.data||[]).find(m=>m.user_id===user?.id);
+  const isReadOnlyMember=!!joinedMember&&!joinedMember.can_edit&&trip.created_by!==user?.id;
+  let usedSharedFallback=false;
+  if(isReadOnlyMember&&nextExpenses.length===0&&nextContributions.length===0&&nextDebts.length===0&&trip.invite_code){
+   const [shared,sharedPayments]=await Promise.all([
+    db.rpc('get_shared_trip',{p_invite_code:trip.invite_code,p_passcode:null}),
+    db.rpc('get_shared_trip_payments',{p_invite_code:trip.invite_code})
+   ]);
+   if(!current())return;
+   if(shared.error||!shared.data?.trip||sharedPayments.error){status('Không thể xác minh số dư chuyến đi');return}
+   const data=shared.data;
+   if(data.trip.id!==tripId){status('Không thể xác minh chuyến đi');return}
+   if((data.expenses||[]).length||(data.contributions||[]).length||(data.debts||[]).length){
+    console.warn('Trip member financial SELECT returned no rows; check read-only RLS policies.');
+    nextExpenses=data.expenses||[];nextContributions=data.contributions||[];nextDebts=data.debts||[];
+    nextPayments=sharedPayments.data||[];
+    usedSharedFallback=true;
+   }
+  }
+  if(!current())return;
+  members=a.data||[];expenses=nextExpenses;contributions=nextContributions;debts=nextDebts;payments=nextPayments;activityEvents=history.data||[];
   editRequests=requests.items;editRequestsAvailable=requests.available;
-  render();status('Synced');
+  render();status(usedSharedFallback?'Chỉ xem · dữ liệu chia sẻ':'Synced');
  }catch(error){if(current()){console.error('Trip refresh failed',error);status('Sync error')}}
 }
 
