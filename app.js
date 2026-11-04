@@ -436,7 +436,7 @@ async function refresh(){
    db.from('expenses').select('*').eq('trip_id',tripId).order('spent_on',{ascending:false}),
    db.from('contributions').select('*').eq('trip_id',tripId).order('paid_on',{ascending:false}),
    db.from('member_debts').select('*').eq('trip_id',tripId).order('incurred_on',{ascending:false}),
-   Promise.resolve({items:[],available:false}),
+   fetchEditRequests(tripId),
    db.from('trip_payments').select('*').eq('trip_id',tripId).order('created_at',{ascending:false}),
    db.from('trip_activity').select('*').eq('trip_id',tripId).order('recorded_at',{ascending:false}).limit(40),
    trip.created_by===user?.id?db.rpc('get_trip_member_invite_emails',{p_trip_id:tripId}):Promise.resolve({data:[],error:null})
