@@ -79,6 +79,18 @@ async function reviewEditRequest(button){
 }
 $('requestEditBtn').onclick=requestEditAccess;
 async function withButtonLoading(button,message,action){if(!button||actionInFlight)return;actionInFlight=true;const controls=[...document.querySelectorAll('button')],disabled=controls.map(b=>b.disabled),label=button.textContent;controls.forEach(b=>b.disabled=true);button.classList.add('is-loading');button.setAttribute('aria-busy','true');button.textContent=message;try{return await action()}finally{controls.forEach((b,i)=>{if(b.isConnected)b.disabled=disabled[i]});button.classList.remove('is-loading');button.removeAttribute('aria-busy');button.textContent=label;actionInFlight=false}}
+// Close member action menus on outside click or Escape; native <details> handles keyboard opening.
+document.addEventListener('pointerdown',event=>{
+ if(event.target.closest('.member-actions-menu'))return;
+ document.querySelectorAll('.member-actions-menu[open]').forEach(menu=>{menu.open=false});
+});
+document.addEventListener('keydown',event=>{
+ if(event.key!=='Escape')return;
+ const menus=[...document.querySelectorAll('.member-actions-menu[open]')];
+ if(!menus.length)return;
+ menus.forEach(menu=>{menu.open=false});
+ if(!document.querySelector('dialog[open]'))menus[0].querySelector('summary')?.focus();
+});
 async function init(){
  addPasswordVisibilityControls();
  pageLoading(true,'Connecting to your trip…');
