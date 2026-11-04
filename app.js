@@ -267,9 +267,17 @@ $('accountClose').onclick=()=>$('accountDialog').close();
 async function loadMyTrips(){
  if(!db||!user)return;
  try{
-  const {data:memberships,error}=await db.from('members').select('trip_id').or('user_id.eq.'+user.id+',account_user_id.eq.'+user.id);
+  const {data:memberships,error}=await db.from('members').select('trip_id').eq('user_id',user.id);
   if(error)throw error;
   const tripIds=[...new Set((memberships||[]).map(m=>m.trip_id))];
+  // Email-linked memberships are available only after the optional schema migration.
+  // A missing account_user_id column must never hide existing Host trips.
+  const linked=await db.from('members').select('trip_id').eq('account_user_id',user.id);
+  if(!linked.error){
+    for(const item of linked.data||[])if(!tripIds.includes(item.trip_id))tripIds.push(item.trip_id);
+  }else if(!/account_user_id/i.test(linked.error.message||'')){
+    console.warn('Could not check linked member trips',linked.error);
+  }
   if(!tripIds.length){
     $('savedTripsSection').classList.remove('hidden');
     $('savedTripList').innerHTML='<button type="button" class="tt-trip-create-tile" id="createTripTile"><span aria-hidden="true">＋</span><b>Tạo chuyến đi mới</b><small>Bắt đầu hành trình tiếp theo của bạn.</small></button>';
