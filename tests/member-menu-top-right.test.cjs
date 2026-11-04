@@ -38,3 +38,12 @@ test('name, Host badge, and actions remain on a single line',()=>{
  assert.match(css,/\.member-name-line \.creator-label\{[^}]*white-space:nowrap/);
  assert.match(css,/\.member-actions-dropdown button,\.member-edit-actions \.member-actions-dropdown \.compact\{[^}]*white-space:nowrap/);
 });
+
+test('desktop member list uses four data columns without an empty settings column',()=>{
+ const css=read('styles.css');
+ assert.match(css,/@media\(min-width:761px\)\{[\s\S]*?\.member-table-head,\.member-row\{\s*grid-template-columns:minmax\(145px,1\.2fr\) repeat\(3,minmax\(86px,1fr\)\);\s*padding-right:68px;/);
+ assert.doesNotMatch(css,/@media\(min-width:761px\)\{\.member-table-head,\.member-row\{[^}]*140px/);
+ assert.match(css,/\.member-row>\.member-edit-actions\{position:absolute;top:12px;right:12px\}/);
+ const html=read('index.html');
+ assert.match(html,/class="member-table-head"><span>Thành viên<\/span><span>Đã chi cá nhân<\/span><span>Đã đóng quỹ<\/span><span>Phần chi<\/span>/);
+});
