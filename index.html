@@ -4,21 +4,21 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#6559e8"><meta name="description" content="Quản lý chi tiêu và quỹ chung cho chuyến đi">
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="triptogether-purple-icon.svg?v=1" type="image/svg+xml"><link rel="apple-touch-icon" href="triptogether-purple-icon.png?v=1">
-<title>TripTogether</title><link rel="stylesheet" href="styles.css?v=58">
+<title>TripTogether</title><link rel="stylesheet" href="styles.css?v=68">
 </head>
 <body>
 <div id="pageLoader" class="page-loader" role="status" aria-live="polite"><span class="loading-spinner" aria-hidden="true"></span><span id="pageLoaderText">Loading TripTogether…</span></div>
-<header class="topbar"><a class="brand" href="./" aria-label="TripTogether – Home"><span class="brand-icon"><img src="triptogether-purple-icon.svg?v=1" alt="" width="50" height="50"></span><span class="brand-wordmark">TripTogether</span></a><div class="topbar-actions"><div class="language-switch" role="group" aria-label="Language / Ngôn ngữ"><button class="language-option" type="button" data-language-option="vi" aria-label="Tiếng Việt" aria-pressed="true">VI</button><button class="language-option" type="button" data-language-option="en" aria-label="English" aria-pressed="false">EN</button></div><button id="accountBtn" class="ghost">Tài khoản</button><button id="shareBtn" class="ghost hidden">↗ Chia sẻ link xem</button></div></header>
+<header class="topbar"><a class="brand" href="./" aria-label="TripTogether – Home"><span class="brand-icon"><img src="triptogether-purple-icon.svg?v=1" alt="" width="50" height="50"></span><span class="brand-wordmark">TripTogether</span></a><div class="topbar-actions"><div class="language-switch" role="group" aria-label="Language / Ngôn ngữ"><button class="language-option" type="button" data-language-option="vi" aria-label="Tiếng Việt" aria-pressed="true">VI</button><button class="language-option" type="button" data-language-option="en" aria-label="English" aria-pressed="false">EN</button></div><button id="accountBtn" class="ghost">Tài khoản</button><button id="shareBtn" class="ghost hidden"><svg class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg> Chia sẻ link xem</button></div></header>
 <aside class="tt-sidebar" id="ttSidebar" aria-label="Điều hướng chuyến đi">
   <a class="tt-sidebar-brand" href="./" aria-label="TripTogether – Home"><img src="triptogether-purple-icon.svg?v=1" alt="" width="42" height="42"><span>TripTogether</span></a>
   <div class="tt-sidebar-caption">KHÔNG GIAN</div>
   <nav class="tt-side-links" aria-label="Điều hướng chính">
-    <button type="button" class="tt-side-link active" data-shell-view="overview"><span aria-hidden="true">◫</span> Tổng quan</button>
-    <button type="button" class="tt-side-link" data-shell-view="expenses"><span aria-hidden="true">▤</span> Chi tiêu</button>
-    <button type="button" class="tt-side-link" data-shell-view="fund"><span aria-hidden="true">◈</span> Đóng quỹ</button>
-    <button type="button" class="tt-side-link" data-shell-view="people"><span aria-hidden="true">♧</span> Thành viên</button>
+    <button type="button" class="tt-side-link active" data-shell-view="overview"><span aria-hidden="true"><svg class="tt-icon tt-nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg></span> Tổng quan</button>
+    <button type="button" class="tt-side-link" data-shell-view="expenses"><span aria-hidden="true"><svg class="tt-icon tt-nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 3h14v18l-2.5-1.5L14 21l-2-1.5L10 21l-2.5-1.5L5 21z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg></span> Chi tiêu</button>
+    <button type="button" class="tt-side-link" data-shell-view="fund"><span aria-hidden="true"><svg class="tt-icon tt-nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 7V5.5A1.5 1.5 0 0 0 17.5 4H5a2 2 0 0 0 0 4h14a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2V6"/><path d="M16.5 14h.01"/></svg></span> Đóng quỹ</button>
+    <button type="button" class="tt-side-link" data-shell-view="people"><span aria-hidden="true"><svg class="tt-icon tt-nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14a6.5 6.5 0 0 1 3.5 6"/></svg></span> Thành viên</button>
   </nav>
-  <div class="tt-side-tip"><b>✦ TripTogether</b><p>Chi tiêu minh bạch hơn khi mọi người cùng theo dõi.</p><button type="button" class="secondary compact" data-shell-action="expense">＋ Thêm khoản chi</button></div>
+  <div class="tt-side-tip"><b><svg class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3l1.8 4.7 4.7 1.8-4.7 1.8L12 16l-1.8-4.7-4.7-1.8 4.7-1.8z"/><path d="M19 15l.7 1.8 1.8.7-1.8.7L19 20l-.7-1.8-1.8-.7 1.8-.7z"/></svg> TripTogether</b><p>Chi tiêu minh bạch hơn khi mọi người cùng theo dõi.</p><button type="button" class="secondary compact" data-shell-action="expense"><svg class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg> Thêm khoản chi</button></div>
 </aside>
 <main>
 <section id="welcome" class="welcome tt-workspace-home">
@@ -28,32 +28,32 @@
       <h1>Mỗi chuyến đi.<br><em>Thêm niềm vui.</em><br>Bớt tính toán. ✨</h1>
       <p class="muted">Theo dõi chi phí, quản lý quỹ chung và chia tiền công bằng — tất cả trong một nơi.</p>
       <div class="actions tt-welcome-actions">
-        <button id="createBtn" class="primary">＋ Tạo chuyến đi</button>
+        <button id="createBtn" class="primary"><svg class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg> Tạo chuyến đi</button>
         <p id="createLoginHint" class="muted small hidden">Đăng nhập hoặc tạo tài khoản để tạo và quản lý chuyến đi.</p>
       </div>
     </div>
     <div class="tt-welcome-illustration" aria-hidden="true">
       <span class="tt-welcome-emoji">🧳</span>
-      <div class="tt-welcome-illustration-foot">✦ Travel better, together.</div>
+      <div class="tt-welcome-illustration-foot">Travel better, together.</div>
     </div>
   </div>
   <section id="savedTripsSection" class="saved-trips tt-trips-workspace">
     <div class="sectionhead tt-workspace-heading">
-      <div><div class="eyebrow">KHÔNG GIAN CỦA TÔI</div><h2>Chuyến đi của bạn ✨</h2><p class="muted small">Quản lý chuyến đi và những kỷ niệm của cả nhóm.</p></div>
-      <button type="button" class="secondary tt-workspace-create" id="createTripCardButton">＋ Tạo chuyến đi mới</button>
+      <div><div class="eyebrow">KHÔNG GIAN CỦA TÔI</div><h2>Chuyến đi của bạn</h2><p class="muted small">Quản lý chuyến đi và những kỷ niệm của cả nhóm.</p></div>
+      <button type="button" class="secondary tt-workspace-create" id="createTripCardButton"><svg class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg> Tạo chuyến đi mới</button>
     </div>
     <div id="savedTripList" class="tt-trip-cards" aria-live="polite"></div>
     <p id="noSavedTrips" class="muted small">Chưa có chuyến đi nào trong tài khoản này. Tạo chuyến đầu tiên hoặc mở liên kết được chia sẻ.</p>
   </section>
   <section class="tt-invite-workspace">
-    <div class="tt-invite-icon" aria-hidden="true">🔗</div>
+    <div class="tt-invite-icon" aria-hidden="true"><svg class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg></div>
     <div class="tt-invite-content"><h2>Được mời tham gia chuyến đi?</h2><p class="muted small">Dán liên kết chia sẻ hoặc mã chuyến để mở và xem thông tin.</p></div>
-    <div class="joinrow"><input id="joinCode" placeholder="Dán link mời hoặc mã chuyến" aria-label="Link mời hoặc mã chuyến"><button id="joinBtn" class="secondary">Mở chuyến →</button></div>
+    <div class="joinrow"><input id="joinCode" placeholder="Dán link mời hoặc mã chuyến" aria-label="Link mời hoặc mã chuyến"><button id="joinBtn" class="secondary">Mở chuyến <svg class="tt-icon tt-icon-after" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
   </section>
   <p id="setupNotice" class="notice">Cloud sync needs a Supabase project. Follow SETUP.md to connect it.</p>
 </section>
 <section id="app" class="hidden">
-  <div class="triphead"><div><div class="eyebrow" id="tripMeta">CHUYẾN ĐI CHUNG</div><h1 id="tripName">Chuyến đi</h1><div class="muted small" id="memberCount"></div></div><div class="triphead-actions"><button id="memberAccessBtn" class="secondary compact hidden" type="button">⚙ Quyền truy cập</button><button id="inviteBtn" class="secondary compact">Chia sẻ link xem ↗</button></div></div>
+  <div class="triphead"><div><div class="eyebrow" id="tripMeta">CHUYẾN ĐI CHUNG</div><h1 id="tripName">Chuyến đi</h1><div class="muted small" id="memberCount"></div></div><div class="triphead-actions"><button id="memberAccessBtn" class="secondary compact hidden" type="button"><svg class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg> Quyền truy cập</button><button id="inviteBtn" class="secondary compact"><svg class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg> Chia sẻ link xem</button></div></div>
   <div id="sharedAccessPanel" class="notice shared-access-notice hidden" role="region" aria-label="Quyền chỉnh sửa">
     <strong>Bạn đang xem bằng link chia sẻ.</strong>
     <p id="sharedAccessDescription">Link chia sẻ cho phép xem dữ liệu nhưng không cấp quyền sửa.</p>
@@ -81,18 +81,18 @@
   <section id="ttOverview" class="tt-overview" aria-label="Tổng quan chuyến đi">
     <div class="tt-overview-grid">
       <article class="tt-overview-card">
-        <div class="tt-panel-head"><h2>Khoản chi gần đây</h2><button class="tt-text-link" type="button" data-shell-view="expenses">Xem tất cả →</button></div>
+        <div class="tt-panel-head"><h2>Khoản chi gần đây</h2><button class="tt-text-link" type="button" data-shell-view="expenses">Xem tất cả <svg class="tt-icon tt-icon-after" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
         <div id="ttRecentExpenses" class="tt-overview-list"></div>
       </article>
       <div class="tt-overview-side">
-        <article class="tt-overview-card"><div class="tt-panel-head"><h2>Thành viên</h2><button class="tt-text-link" type="button" data-shell-view="people">Xem chi tiết →</button></div><div id="ttRecentMembers" class="tt-overview-list"></div></article>
-        <article class="tt-overview-card"><div class="tt-panel-head"><h2>Tình hình quỹ</h2><button class="tt-text-link" type="button" data-shell-view="fund">Đóng quỹ →</button></div><p class="muted small">Quỹ còn lại sau khi trừ khoản cần hoàn cho thành viên.</p><strong class="tt-fund-highlight" id="ttOverviewNetFund">0 ₫</strong></article>
+        <article class="tt-overview-card"><div class="tt-panel-head"><h2>Thành viên</h2><button class="tt-text-link" type="button" data-shell-view="people">Xem chi tiết <svg class="tt-icon tt-icon-after" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div><div id="ttRecentMembers" class="tt-overview-list"></div></article>
+        <article class="tt-overview-card"><div class="tt-panel-head"><h2>Tình hình quỹ</h2><button class="tt-text-link" type="button" data-shell-view="fund">Đóng quỹ <svg class="tt-icon tt-icon-after" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div><p class="muted small">Quỹ còn lại sau khi trừ khoản cần hoàn cho thành viên.</p><strong class="tt-fund-highlight" id="ttOverviewNetFund">0 ₫</strong></article>
       </div>
     </div>
   </section>
   <nav class="tabs"><button class="tab active" data-tab="expenses">Chi tiêu</button><button class="tab" data-tab="fund">Đóng quỹ</button><button class="tab" data-tab="people">Thành viên</button></nav>
   <section id="expensesTab" class="tabbody">
-    <div class="sectionhead"><div><h2>Danh sách chi tiêu</h2><p class="muted small">Chạm Sửa để cập nhật ngày, hạng mục, người trả, số tiền hoặc ghi chú.</p></div><button class="primary compact" id="addExpense">＋ Thêm khoản chi</button></div><div class="expense-toolbar" role="search" aria-label="Lọc chi tiêu">
+    <div class="sectionhead"><div><h2>Danh sách chi tiêu</h2><p class="muted small">Chạm Sửa để cập nhật ngày, hạng mục, người trả, số tiền hoặc ghi chú.</p></div><button class="primary compact" id="addExpense"><svg class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg> Thêm khoản chi</button></div><div class="expense-toolbar" role="search" aria-label="Lọc chi tiêu">
       <label class="sr-only" for="expenseSearch">Tìm khoản chi</label>
       <input id="expenseSearch" type="search" placeholder="Tìm theo tên, ghi chú hoặc người trả" autocomplete="off">
       <label class="sr-only" for="expenseCategoryFilter">Lọc danh mục</label>
@@ -103,16 +103,16 @@
     <div id="expenseList" class="list ledger-list"></div>
   </section>
   <section id="fundTab" class="tabbody hidden">
-    <div class="sectionhead"><div><h2>Theo dõi quỹ</h2><p class="muted small">Quỹ ban đầu được tính riêng. Các lần đóng thêm nằm trong danh sách dưới đây.</p></div><div class="section-actions"><button class="primary compact" id="addContribution">＋ Đóng quỹ thêm</button></div></div><div id="contributionList" class="list ledger-list"></div>
+    <div class="sectionhead"><div><h2>Theo dõi quỹ</h2><p class="muted small">Quỹ ban đầu được tính riêng. Các lần đóng thêm nằm trong danh sách dưới đây.</p></div><div class="section-actions"><button class="primary compact" id="addContribution"><svg class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg> Đóng quỹ thêm</button></div></div><div id="contributionList" class="list ledger-list"></div>
   </section>
   <section id="peopleTab" class="tabbody hidden">
-    <div class="sectionhead members-sectionhead"><div><h2>Chi tiêu từng thành viên</h2><p class="muted small">Theo dõi phần chi, đóng quỹ và khoản quỹ còn nợ của mỗi người.</p></div><div class="section-actions member-actions"><button class="secondary compact" id="addDebt">＋ Ghi khoản nợ</button><button class="primary compact" id="addMember">＋ Thêm thành viên</button></div></div>
+    <div class="sectionhead members-sectionhead"><div><h2>Chi tiêu từng thành viên</h2><p class="muted small">Theo dõi phần chi, đóng quỹ và khoản quỹ còn nợ của mỗi người.</p></div><div class="section-actions member-actions"><button class="secondary compact" id="addDebt"><svg class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg> Ghi khoản nợ</button><button class="primary compact" id="addMember"><svg class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg> Thêm thành viên</button></div></div>
     <div class="member-table-head"><span>Thành viên</span><span>Đã chi cá nhân</span><span>Đã đóng quỹ</span><span>Phần chi</span></div>
     <div id="memberList" class="list ledger-list"></div>
     <div id="editRequestPanel" class="settlement member-permissions hidden" style="display:none"><h3>Xin quyền chỉnh sửa</h3><p class="muted small" id="editRequestState">Bạn có thể gửi yêu cầu để Host cấp quyền.</p><button class="primary compact" type="button" id="requestEditBtn">Gửi yêu cầu cấp quyền</button></div>
     <section class="tt-reconciliation" aria-labelledby="reconciliationTitle">
       <header class="tt-reconciliation-header">
-        <span class="tt-reconciliation-icon" aria-hidden="true">⇄</span>
+        <span class="tt-reconciliation-icon" aria-hidden="true"><svg class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 4v17M8 21h8M4 7h16"/><path d="M7 7l-3 7a3 3 0 0 0 6 0z"/><path d="M17 7l-3 7a3 3 0 0 0 6 0z"/></svg></span>
         <div>
           <h2 id="reconciliationTitle">Đối soát quỹ</h2>
           <p class="muted small">Tổng hợp cân bằng quỹ, nợ riêng và lịch sử thanh toán trong chuyến đi.</p>
@@ -121,15 +121,23 @@
       <div class="tt-reconciliation-grid">
         <section class="tt-reconciliation-card tt-reconciliation-card-primary" aria-labelledby="fundReconcileTitle">
           <div class="tt-reconciliation-card-heading">
-            <span class="tt-reconciliation-card-icon" aria-hidden="true">◈</span>
+            <span class="tt-reconciliation-card-icon" aria-hidden="true"><svg class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="9" cy="9" r="6"/><path d="M15.5 9.3a6 6 0 1 1-6.2 6.2"/></svg></span>
             <div><h3 id="fundReconcileTitle">Cân bằng quỹ chung</h3>
               <p class="muted small">Gợi ý cân bằng tiền đóng quỹ giữa các thành viên. Khoản quỹ chưa hoàn trả được theo dõi riêng.</p></div>
           </div>
           <div id="expenseSettlements" class="tt-reconciliation-content"></div>
         </section>
+        <section class="tt-reconciliation-card" aria-labelledby="fundDueTitle">
+          <div class="tt-reconciliation-card-heading">
+            <span class="tt-reconciliation-card-icon" aria-hidden="true"><svg class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 7V5.5A1.5 1.5 0 0 0 17.5 4H5a2 2 0 0 0 0 4h14a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2V6"/><path d="M16.5 14h.01"/></svg></span>
+            <div><h3 id="fundDueTitle">Quỹ còn nợ thành viên</h3>
+              <p class="muted small">Các khoản thành viên ứng trước cho chi tiêu chung mà quỹ chưa hoàn lại.</p></div>
+          </div>
+          <div id="fundDueList" class="list ledger-list tt-reconciliation-content"></div>
+        </section>
         <section class="tt-reconciliation-card" aria-labelledby="personalDebtsTitle">
           <div class="tt-reconciliation-card-heading">
-            <span class="tt-reconciliation-card-icon" aria-hidden="true">↔</span>
+            <span class="tt-reconciliation-card-icon" aria-hidden="true"><svg class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 3L4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/></svg></span>
             <div><h3 id="personalDebtsTitle">Khoản nợ riêng giữa thành viên</h3>
               <p class="muted small">Các khoản nợ cá nhân ngoài phần chia chi tiêu chung.</p></div>
           </div>
@@ -137,15 +145,15 @@
         </section>
         <section class="tt-reconciliation-card" aria-labelledby="debtSuggestionsTitle">
           <div class="tt-reconciliation-card-heading">
-            <span class="tt-reconciliation-card-icon" aria-hidden="true">⇢</span>
+            <span class="tt-reconciliation-card-icon" aria-hidden="true"><svg class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.8V16h5v-.3c0-.7.4-1.4 1-1.8A6 6 0 0 0 12 3z"/></svg></span>
             <div><h3 id="debtSuggestionsTitle">Gợi ý trả nợ riêng</h3>
               <p class="muted small">Các khoản chuyển tiền tối giản theo nợ riêng chưa thanh toán.</p></div>
           </div>
           <div id="debtSettlements" class="tt-reconciliation-content"></div>
         </section>
-        <section class="tt-reconciliation-card" aria-labelledby="paymentHistoryTitle">
+        <section class="tt-reconciliation-card tt-reconciliation-wide" aria-labelledby="paymentHistoryTitle">
           <div class="tt-reconciliation-card-heading">
-            <span class="tt-reconciliation-card-icon" aria-hidden="true">◷</span>
+            <span class="tt-reconciliation-card-icon" aria-hidden="true"><svg class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg></span>
             <div><h3 id="paymentHistoryTitle">Lịch sử thanh toán</h3>
               <p class="muted small">Hoàn quỹ, trả nợ, thanh toán một phần và hoàn tác.</p></div>
           </div>
@@ -153,7 +161,7 @@
         </section>
         <section id="activityPanel" class="tt-reconciliation-card tt-reconciliation-activity" aria-labelledby="activityTitle">
           <div class="tt-reconciliation-card-heading">
-            <span class="tt-reconciliation-card-icon" aria-hidden="true">☷</span>
+            <span class="tt-reconciliation-card-icon" aria-hidden="true"><svg class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/></svg></span>
             <div><h3 id="activityTitle">Nhật ký thay đổi</h3>
               <p class="muted small">Xem lịch sử cập nhật và khôi phục khoản chi hoặc đóng quỹ đã xóa.</p></div>
           </div>
@@ -162,15 +170,15 @@
       </div>
     </section>
   </section>
-  <footer><span id="syncStatus">● Đang kết nối…</span><div class="footer-actions"><button id="deleteTripBtn" class="danger hidden">Xóa chuyến đi</button><button id="leaveBtn" class="ghost">Rời chuyến</button></div></footer>
+  <footer><span id="syncStatus">Đang kết nối…</span><div class="footer-actions"><button id="deleteTripBtn" class="danger hidden">Xóa chuyến đi</button><button id="leaveBtn" class="ghost">Rời chuyến</button></div></footer>
 </section>
 </main>
 <nav class="tt-mobile-nav" id="ttMobileNav" aria-label="Điều hướng di động">
-  <button type="button" class="tt-mobile-link active" data-shell-view="overview"><span class="tt-mobile-icon" aria-hidden="true">◫</span><span>Tổng quan</span></button>
-  <button type="button" class="tt-mobile-link" data-shell-view="expenses"><span class="tt-mobile-icon" aria-hidden="true">▤</span><span>Chi tiêu</span></button>
-  <button type="button" class="tt-mobile-link tt-mobile-create" data-shell-action="expense" aria-label="Thêm khoản chi"><span class="tt-mobile-plus" aria-hidden="true">＋</span><span>Thêm</span></button>
-  <button type="button" class="tt-mobile-link" data-shell-view="fund"><span class="tt-mobile-icon" aria-hidden="true">◈</span><span>Đóng quỹ</span></button>
-  <button type="button" class="tt-mobile-link" data-shell-view="people"><span class="tt-mobile-icon" aria-hidden="true">♧</span><span>Thành viên</span></button>
+  <button type="button" class="tt-mobile-link active" data-shell-view="overview"><span class="tt-mobile-icon" aria-hidden="true"><svg class="tt-icon tt-nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg></span><span>Tổng quan</span></button>
+  <button type="button" class="tt-mobile-link" data-shell-view="expenses"><span class="tt-mobile-icon" aria-hidden="true"><svg class="tt-icon tt-nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 3h14v18l-2.5-1.5L14 21l-2-1.5L10 21l-2.5-1.5L5 21z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg></span><span>Chi tiêu</span></button>
+  <button type="button" class="tt-mobile-link tt-mobile-create" data-shell-action="expense" aria-label="Thêm khoản chi"><span class="tt-mobile-plus" aria-hidden="true"><svg class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg></span><span>Thêm</span></button>
+  <button type="button" class="tt-mobile-link" data-shell-view="fund"><span class="tt-mobile-icon" aria-hidden="true"><svg class="tt-icon tt-nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 7V5.5A1.5 1.5 0 0 0 17.5 4H5a2 2 0 0 0 0 4h14a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2V6"/><path d="M16.5 14h.01"/></svg></span><span>Đóng quỹ</span></button>
+  <button type="button" class="tt-mobile-link" data-shell-view="people"><span class="tt-mobile-icon" aria-hidden="true"><svg class="tt-icon tt-nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14a6.5 6.5 0 0 1 3.5 6"/></svg></span><span>Thành viên</span></button>
 </nav>
 <footer class="site-copyright" aria-label="Copyright">
   <span>© <time datetime="2026">2026</time> <strong>TripTogether</strong>. Bảo lưu mọi quyền.</span>
@@ -180,19 +188,19 @@
   <form id="paymentForm" method="dialog">
     <h2 id="paymentDialogTitle">Ghi thanh toán</h2>
     <p id="paymentContext" class="muted small"></p>
-    <label>Số tiền (VNĐ)<input id="paymentAmount" type="number" min="1" step="1" required></label>
+    <label>Số tiền (VNĐ)<input id="paymentAmount" data-money type="text" inputmode="numeric" min="1" required></label>
     <label>Ghi chú<input id="paymentNote" maxlength="200" placeholder="Tùy chọn"></label>
     <menu><button type="button" id="paymentCancel" class="secondary">Hủy</button><button type="submit" id="paymentSave" class="primary">Lưu thanh toán</button></menu>
   </form>
 </dialog>
-<dialog id="tripTitleDialog" class="tt-create-dialog"><form method="dialog" id="tripTitleForm"><div class="tt-create-eyebrow">TRIPTOGETHER ✦</div><h2>Tạo chuyến đi mới 🚀</h2><p class="muted small">Nhập thông tin cơ bản để bắt đầu theo dõi quỹ và chi tiêu.</p><label>Tên chuyến đi<input id="tripTitle" required maxlength="100" placeholder="Ví dụ: Cao Bằng"></label><label>Quỹ ban đầu (VNĐ)<input id="tripInitialFund" type="number" min="0" step="1" value="0" placeholder="16000000"></label><menu><button class="secondary" type="button" id="tripTitleCancel">Hủy</button><button class="primary" id="tripTitleSave" value="default">Tạo chuyến</button></menu></form></dialog>
+<dialog id="tripTitleDialog" class="tt-create-dialog"><form method="dialog" id="tripTitleForm"><div class="tt-create-eyebrow">TRIPTOGETHER</div><h2>Tạo chuyến đi mới</h2><p class="muted small">Nhập thông tin cơ bản để bắt đầu theo dõi quỹ và chi tiêu.</p><label>Tên chuyến đi<input id="tripTitle" required maxlength="100" placeholder="Ví dụ: Cao Bằng"></label><label>Quỹ ban đầu (VNĐ)<input id="tripInitialFund" data-money type="text" inputmode="numeric" min="0" value="0" placeholder="16.000.000"></label><menu><button class="secondary" type="button" id="tripTitleCancel">Hủy</button><button class="primary" id="tripTitleSave" value="default">Tạo chuyến</button></menu></form></dialog>
 <dialog id="profileDialog"><form method="dialog" id="profileForm"><h2>Tên hiển thị của bạn</h2><p class="muted">Tên này sẽ xuất hiện trong chuyến đi chung.</p><input id="displayName" maxlength="40" required placeholder="Tên của bạn"><menu><button class="secondary" type="button" id="profileCancel">Hủy</button><button class="primary" id="profileSave" value="default">Tiếp tục</button></menu></form></dialog>
 <dialog id="accountDialog" aria-labelledby="accountDialogTitle"><section class="account-dialog-content"><h2 id="accountDialogTitle">Tài khoản TripTogether</h2><div id="accountContent"></div><menu><button class="secondary" type="button" id="accountClose">Đóng</button></menu></section></dialog>
 
 
-<dialog id="expenseDialog"><form method="dialog" id="expenseForm"><input id="expenseId" type="hidden"><h2 id="expenseDialogTitle">Thêm khoản chi</h2><label>Hạng mục / nội dung<input id="expenseTitle" required maxlength="100" placeholder="Ví dụ: Vé máy bay"></label><div class="formgrid"><label>Số tiền (VNĐ)<input id="expenseAmount" required type="number" min="1" step="1" placeholder="250000"></label><label>Nguồn thanh toán<select id="expensePayer"><option value="">Lấy từ quỹ chung</option></select><span class="field-hint">Nếu thành viên ứng tiền, quỹ chỉ giảm khi đánh dấu đã hoàn trả.</span></label></div><div class="formgrid"><label>Ngày<input id="expenseDate" type="date" required></label><label>Phân loại<select id="expenseCategory"><option value="Food">Ăn uống</option><option value="Transport">Di chuyển</option><option value="Accommodation">Lưu trú</option><option value="Tickets">Vé tham quan</option><option value="Shopping">Mua sắm</option><option value="Other">Khác</option></select></label></div><label>Ghi chú<input id="expenseNote" maxlength="200" placeholder="Thông tin thêm nếu có"></label><menu><button class="secondary" id="expenseCancel" type="button">Hủy</button><button class="primary" id="expenseSave" value="default">Lưu khoản chi</button></menu></form></dialog>
-<dialog id="fundDialog"><form method="dialog" id="fundForm"><input id="fundId" type="hidden"><h2 id="fundDialogTitle">Đóng quỹ thêm</h2><div class="formgrid"><label>Số tiền (VNĐ)<input id="fundAmount" required type="number" min="1" step="1"></label><label>Người đóng<select id="fundPayer"></select></label></div><label>Ghi chú<input id="fundNote" maxlength="100" placeholder="Ví dụ: Đóng quỹ lần 1"></label><label>Ngày đóng<input id="fundDate" type="date" required></label><menu><button class="secondary" id="fundCancel" type="button">Hủy</button><button class="primary" id="fundSave" value="default">Lưu khoản đóng</button></menu></form></dialog>
-<dialog id="initialFundDialog"><form method="dialog" id="initialFundForm"><h2>Sửa quỹ ban đầu</h2><p class="muted">Nhập số tiền trong quỹ trước các lần đóng thêm.</p><label>Quỹ ban đầu (VNĐ)<input id="initialFundInput" required type="number" min="0" step="1"></label><menu><button class="secondary" id="initialFundCancel" type="button">Hủy</button><button class="primary" id="initialFundSave" value="default">Lưu quỹ ban đầu</button></menu></form></dialog>
+<dialog id="expenseDialog"><form method="dialog" id="expenseForm"><input id="expenseId" type="hidden"><h2 id="expenseDialogTitle">Thêm khoản chi</h2><label>Hạng mục / nội dung<input id="expenseTitle" required maxlength="100" placeholder="Ví dụ: Vé máy bay"></label><div class="formgrid"><label>Số tiền (VNĐ)<input id="expenseAmount" data-money type="text" inputmode="numeric" required min="1" placeholder="250.000"></label><label>Nguồn thanh toán<select id="expensePayer"><option value="">Lấy từ quỹ chung</option></select><span class="field-hint">Nếu thành viên ứng tiền, quỹ chỉ giảm khi đánh dấu đã hoàn trả.</span></label></div><div class="formgrid"><label>Ngày<input id="expenseDate" type="date" required></label><label>Phân loại<select id="expenseCategory"><option value="Food">Ăn uống</option><option value="Transport">Di chuyển</option><option value="Accommodation">Lưu trú</option><option value="Tickets">Vé tham quan</option><option value="Shopping">Mua sắm</option><option value="Other">Khác</option></select></label></div><label>Ghi chú<input id="expenseNote" maxlength="200" placeholder="Thông tin thêm nếu có"></label><menu><button class="secondary" id="expenseCancel" type="button">Hủy</button><button class="primary" id="expenseSave" value="default">Lưu khoản chi</button></menu></form></dialog>
+<dialog id="fundDialog"><form method="dialog" id="fundForm"><input id="fundId" type="hidden"><h2 id="fundDialogTitle">Đóng quỹ thêm</h2><div class="formgrid"><label>Số tiền (VNĐ)<input id="fundAmount" data-money type="text" inputmode="numeric" required min="1"></label><label>Người đóng<select id="fundPayer"></select></label></div><label>Ghi chú<input id="fundNote" maxlength="100" placeholder="Ví dụ: Đóng quỹ lần 1"></label><label>Ngày đóng<input id="fundDate" type="date" required></label><menu><button class="secondary" id="fundCancel" type="button">Hủy</button><button class="primary" id="fundSave" value="default">Lưu khoản đóng</button></menu></form></dialog>
+<dialog id="initialFundDialog"><form method="dialog" id="initialFundForm"><h2>Sửa quỹ ban đầu</h2><p class="muted">Nhập số tiền trong quỹ trước các lần đóng thêm.</p><label>Quỹ ban đầu (VNĐ)<input id="initialFundInput" data-money type="text" inputmode="numeric" required min="0"></label><menu><button class="secondary" id="initialFundCancel" type="button">Hủy</button><button class="primary" id="initialFundSave" value="default">Lưu quỹ ban đầu</button></menu></form></dialog>
 <dialog id="memberAccessDialog" aria-labelledby="memberAccessTitle" class="member-access-dialog"><h2 id="memberAccessTitle">Quản lý quyền truy cập</h2><div id="hostEditRequestsPanel" class="settlement member-permissions hidden" style="display:none"><h3>Yêu cầu quyền chỉnh sửa</h3><div id="hostEditRequestsList"></div></div><div id="editPermissionsPanel" class="settlement member-permissions hidden"><h3>Quyền chỉnh sửa thành viên</h3><div id="memberPermissionList"></div></div><menu><button class="secondary" type="button" id="memberAccessClose">Đóng</button></menu></dialog>
 <dialog id="mergeMemberDialog" class="tt-merge-dialog" aria-labelledby="mergeMemberTitle">
   <form id="mergeMemberForm">
@@ -210,10 +218,12 @@
     </menu>
   </form>
 </dialog>
-<dialog id="memberDialog"><form id="memberForm"><h2 id="memberDialogTitle">Thêm thành viên</h2><p class="muted" id="memberDialogHint">Thành viên được tính vào phần chia đều của chuyến đi.</p><input type="hidden" id="memberEditUserId"><label>Tên thành viên<input id="memberName" required maxlength="40" placeholder="Ví dụ: Minh"></label><div id="memberInviteEmailField" class="hidden"><label for="memberInviteEmail">Email mời (tùy chọn)<input id="memberInviteEmail" type="email" autocomplete="off" placeholder="member@example.com"></label><p class="muted small">Host nhập email của thành viên đã có trong danh sách. Email này sẽ được dùng để liên kết tài khoản, không tạo thêm người.</p></div><div id="memberAccountLinkStatus" class="member-account-link-status hidden" role="status"><strong>Trạng thái liên kết tài khoản</strong><p id="memberAccountLinkStatusText"></p><p id="memberAccountLinkedEmail" class="member-linked-email hidden"></p></div><div id="memberOpeningFundField"><label for="memberOpeningFund">Đóng quỹ ban đầu (VNĐ) <span class="field-optional">Không bắt buộc</span><input id="memberOpeningFund" type="number" inputmode="numeric" min="0" step="1" placeholder="0"></label><p class="muted small member-fund-hint">Để trống nếu chưa đóng quỹ. Số tiền sẽ được ghi vào lịch sử Đóng quỹ của thành viên.</p></div><menu><button class="secondary" id="memberCancel" type="button">Hủy</button><button class="primary" id="memberSave" type="submit">Lưu thành viên</button></menu></form></dialog>
-<dialog id="debtDialog"><form method="dialog" id="debtForm"><h2>Ghi khoản nợ thành viên</h2><p class="muted small">Khoản này hiển thị trong đối soát thành viên; không trừ vào quỹ chung.</p><div class="formgrid"><label>Người nợ<select id="debtDebtor" required></select></label><label>Người nhận nợ<select id="debtCreditor" required></select></label></div><label>Số tiền (VNĐ)<input id="debtAmount" type="number" min="1" step="1" required placeholder="250000"></label><div class="formgrid"><label>Ngày<input id="debtDate" type="date" required></label><label>Ghi chú<input id="debtNote" maxlength="200" placeholder="Lý do khoản nợ"></label></div><menu><button class="secondary" id="debtCancel" type="button">Hủy</button><button class="primary" id="debtSave" value="default">Lưu khoản nợ</button></menu></form></dialog>
+<dialog id="memberDialog"><form id="memberForm"><h2 id="memberDialogTitle">Thêm thành viên</h2><p class="muted" id="memberDialogHint">Thành viên được tính vào phần chia đều của chuyến đi.</p><input type="hidden" id="memberEditUserId"><label>Tên thành viên<input id="memberName" required maxlength="40" placeholder="Ví dụ: Minh"></label><div id="memberInviteEmailField" class="hidden"><label for="memberInviteEmail">Email mời (tùy chọn)<input id="memberInviteEmail" type="email" autocomplete="off" placeholder="member@example.com"></label><p class="muted small">Host nhập email của thành viên đã có trong danh sách. Email này sẽ được dùng để liên kết tài khoản, không tạo thêm người.</p></div><div id="memberAccountLinkStatus" class="member-account-link-status hidden" role="status"><strong>Trạng thái liên kết tài khoản</strong><p id="memberAccountLinkStatusText"></p><p id="memberAccountLinkedEmail" class="member-linked-email hidden"></p></div><div id="memberOpeningFundField"><label for="memberOpeningFund">Đóng quỹ ban đầu (VNĐ) <span class="field-optional">Không bắt buộc</span><input id="memberOpeningFund" data-money type="text" inputmode="numeric" min="0" placeholder="0"></label><p class="muted small member-fund-hint">Để trống nếu chưa đóng quỹ. Số tiền sẽ được ghi vào lịch sử Đóng quỹ của thành viên.</p></div><menu><button class="secondary" id="memberCancel" type="button">Hủy</button><button class="primary" id="memberSave" type="submit">Lưu thành viên</button></menu></form></dialog>
+<dialog id="debtDialog"><form method="dialog" id="debtForm"><h2>Ghi khoản nợ thành viên</h2><p class="muted small">Khoản này hiển thị trong đối soát thành viên; không trừ vào quỹ chung.</p><div class="formgrid"><label>Người nợ<select id="debtDebtor" required></select></label><label>Người nhận nợ<select id="debtCreditor" required></select></label></div><label>Số tiền (VNĐ)<input id="debtAmount" data-money type="text" inputmode="numeric" min="1" required placeholder="250.000"></label><div class="formgrid"><label>Ngày<input id="debtDate" type="date" required></label><label>Ghi chú<input id="debtNote" maxlength="200" placeholder="Lý do khoản nợ"></label></div><menu><button class="secondary" id="debtCancel" type="button">Hủy</button><button class="primary" id="debtSave" value="default">Lưu khoản nợ</button></menu></form></dialog>
 <script>
 window.__supabaseSdkReady=new Promise(resolve=>{const sources=['https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2','https://unpkg.com/@supabase/supabase-js@2'];let index=0;const load=()=>{if(window.supabase){resolve(true);return}if(index>=sources.length){resolve(false);return}const script=document.createElement('script');script.src=sources[index++];let finished=false;const timer=setTimeout(()=>{if(finished)return;finished=true;script.remove();load()},6000);script.onload=()=>{if(finished)return;finished=true;clearTimeout(timer);if(window.supabase)resolve(true);else load()};script.onerror=()=>{if(finished)return;finished=true;clearTimeout(timer);script.remove();load()};document.head.appendChild(script)};load()});
-</script><script src="i18n.js?v=8"></script><script src="finance.js?v=3"></script><script src="trip-ui.js?v=3"></script><script src="ui-shell.js?v=2"></script>
-<script src="app.js?v=62"></script>
+</script><script src="i18n.js?v=16"></script><script src="finance.js?v=3"></script><script src="trip-ui.js?v=5"></script><script src="ui-shell.js?v=6"></script>
+<script src="icons.js?v=2"></script>
+<script src="money-input.js?v=1"></script>
+<script src="app.js?v=71"></script>
 </body></html>

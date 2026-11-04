@@ -46,7 +46,9 @@ function addPasswordVisibilityControls(root=document){
  });
 }
 function ready(){return SUPABASE_URL.startsWith('https://') && !SUPABASE_ANON_KEY.startsWith('PASTE_') && window.supabase}
-function status(s){const el=$('syncStatus');el.textContent='● '+s;el.classList.toggle('sync-loading',s==='Loading…'||s==='Connecting…')}
+const CATEGORY_LABELS={Food:'Ăn uống',Transport:'Di chuyển',Accommodation:'Lưu trú',Tickets:'Vé tham quan',Shopping:'Mua sắm',Other:'Khác'};
+const categoryLabel=category=>CATEGORY_LABELS[category]||category||'Khác';
+function status(s){const el=$('syncStatus');el.textContent=s;el.classList.toggle('sync-loading',s==='Loading…'||s==='Connecting…')}
 function pageLoading(show,message='Loading…'){$('pageLoaderText').textContent=message;$('pageLoader').classList.toggle('hidden',!show)}
 function emailSendHelp(error){const code=String(error?.code||'').toLowerCase(),message=String(error?.message||'');if(code==='email_address_not_authorized'||message.toLowerCase().includes('email address not authorized'))return 'Supabase hiện chỉ cho gửi email đến thành viên trong tổ chức. Cần cấu hình SMTP riêng trong Supabase → Authentication → SMTP Settings để gửi đến email khác.';if(code==='over_email_send_rate_limit'||message.toLowerCase().includes('email rate limit'))return 'Đã vượt giới hạn gửi email của Supabase. Dịch vụ mặc định chỉ cho gửi tối đa 2 email mỗi giờ; hãy chờ hoặc cấu hình SMTP riêng.';return message||'Không gửi được email. Hãy kiểm tra cấu hình email trong Supabase Auth Logs.'}
 function syncEditPermissions(){const own=members.find(m=>m.user_id===user?.id||m.account_user_id===user?.id);editPermissionsReady=members.length>0&&members.every(m=>typeof m.can_edit==='boolean');canEdit=!!user&&!readOnly&&(trip?.created_by===user.id||!!own&&own.can_edit===true)}
@@ -118,7 +120,7 @@ function updateCreateTripAccess(){
  const hint=$('createLoginHint');
  if(!button)return;
  const signedIn=canCreateTrip();
- button.textContent=signedIn?'＋ Tạo chuyến đi':'Đăng nhập để tạo chuyến đi';
+ button.innerHTML=signedIn?TTIcon('plus')+' Tạo chuyến đi':'Đăng nhập để tạo chuyến đi';
  if(hint)hint.classList.toggle('hidden',signedIn);
  window.TripTogetherI18n?.refresh();
 }
@@ -149,7 +151,7 @@ function accountView(view){
  const heading=$('accountDialogTitle');
  if(anonymous){
   heading.textContent='Tài khoản TripTogether';
-  content.innerHTML=`<div class="account-intro"><span class="account-intro-icon" aria-hidden="true">✳</span><p>Kết nối chuyến đi và quyền chỉnh sửa trên các thiết bị của bạn.</p></div>
+  content.innerHTML=`<div class="account-intro"><span class="account-intro-icon" aria-hidden="true">${TTIcon('user-circle')}</span><p>Kết nối chuyến đi và quyền chỉnh sửa trên các thiết bị của bạn.</p></div>
    <div class="account-switch" role="group" aria-label="Tài khoản">
     <button type="button" class="account-tab ${view==='login'?'active':''}" data-account-view="login" aria-pressed="${view==='login'}">Đăng nhập</button>
     <button type="button" class="account-tab ${view==='register'?'active':''}" data-account-view="register" aria-pressed="${view==='register'}">Tạo tài khoản</button>
@@ -239,6 +241,8 @@ function accountView(view){
      localStorage.removeItem('tt_account_pending');
      $('accountPasswordForm').reset();
      accountNotice('Đã lưu mật khẩu. Bạn có thể dùng tài khoản này để đăng nhập trên thiết bị khác.','success');
+     // Let the confirmation be read, then close the dialog; the task is done.
+     setTimeout(()=>{if($('accountDialog').open)$('accountDialog').close()},1600);
     }catch(error){accountNotice('Không thể lưu mật khẩu: '+accountError(error),'error')}
    });
   };
@@ -292,26 +296,26 @@ async function loadMyTrips(){
   }
   if(!tripIds.length){
     $('savedTripsSection').classList.remove('hidden');
-    $('savedTripList').innerHTML='<button type="button" class="tt-trip-create-tile" id="createTripTile"><span aria-hidden="true">＋</span><b>Tạo chuyến đi mới</b><small>Bắt đầu hành trình tiếp theo của bạn.</small></button>';
+    $('savedTripList').innerHTML='<button type="button" class="tt-trip-create-tile" id="createTripTile"><span aria-hidden="true">'+TTIcon('plus')+'</span><b>Tạo chuyến đi mới</b><small>Bắt đầu hành trình tiếp theo của bạn.</small></button>';
     $('createTripTile').onclick=()=>$('createBtn').click();
     $('noSavedTrips').classList.remove('hidden');return
   }
   const {data:trips,error:tripError}=await db.from('trips').select('id,name,created_at,created_by').in('id',tripIds).order('created_at',{ascending:false});
   if(tripError)throw tripError;
   $('savedTripList').innerHTML=(trips||[]).map((t,i)=>{
-   const cover=['🏞️','🧳','✈️','🌴','⛰️'][i%5];
+   const cover=TTIcon(['map','luggage','plane','compass','mountain'][i%5]);
    const isHost=t.created_by===user.id;
    const created=t.created_at?new Date(t.created_at).toLocaleDateString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'}):'';
    return `<article class="tt-trip-card">
      <div class="tt-trip-cover" aria-hidden="true"><span>${cover}</span></div>
      <div class="tt-trip-card-body">
-       <span class="tt-trip-role">${isHost?'♛ Host':'✓ Thành viên'}</span>
+       <span class="tt-trip-role">${isHost?TTIcon('crown')+' Host':TTIcon('check')+' Thành viên'}</span>
        <h3>${esc(t.name)}</h3>
-       <p class="muted small">${created?'📅 '+esc(created):'TripTogether'} · ${isHost?'Quản lý chuyến đi':'Chuyến đi đã tham gia'}</p>
-       <button class="primary trip-open" type="button" data-trip-id="${esc(t.id)}">Xem chuyến đi →</button>
+       <p class="muted small">${created?TTIcon('calendar')+' '+esc(created):'TripTogether'} · ${isHost?'Quản lý chuyến đi':'Chuyến đi đã tham gia'}</p>
+       <button class="primary trip-open" type="button" data-trip-id="${esc(t.id)}">Xem chuyến đi ${TTIcon('arrow-right','tt-icon-after')}</button>
      </div>
    </article>`;
- }).join('')+`<button type="button" class="tt-trip-create-tile" id="createTripTile"><span aria-hidden="true">＋</span><b>Tạo chuyến đi mới</b><small>Bắt đầu hành trình tiếp theo của bạn.</small></button>`;
+ }).join('')+`<button type="button" class="tt-trip-create-tile" id="createTripTile"><span aria-hidden="true">${TTIcon('plus')}</span><b>Tạo chuyến đi mới</b><small>Bắt đầu hành trình tiếp theo của bạn.</small></button>`;
   $('savedTripsSection').classList.remove('hidden');$('noSavedTrips').classList.toggle('hidden',!!trips?.length);
   $('savedTripList').querySelectorAll('.trip-open').forEach(button=>button.onclick=()=>withButtonLoading(button,'Opening…',()=>joinTrip(button.dataset.tripId,false)));
   $('createTripTile')?.addEventListener('click',()=>$('createBtn')?.click());
@@ -442,7 +446,11 @@ async function refresh(){
    trip.created_by===user?.id?db.rpc('get_trip_member_invite_emails',{p_trip_id:tripId}):Promise.resolve({data:[],error:null})
   ]);
   if(!current())return; // Never commit an older or different-trip response.
-  if(a.error||b.error||c.error||d.error||ledger.error||history.error){status('Sync error');return}
+  if(a.error||b.error||c.error||d.error||ledger.error||history.error){
+   console.error('Trip refresh failed',{members:a.error,expenses:b.error,contributions:c.error,debts:d.error,payments:ledger.error,activity:history.error});
+   if(await handleDeletedTrip(tripId))return;
+   status('Sync error');return;
+  }
   if(invites.error&&invites.error.code!=='PGRST202')console.warn('Member email invitations unavailable:',invites.error);
   let nextExpenses=b.data||[],nextContributions=c.data||[],nextDebts=d.data||[],nextPayments=ledger.data||[];
   // A joined member without edit rights may see 0 rows under older Supabase RLS.
@@ -471,7 +479,7 @@ async function refresh(){
   members=a.data||[];expenses=nextExpenses;contributions=nextContributions;debts=nextDebts;payments=nextPayments;activityEvents=history.data||[];memberInviteEmails=invites.error?[]:(invites.data||[]);memberInviteEmailsAvailable=!invites.error;
   editRequests=requests.items;editRequestsAvailable=requests.available;
   render();status(usedSharedFallback?'Chỉ xem · dữ liệu chia sẻ':'Synced');
- }catch(error){if(current()){console.error('Trip refresh failed',error);status('Sync error')}}
+ }catch(error){if(current()){console.error('Trip refresh failed',error);if(await handleDeletedTrip(trip?.id))return;status('Sync error')}}
 }
 
 function render(){
@@ -485,7 +493,7 @@ function render(){
  const searchInput=$('expenseSearch'),categoryFilter=$('expenseCategoryFilter'),statusFilter=$('expenseStatusFilter');
  const existingCategory=categoryFilter.value;
  const categories=[...new Set(displayExpenses.map(x=>x.category||'Khác'))].sort((a,b)=>a.localeCompare(b,'vi'));
- categoryFilter.innerHTML='<option value="">Tất cả danh mục</option>'+categories.map(category=>`<option value="${esc(category)}">${esc(category)}</option>`).join('');
+ categoryFilter.innerHTML='<option value="">Tất cả danh mục</option>'+categories.map(category=>`<option value="${esc(category)}">${esc(categoryLabel(category))}</option>`).join('');
  categoryFilter.value=categories.includes(existingCategory)?existingCategory:'';
  const visibleExpenses=window.TripTogetherUI.filterExpenses(displayExpenses,{
    query:searchInput.value,category:categoryFilter.value,status:statusFilter.value
@@ -493,9 +501,9 @@ function render(){
  expenseList.innerHTML=visibleExpenses.length?visibleExpenses.map(x=>{
    const isPersonal=!!x.payer_id,paid=Number(x.paid_amount||0),remaining=Number(x.amount)-paid;
    const refundLabel=!isPersonal?'Trả trực tiếp từ quỹ':remaining===0?'Quỹ đã hoàn trả':paid>0?'Đã hoàn một phần: '+money(paid)+' / '+money(x.amount):'Quỹ còn nợ '+esc(x.payer_name||'thành viên');
-   return `<div class="item record-row"><div class="record-main"><div class="record-title">${esc(x.title)}</div><div class="record-meta">${esc(x.spent_on)} · ${esc(x.category||'Khác')} · ${isPersonal?'Ứng bởi '+esc(x.payer_name||'thành viên'):'Lấy từ quỹ chung'}</div><div class="record-status ${isPersonal&&remaining>0?(paid>0?'record-status-partial':'record-status-due'):''}">${refundLabel}</div>${x.note?`<div class="record-note">${esc(x.note)}</div>`:''}</div><div class="record-meta">${money(x.amount)}</div>${canEdit?`<div class="record-buttons">${isPersonal&&remaining>0?`<button class="secondary compact record-payment" data-kind="expense" data-id="${esc(x.id)}" data-reverse="false">Ghi hoàn trả</button>`:''}${isPersonal&&paid>0?`<button class="secondary compact record-payment" data-kind="expense" data-id="${esc(x.id)}" data-reverse="true">Hoàn tác thanh toán</button>`:''}<button class="secondary compact edit-expense" data-id="${esc(x.id)}">Sửa</button><button class="danger compact delete-expense" data-id="${esc(x.id)}" data-title="${esc(x.title)}" aria-label="Xóa khoản chi ${esc(x.title)}">Xóa</button></div>`:''}</div>`;
+   return `<div class="item record-row"><div class="record-main"><div class="record-title">${esc(x.title)}</div><div class="record-meta">${esc(x.spent_on)} · ${esc(categoryLabel(x.category))} · ${isPersonal?'Ứng bởi '+esc(x.payer_name||'thành viên'):'Lấy từ quỹ chung'}</div><div class="record-status ${isPersonal&&remaining>0?(paid>0?'record-status-partial':'record-status-due'):''}">${refundLabel}</div>${x.note?`<div class="record-note">${esc(x.note)}</div>`:''}</div><div class="record-meta record-amount">${money(x.amount)}</div>${canEdit?`<div class="record-buttons">${isPersonal&&remaining>0?`<button class="secondary compact record-payment" data-kind="expense" data-id="${esc(x.id)}" data-reverse="false">Ghi hoàn trả</button>`:''}${isPersonal&&paid>0?`<button class="secondary compact record-payment" data-kind="expense" data-id="${esc(x.id)}" data-reverse="true">Hoàn tác thanh toán</button>`:''}<button class="secondary compact edit-expense" data-id="${esc(x.id)}">Sửa</button><button class="danger compact delete-expense" data-id="${esc(x.id)}" data-title="${esc(x.title)}" aria-label="Xóa khoản chi ${esc(x.title)}">Xóa</button></div>`:''}</div>`;
  }).join(''):'<p class="muted ledger-empty">'+(expenses.length?'Không tìm thấy khoản chi phù hợp.':'Chưa có khoản chi. Thêm khoản chi đầu tiên.')+'</p>';
- contributionList.innerHTML=contributions.length?contributions.map(x=>`<div class="item record-row"><div class="record-main"><div class="record-title">${esc(x.note||'Đóng quỹ')}</div><div class="record-meta">${esc(x.paid_on)} · ${esc(x.payer_name)}</div></div><div class="record-meta">${money(x.amount)}</div>${canEdit?`<div class="record-buttons"><button class="secondary compact edit-contribution" data-id="${esc(x.id)}">Sửa</button><button class="danger compact delete-contribution" data-id="${esc(x.id)}" data-note="${esc(x.note||'Đóng quỹ')}" aria-label="Xóa khoản đóng quỹ">Xóa</button></div>`:''}</div>`).join(''):'<p class="muted ledger-empty">Chưa có khoản đóng thêm.</p>';
+ contributionList.innerHTML=contributions.length?contributions.map(x=>`<div class="item record-row"><div class="record-main"><div class="record-title">${esc(x.note||'Đóng quỹ')}</div><div class="record-meta">${esc(x.paid_on)} · ${esc(x.payer_name)}</div></div><div class="record-meta record-amount">${money(x.amount)}</div>${canEdit?`<div class="record-buttons"><button class="secondary compact edit-contribution" data-id="${esc(x.id)}">Sửa</button><button class="danger compact delete-contribution" data-id="${esc(x.id)}" data-note="${esc(x.note||'Đóng quỹ')}" aria-label="Xóa khoản đóng quỹ">Xóa</button></div>`:''}</div>`).join(''):'<p class="muted ledger-empty">Chưa có khoản đóng thêm.</p>';
  expenseList.querySelectorAll('.edit-expense').forEach(button=>button.onclick=()=>openExpense(expenses.find(x=>x.id===button.dataset.id)));
  contributionList.querySelectorAll('.edit-contribution').forEach(button=>button.onclick=()=>openContribution(contributions.find(x=>x.id===button.dataset.id)));
  expenseList.querySelectorAll('.delete-expense').forEach(button=>button.onclick=()=>removeRecord('expenses',button,`Xóa khoản chi “${button.dataset.title}”? Thao tác này không thể hoàn tác.`));
@@ -503,7 +511,7 @@ function render(){
  contributionList.querySelectorAll('.delete-contribution').forEach(button=>button.onclick=()=>removeRecord('contributions',button,`Xóa khoản đóng quỹ “${button.dataset.note}”? Thao tác này không thể hoàn tác.`));
  const memberName=id=>members.find(m=>m.user_id===id)?.name||'Thành viên';
  const expenseBalances=window.TripTogetherFinance.calculateMemberBalances(members,displayExpenses,contributions,{spent,initial,actualFund});
- $('memberList').innerHTML=expenseBalances.length?expenseBalances.map(m=>`<div class="item member-row"><span class="item-title">${esc(m.name)}${m.id===trip.created_by?'<span class="creator-label" title="Trip creator">Host</span>':''}${trip.created_by===user?.id&&memberInviteEmails.some(x=>x.member_user_id===m.id)?`<small class="member-invite-email">✉ ${esc(memberInviteEmails.find(x=>x.member_user_id===m.id)?.email)}</small>`:''}${m.outstanding?`<small class="member-outstanding">Quỹ còn nợ: ${money(m.outstanding)}</small>`:''}</span><span class="member-cell"><small class="member-mobile-label">Đã chi cá nhân</small><span class="member-value">${money(m.paid)}</span></span><span class="member-cell"><small class="member-mobile-label">Đã đóng quỹ</small><span class="member-value">${money(m.contributed)}</span></span><span class="member-cell"><small class="member-mobile-label">Phần chi</small><span class="member-value">${money(m.share)}</span></span>${canEdit?`<div class="member-edit-actions"><details class="member-actions-menu"><summary aria-label="Thao tác thành viên: ${esc(m.name)}" title="Thao tác thành viên"><svg class="member-menu-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></summary><div class="member-actions-dropdown" role="group" aria-label="Các thao tác của ${esc(m.name)}"><button type="button" class="secondary compact edit-member" data-user-id="${esc(m.id)}">Sửa</button>${trip.created_by===user?.id&&m.is_guest&&!m.account_user_id&&memberInviteEmailsAvailable?`<button type="button" class="secondary compact link-member-email" data-user-id="${esc(m.id)}">✉ Liên kết email</button>`:''}${trip.created_by===user?.id&&m.id!==trip.created_by&&m.is_guest&&!m.account_user_id&&!memberInviteEmails.some(invite=>invite.member_user_id===m.id)?`<button type="button" class="secondary compact merge-member" data-user-id="${esc(m.id)}">Hợp nhất</button>`:''}${m.id!==trip.created_by&& (m.is_guest||trip.created_by===user?.id)?`<button type="button" class="danger compact remove-member" data-user-id="${esc(m.id)}">Xóa</button>`:''}</div></details></div>`:''}</div>`).join(''):'<p class="muted ledger-empty">Chưa có thành viên.</p>';
+ $('memberList').innerHTML=expenseBalances.length?expenseBalances.map(m=>`<div class="item member-row"><span class="item-title">${esc(m.name)}${m.id===trip.created_by?'<span class="creator-label" title="Trip creator">Host</span>':''}${trip.created_by===user?.id&&memberInviteEmails.some(x=>x.member_user_id===m.id)?`<small class="member-invite-email">${TTIcon('mail')} ${esc(memberInviteEmails.find(x=>x.member_user_id===m.id)?.email)}</small>`:''}${m.outstanding?`<small class="member-outstanding">Quỹ còn nợ: ${money(m.outstanding)}</small>`:''}</span><span class="member-cell"><small class="member-mobile-label">Đã chi cá nhân</small><span class="member-value">${money(m.paid)}</span></span><span class="member-cell"><small class="member-mobile-label">Đã đóng quỹ</small><span class="member-value">${money(m.contributed)}</span></span><span class="member-cell"><small class="member-mobile-label">Phần chi</small><span class="member-value">${money(m.share)}</span></span>${canEdit?`<div class="member-edit-actions"><details class="member-actions-menu"><summary aria-label="Thao tác thành viên: ${esc(m.name)}" title="Thao tác thành viên"><svg class="member-menu-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></summary><div class="member-actions-dropdown" role="group" aria-label="Các thao tác của ${esc(m.name)}"><button type="button" class="secondary compact edit-member" data-user-id="${esc(m.id)}">Sửa</button>${trip.created_by===user?.id&&m.is_guest&&!m.account_user_id&&memberInviteEmailsAvailable?`<button type="button" class="secondary compact link-member-email" data-user-id="${esc(m.id)}">${TTIcon('mail')} Liên kết email</button>`:''}${trip.created_by===user?.id&&m.id!==trip.created_by&&m.is_guest&&!m.account_user_id&&!memberInviteEmails.some(invite=>invite.member_user_id===m.id)?`<button type="button" class="secondary compact merge-member" data-user-id="${esc(m.id)}">Hợp nhất</button>`:''}${m.id!==trip.created_by&& (m.is_guest||trip.created_by===user?.id)?`<button type="button" class="danger compact remove-member" data-user-id="${esc(m.id)}">Xóa</button>`:''}</div></details></div>`:''}</div>`).join(''):'<p class="muted ledger-empty">Chưa có thành viên.</p>';
  $('memberList').querySelectorAll('.edit-member').forEach(button=>button.onclick=()=>openMemberEditor(button.dataset.userId));
  $('memberList').querySelectorAll('.link-member-email').forEach(button=>button.onclick=()=>openMemberEditor(button.dataset.userId,true));
  $('memberList').querySelectorAll('.remove-member').forEach(button=>button.onclick=()=>removeMemberSafely(button));
@@ -532,17 +540,32 @@ function render(){
  const pendingRequests=editRequests.filter(r=>r.status==='pending');
  const hostRequestPanel=$('hostEditRequestsPanel'),hostRequestList=$('hostEditRequestsList');
  hostRequestPanel.classList.add('hidden');
- $('memberAccessBtn').classList.toggle('hidden',readOnly||!isHost);
+ const permissionView=window.TripTogetherUI.memberPermissionView({trip,user,members,readOnly,editPermissionsReady});
+ $('memberAccessBtn').classList.toggle('hidden',!permissionView.showButton);
  if(!readOnly&&isHost){
   hostRequestList.innerHTML=!editRequestsAvailable?'<p class="muted small">Hãy chạy trip_edit_requests.sql trong Supabase để nhận yêu cầu.</p>':pendingRequests.length?pendingRequests.map(r=>`<div class="member-permission-row"><span><b>${esc(r.name)}</b><small class="member-permission-status">Đang xin quyền chỉnh sửa</small></span><div class="section-actions"><button class="primary compact edit-request-review" data-user-id="${esc(r.user_id)}" data-approve="true">Duyệt</button><button class="secondary compact edit-request-review" data-user-id="${esc(r.user_id)}" data-approve="false">Từ chối</button></div></div>`).join(''):'<p class="muted small">Chưa có yêu cầu cấp quyền mới.</p>';
   hostRequestList.querySelectorAll('.edit-request-review').forEach(b=>b.onclick=()=>reviewEditRequest(b));
  }
- const permissionPanel=$('editPermissionsPanel'),permissionList=$('memberPermissionList');permissionPanel.classList.toggle('hidden',readOnly||trip.created_by!==user?.id);if(trip.created_by===user?.id&&!readOnly){if(!editPermissionsReady)permissionList.innerHTML='<p class="permission-migration-note">Để bật phân quyền riêng cho từng thành viên, hãy chạy member_edit_permissions.sql một lần trong Supabase SQL Editor. Các thành viên hiện tại vẫn giữ quyền sửa cho đến khi migration được cài.</p>';else{const joined=members.filter(m=>!m.is_guest&&m.user_id!==trip.created_by);permissionList.innerHTML='<p class="muted small">Chỉ thành viên đã liên kết tài khoản email mới hiện ở đây. Host có thể gắn email cho thành viên thủ công trong mục Sửa.</p>'+(joined.length?joined.map(m=>`<div class="member-permission-row"><span><b>${esc(m.name)}</b><small class="member-permission-status">${m.can_edit?'Có quyền chỉnh sửa':'Chỉ xem'}</small></span><button class="${m.can_edit?'secondary':'primary'} compact member-edit-toggle" data-user-id="${esc(m.user_id)}" data-allow="${m.can_edit?'false':'true'}">${m.can_edit?'Thu hồi quyền':'Cấp quyền sửa'}</button></div>`).join(''):'<p class="muted small">Chưa có thành viên nào đã liên kết tài khoản.</p>');permissionList.querySelectorAll('.member-edit-toggle').forEach(button=>button.onclick=()=>toggleMemberEdit(button))}}
+ const permissionPanel=$('editPermissionsPanel'),permissionList=$('memberPermissionList');
+ permissionPanel.classList.toggle('hidden',!permissionView.showPanel);
+ if(permissionView.state==='migration')permissionList.innerHTML='<p class="permission-migration-note">Để bật phân quyền riêng cho từng thành viên, hãy chạy member_edit_permissions.sql một lần trong Supabase SQL Editor. Các thành viên hiện tại vẫn giữ quyền sửa cho đến khi migration được cài.</p>';
+ else if(permissionView.showPanel){
+  permissionList.innerHTML='<p class="muted small">Chỉ thành viên đã liên kết tài khoản email mới hiện ở đây. Host có thể gắn email cho thành viên thủ công trong mục Sửa.</p>'+(permissionView.rows.length?permissionView.rows.map(r=>`<div class="member-permission-row"><span><b>${esc(r.name)}</b><small class="member-permission-status">${r.status}</small></span><button class="${r.canEdit?'secondary':'primary'} compact member-edit-toggle" data-user-id="${esc(r.userId)}" data-allow="${r.allow}">${r.actionLabel}</button></div>`).join(''):'<p class="muted small">Chưa có thành viên nào đã liên kết tài khoản.</p>');
+  permissionList.querySelectorAll('.member-edit-toggle').forEach(button=>button.onclick=()=>toggleMemberEdit(button));
+ }
  const expenseTransfers=settle(expenseBalances);$('expenseSettlements').innerHTML=expenseTransfers.length?expenseTransfers.map(t=>`<div class="settlement-row"><span>${esc(t.from)} → ${esc(t.to)}</span><b>${money(t.amount)}</b></div>`).join(''):'<p class="muted small">Quỹ đã cân đối theo phần đóng góp.</p>';
+ const fundDues=displayExpenses.filter(x=>x.payer_id&&Number(x.amount)-Number(x.paid_amount||0)>0);
+ const fundDueTotal=fundDues.reduce((sum,x)=>sum+Number(x.amount)-Number(x.paid_amount||0),0);
+ $('fundDueList').innerHTML=fundDues.length?`<div class="settlement-row fund-due-total"><span>Tổng quỹ còn nợ</span><b>${money(fundDueTotal)}</b></div>`+fundDues.map(x=>{
+   const paid=Number(x.paid_amount||0),remaining=Number(x.amount)-paid;
+   const detail=esc(x.title)+' · '+esc(x.spent_on||'')+(paid>0?' · đã hoàn '+money(paid)+' / '+money(x.amount):'');
+   return `<div class="item payment-history-entry fund-due-entry"><div><b>Quỹ → ${esc(x.payer_name||memberName(x.payer_id))}</b><small class="payment-meta">${detail}</small></div><span class="payment-amount fund-due-amount">${money(remaining)}</span>${canEdit?`<button class="secondary compact record-payment" data-kind="expense" data-id="${esc(x.id)}" data-reverse="false">Ghi hoàn trả</button>`:''}</div>`;
+ }).join(''):'<p class="muted small">Quỹ không còn nợ thành viên nào.</p>';
+ $('fundDueList').querySelectorAll('.record-payment').forEach(button=>button.onclick=()=>openPaymentDialog('expense',button.dataset.id,false));
  $('debtList').innerHTML=displayDebts.length?displayDebts.map(d=>{
    const paid=Number(d.paid_amount||0),remaining=Number(d.amount)-paid;
    const state=remaining===0?'Đã thanh toán':paid>0?'Đã trả một phần: '+money(paid)+' / '+money(d.amount):'Chưa thanh toán';
-   return `<div class="item record-row debt-row"><div class="record-main"><div class="record-title">${esc(memberName(d.debtor_id))} → ${esc(memberName(d.creditor_id))}</div><div class="record-meta">${esc(d.incurred_on)}${d.note?' · '+esc(d.note):''}</div><div class="record-status ${remaining>0?(paid>0?'record-status-partial':'record-status-due'):''}">${state}</div></div><div class="record-meta">${money(d.amount)}</div>${canEdit?`<div class="record-buttons">${remaining>0?`<button class="secondary compact record-payment" data-kind="debt" data-id="${esc(d.id)}" data-reverse="false">Ghi trả nợ</button>`:''}${paid>0?`<button class="secondary compact record-payment" data-kind="debt" data-id="${esc(d.id)}" data-reverse="true">Hoàn tác thanh toán</button>`:''}<button class="danger compact delete-debt" data-id="${esc(d.id)}" aria-label="Xóa khoản nợ">Xóa</button></div>`:''}</div>`;
+   return `<div class="item record-row debt-row"><div class="record-main"><div class="record-title">${esc(memberName(d.debtor_id))} → ${esc(memberName(d.creditor_id))}</div><div class="record-meta">${esc(d.incurred_on)}${d.note?' · '+esc(d.note):''}</div><div class="record-status ${remaining>0?(paid>0?'record-status-partial':'record-status-due'):''}">${state}</div></div><div class="record-meta record-amount">${money(d.amount)}</div>${canEdit?`<div class="record-buttons">${remaining>0?`<button class="secondary compact record-payment" data-kind="debt" data-id="${esc(d.id)}" data-reverse="false">Ghi trả nợ</button>`:''}${paid>0?`<button class="secondary compact record-payment" data-kind="debt" data-id="${esc(d.id)}" data-reverse="true">Hoàn tác thanh toán</button>`:''}<button class="danger compact delete-debt" data-id="${esc(d.id)}" aria-label="Xóa khoản nợ">Xóa</button></div>`:''}</div>`;
  }).join(''):'<p class="muted ledger-empty">Chưa ghi khoản nợ nào.</p>';
  $('debtList').querySelectorAll('.record-payment').forEach(button=>button.onclick=()=>openPaymentDialog(button.dataset.kind,button.dataset.id,button.dataset.reverse==='true'));
  $('debtList').querySelectorAll('.delete-debt').forEach(button=>button.onclick=()=>removeRecord('member_debts',button,'Xóa khoản nợ này?'));
@@ -576,8 +599,8 @@ function render(){
   }).join(''):'<p class="muted small">Chưa có thay đổi nào được ghi nhận.</p>';
   activityList.querySelectorAll('.restore-activity').forEach(button=>button.onclick=()=>restoreActivity(button));
  }
- window.TripTogetherShell?.render({trip,user,canEdit,members,expenses,contributions,actualFund});
- $('deleteTripBtn').classList.toggle('hidden',readOnly||trip.created_by!==user.id);$('shareBtn').classList.toggle('hidden',readOnly);$('inviteBtn').classList.toggle('hidden',readOnly);$('leaveBtn').classList.toggle('hidden',readOnly);$('addExpense').classList.toggle('hidden',!canEdit);$('addContribution').classList.toggle('hidden',!canEdit);$('editInitialFundBtn').classList.toggle('hidden',!canEdit);$('addMember').classList.toggle('hidden',!canEdit);$('addDebt').classList.toggle('hidden',!canEdit);$('syncStatus').textContent=readOnly?'● Chế độ chỉ xem':canEdit?'● Đã đồng bộ':'● Chỉ xem · chưa được cấp quyền sửa';
+ window.TripTogetherShell?.render({trip,user,canEdit,members,expenses,contributions,actualFund,balances:expenseBalances});
+ $('deleteTripBtn').classList.toggle('hidden',readOnly||trip.created_by!==user.id);$('shareBtn').classList.toggle('hidden',readOnly);$('inviteBtn').classList.toggle('hidden',readOnly);$('leaveBtn').classList.toggle('hidden',readOnly);$('addExpense').classList.toggle('hidden',!canEdit);$('addContribution').classList.toggle('hidden',!canEdit);$('editInitialFundBtn').classList.toggle('hidden',!canEdit);$('addMember').classList.toggle('hidden',!canEdit);$('addDebt').classList.toggle('hidden',!canEdit);$('syncStatus').textContent=readOnly?'Chế độ chỉ xem':canEdit?'Đã đồng bộ':'Chỉ xem · chưa được cấp quyền sửa';
 }
 let pendingPayment=null;
 function openPaymentDialog(kind,referenceId,reverse=false){
@@ -703,7 +726,11 @@ $('mergeMemberForm').addEventListener('submit',async event=>{
    localizedAlert('Đã hợp nhất thành viên. Chuyển '+Number(data?.expenses_moved||0)+
     ' khoản chi, '+Number(data?.contributions_moved||0)+' khoản đóng quỹ và '+
     Number(data?.debts_moved||0)+' khoản nợ. Phần chia đã được tính lại.');
-  }catch(error){localizedAlert('Không thể hợp nhất thành viên: '+error.message)}
+  }catch(error){
+   // PGRST202: the RPC is not installed on this Supabase project yet.
+   const missing=error?.code==='PGRST202'||/Could not find the function/i.test(error?.message||'');
+   localizedAlert(missing?'Tính năng hợp nhất chưa được cài trên máy chủ. Host cần chạy merge_duplicate_trip_members.sql trong Supabase SQL Editor. Dữ liệu chưa bị thay đổi.':'Không thể hợp nhất thành viên: '+error.message);
+  }
  });
 });
 async function removeMemberSafely(button){
@@ -801,7 +828,18 @@ $('fundForm').addEventListener('submit',async ev=>{if(ev.submitter?.id!=='fundSa
 $('editInitialFundBtn').onclick=()=>{$('initialFundInput').value=Number(trip.initial_fund||0);$('initialFundDialog').showModal()};
 $('initialFundCancel').onclick=()=>{$('initialFundDialog').close();$('initialFundForm').reset()};
 $('initialFundForm').addEventListener('submit',async ev=>{if(ev.submitter?.id!=='initialFundSave')return;ev.preventDefault();const amount=Number($('initialFundInput').value);await withButtonLoading($('initialFundSave'),'Đang lưu…',async()=>{try{const {error}=await db.from('trips').update({initial_fund:amount}).eq('id',trip.id);if(error){localizedAlert('Không thể lưu quỹ ban đầu: '+error.message);return}trip.initial_fund=amount;$('initialFundDialog').close();await refresh()}catch(error){localizedAlert('Không thể lưu quỹ ban đầu: '+error.message)}})});
-$('leaveBtn').onclick=()=>{if(!localizedConfirm('Leave this trip on this device?'))return;return withButtonLoading($('leaveBtn'),'Loading…',async()=>{++refreshSequence;if(channel){await db.removeChannel(channel);channel=null}if(viewerTimer){clearInterval(viewerTimer);viewerTimer=null}if(editRequestTimer){clearInterval(editRequestTimer);editRequestTimer=null}trip=null;window.TripTogetherShell?.closeTrip();history.replaceState({},'',location.pathname);$('app').classList.add('hidden');$('welcome').classList.remove('hidden');$('shareBtn').classList.add('hidden');await loadMyTrips()})};
+$('leaveBtn').onclick=()=>{if(!localizedConfirm('Leave this trip on this device?'))return;return withButtonLoading($('leaveBtn'),'Loading…',closeTripView)};
+// A trip deleted on another device (or by its Host) makes every follow-up query fail; say so instead of "Sync error".
+async function handleDeletedTrip(tripId){
+ if(!tripId||!db)return false;
+ const {data,error}=await db.from('trips').select('id').eq('id',tripId).maybeSingle();
+ if(error||data)return false;
+ if(trip?.id!==tripId)return true;
+ localizedAlert('Chuyến đi này đã bị xóa hoặc bạn không còn quyền truy cập.');
+ await closeTripView();
+ return true;
+}
+async function closeTripView(){++refreshSequence;if(channel){await db.removeChannel(channel);channel=null}if(viewerTimer){clearInterval(viewerTimer);viewerTimer=null}if(editRequestTimer){clearInterval(editRequestTimer);editRequestTimer=null}trip=null;window.TripTogetherShell?.closeTrip();history.replaceState({},'',location.pathname);$('app').classList.add('hidden');$('welcome').classList.remove('hidden');$('shareBtn').classList.add('hidden');await loadMyTrips()}
 $('deleteTripBtn').onclick=()=>{if(trip.created_by!==user.id)return;if(!localizedConfirm(`Delete “${trip.name}” and permanently remove all its expenses, deposits, and members? This cannot be undone.`))return;return withButtonLoading($('deleteTripBtn'),'Deleting…',async()=>{try{const {error}=await db.rpc('delete_trip',{p_trip_id:trip.id});if(error){localizedAlert(`Could not delete trip: ${error.message}\nIf delete-trip support is not installed yet, run delete_trip.sql in the Supabase SQL Editor.`);return}++refreshSequence;if(channel)await db.removeChannel(channel);channel=null;if(editRequestTimer){clearInterval(editRequestTimer);editRequestTimer=null}if(viewerTimer){clearInterval(viewerTimer);viewerTimer=null}trip=null;history.replaceState({},'',location.pathname);$('app').classList.add('hidden');$('welcome').classList.remove('hidden');$('shareBtn').classList.add('hidden');await loadMyTrips()}catch(error){localizedAlert(`Could not delete trip: ${error.message}`)}})};
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&trip)void refresh()});
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));

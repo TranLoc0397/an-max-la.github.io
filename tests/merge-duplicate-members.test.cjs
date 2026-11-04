@@ -12,6 +12,13 @@ test('Host sees merge action for non-Host members only',()=>{
  assert.match(app,/if\(readOnly\|\|trip\?\.created_by!==user\?\.id\)return/);
 });
 
+test('merge action remains in the member overflow menu',()=>{
+ const app=read('app.js');
+ const menu=app.slice(app.indexOf('<details class="member-actions-menu">'));
+ assert.ok(menu.indexOf('merge-member')>0&&menu.indexOf('merge-member')<menu.indexOf('</details>'));
+ assert.doesNotMatch(read('index.html'),/memberMergeField/);
+});
+
 test('merge requires explicit target, checkbox and final confirmation',()=>{
  const html=read('index.html'),app=read('app.js');
  for(const id of ['mergeMemberDialog','mergeMemberForm','mergeSourceId','mergeTargetId','mergeMemberAcknowledge','mergeMemberSave'])
@@ -47,6 +54,12 @@ test('existing remove-member guard still blocks deletion of members with transac
  const app=read('app.js');
  assert.match(app,/if\(connected\)\{localizedAlert\('Không thể xóa thành viên có giao dịch/);
  assert.match(app,/remove_trip_member_safe/);
+});
+
+test('missing merge RPC shows an install hint instead of the raw PostgREST error',()=>{
+ const app=read('app.js');
+ assert.match(app,/error\?\.code==='PGRST202'\|\|\/Could not find the function\/i/);
+ assert.match(app,/Tính năng hợp nhất chưa được cài trên máy chủ/);
 });
 
 test('merge UI excludes linked accounts and pending email invitations from both sides',()=>{

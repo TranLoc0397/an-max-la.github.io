@@ -64,6 +64,8 @@ For an existing project, run `payment_history.sql` **once** in Supabase SQL Edit
 
 Existing financial amounts, membership and permissions are not reset. Fully settled historic records are backfilled into the ledger to preserve amounts; no money is transferred through TripTogether.
 
+If `payment_history.sql` was applied before the delete-trip fix, also run `fix_delete_trip_activity.sql` once. Without it, deleting a trip that has expenses, contributions, debts or payments fails with `trip_activity_trip_id_fkey`, because the audit trigger tries to log rows for a trip that is already being deleted.
+
 ## Expense filtering and mobile components (Phase 3)
 The Expenses tab supports text search, category, and reimbursement status filtering. The Members tab switches from a four-column grid to readable member cards on narrow screens. Payment and activity history are available in the Members tab.
 

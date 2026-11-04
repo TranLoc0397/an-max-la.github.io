@@ -7,7 +7,7 @@ const read=name=>fs.readFileSync(path.join(__dirname,'..',name),'utf8');
 test('member creation offers optional opening contribution; editing hides it',()=>{
  const html=read('index.html'),app=read('app.js');
  assert.match(html,/id="memberOpeningFundField"/);
- assert.match(html,/id="memberOpeningFund" type="number" inputmode="numeric" min="0" step="1"/);
+ assert.match(html,/id="memberOpeningFund" data-money type="text" inputmode="numeric" min="0"/);
  assert.match(app,/memberOpeningFundField'\)\.classList\.toggle\('hidden',!!member\)/);
  assert.match(app,/memberEditUserId/);
 });
