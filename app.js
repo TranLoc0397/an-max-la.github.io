@@ -7,7 +7,7 @@ const money = n => new Intl.NumberFormat('vi-VN',{style:'currency',currency:'VND
 const dateToday = () => window.TripTogetherFinance.vietnamDate();
 let db, user, trip, members=[], expenses=[], contributions=[], debts=[], channel, readOnly=false, canEdit=false, editPermissionsReady=false, sharedCode=null, sharedPasscode=null, viewerTimer=null;
 let editRequests=[], editRequestsAvailable=false, editRequestTimer=null;
-let payments=[],activityEvents=[];
+let payments=[],activityEvents=[],memberInviteEmails=[];
 let refreshSequence=0;
 let pendingAction=null;
 let pendingTripTitleAction=null;
@@ -49,7 +49,7 @@ function ready(){return SUPABASE_URL.startsWith('https://') && !SUPABASE_ANON_KE
 function status(s){const el=$('syncStatus');el.textContent='● '+s;el.classList.toggle('sync-loading',s==='Loading…'||s==='Connecting…')}
 function pageLoading(show,message='Loading…'){$('pageLoaderText').textContent=message;$('pageLoader').classList.toggle('hidden',!show)}
 function emailSendHelp(error){const code=String(error?.code||'').toLowerCase(),message=String(error?.message||'');if(code==='email_address_not_authorized'||message.toLowerCase().includes('email address not authorized'))return 'Supabase hiện chỉ cho gửi email đến thành viên trong tổ chức. Cần cấu hình SMTP riêng trong Supabase → Authentication → SMTP Settings để gửi đến email khác.';if(code==='over_email_send_rate_limit'||message.toLowerCase().includes('email rate limit'))return 'Đã vượt giới hạn gửi email của Supabase. Dịch vụ mặc định chỉ cho gửi tối đa 2 email mỗi giờ; hãy chờ hoặc cấu hình SMTP riêng.';return message||'Không gửi được email. Hãy kiểm tra cấu hình email trong Supabase Auth Logs.'}
-function syncEditPermissions(){const own=members.find(m=>m.user_id===user?.id);editPermissionsReady=members.length>0&&members.every(m=>typeof m.can_edit==='boolean');canEdit=!!user&&!readOnly&&(trip?.created_by===user.id||!!own&&own.can_edit===true)}
+function syncEditPermissions(){const own=members.find(m=>m.user_id===user?.id||m.account_user_id===user?.id);editPermissionsReady=members.length>0&&members.every(m=>typeof m.can_edit==='boolean');canEdit=!!user&&!readOnly&&(trip?.created_by===user.id||!!own&&own.can_edit===true)}
 async function toggleMemberEdit(button){if(trip?.created_by!==user?.id)return;const member=members.find(m=>m.user_id===button.dataset.userId);if(!member)return;const allow=button.dataset.allow==='true';const prompt=allow?`Cấp quyền sửa cho ${member.name}? Người này có thể thêm, sửa và xóa khoản chi, đóng quỹ, khoản nợ và thành viên thủ công.`:`Thu hồi quyền sửa của ${member.name}? Thành viên vẫn xem được chuyến đi.`;if(!localizedConfirm(prompt))return;await withButtonLoading(button,allow?'Đang cấp quyền…':'Đang thu hồi…',async()=>{try{const {error}=await db.rpc('set_trip_member_edit_access',{p_trip_id:trip.id,p_member_user_id:member.user_id,p_can_edit:allow});if(error)throw error;await refresh()}catch(error){localizedAlert('Không thể cập nhật quyền sửa: '+error.message+' Nếu chưa cài tính năng này, hãy chạy member_edit_permissions.sql trong Supabase SQL Editor.')}})}
 async function fetchEditRequests(tripId){
  if(!tripId)return {items:[],available:false};
@@ -267,7 +267,7 @@ $('accountClose').onclick=()=>$('accountDialog').close();
 async function loadMyTrips(){
  if(!db||!user)return;
  try{
-  const {data:memberships,error}=await db.from('members').select('trip_id').eq('user_id',user.id);
+  const {data:memberships,error}=await db.from('members').select('trip_id').or('user_id.eq.'+user.id+',account_user_id.eq.'+user.id);
   if(error)throw error;
   const tripIds=[...new Set((memberships||[]).map(m=>m.trip_id))];
   if(!tripIds.length){
@@ -306,7 +306,7 @@ $('tripTitleForm').addEventListener('submit',async ev=>{if(ev.submitter?.id!=='t
 $('tripTitleDialog').addEventListener('close',()=>{if(pendingTripTitleAction){const action=pendingTripTitleAction;pendingTripTitleAction=null;action(null)}});
  $('createTripCardButton').onclick=()=>$('createBtn').click();
  $('createBtn').onclick=()=>{if(!ready()){localizedAlert('Hãy cấu hình Supabase theo SETUP.md trước nhé.');return}if(!canCreateTrip()){openAccount('register');accountNotice('Đăng nhập hoặc tạo tài khoản để tạo và quản lý chuyến đi.');return}askName(async name=>askTripTitle(async(title,initialFund)=>{if(title===null)return;await withButtonLoading($('createBtn'),'Đang tạo…',async()=>{try{const inviteCode=crypto.randomUUID();const {error}=await db.from('trips').insert({name:title,created_by:user.id,invite_code:inviteCode,initial_fund:initialFund});if(error){localizedAlert(error.message);return}const {data:tripId,error:memberError}=await db.rpc('join_trip',{p_invite_code:inviteCode,p_name:name,p_passcode:null});if(memberError){localizedAlert(memberError.message);return}await joinTrip(tripId,false)}catch(error){localizedAlert('Không thể tạo chuyến: '+error.message)}})}))};
- $('joinBtn').onclick=()=>{let raw=$('joinCode').value.trim();let code=raw.match(/[?&]trip=([a-f0-9-]+)/i)?.[1]||raw;if(!code)return;if(!ready()){localizedAlert('Hãy cấu hình Supabase theo SETUP.md trước nhé.');return}askName(async name=>withButtonLoading($('joinBtn'),'Opening…',()=>joinTrip(code,true)))};
+ $('joinBtn').onclick=()=>{let raw=$('joinCode').value.trim();let code=raw.match(/[?&]trip=([a-f0-9-]+)/i)?.[1]||raw;if(!code)return;if(!ready()){localizedAlert('Hãy cấu hình Supabase theo SETUP.md trước nhé.');return}void withButtonLoading($('joinBtn'),'Opening…',()=>openSharedTrip(code))};
 async function openSharedTrip(code){
  pageLoading(true,'Đang mở chuyến đi…');
  try{
@@ -323,19 +323,21 @@ async function openSharedTrip(code){
 }
 // A private invitation link allows viewing, never permission to edit.
 // The viewer must first join as a member; only the trip creator can grant can_edit.
-async function joinFromSharedView(name){
- if(!readOnly||!sharedCode||!user)return;
+// Claim an existing participant; never create a second financial member.
+$('claimMemberForm').addEventListener('submit',async event=>{
+ event.preventDefault();
+ if(!readOnly||!sharedCode||!user?.email)return;
+ const email=$('claimMemberEmail').value.trim().toLowerCase();
+ if(email!==user.email.trim().toLowerCase()){localizedAlert('Email phải trùng với tài khoản đang đăng nhập và đã xác minh.');return}
  const code=sharedCode;
- await withButtonLoading($('joinSharedTripBtn'),'Đang tham gia…',async()=>{
+ await withButtonLoading($('claimMemberBtn'),'Đang liên kết…',async()=>{
   try{
-   const {data:tripId,error}=await db.rpc('join_trip',{p_invite_code:code,p_name:name,p_passcode:null});
+   const {data:tripId,error}=await db.rpc('claim_existing_trip_member',{p_invite_code:code});
    if(error)throw error;
    await joinTrip(tripId,false);
-   if(!readOnly)localizedAlert('Đã tham gia chuyến đi. Mở tab Thành viên → Xin quyền chỉnh sửa để gửi yêu cầu cho Host.');
-  }catch(error){localizedAlert('Không thể tham gia chuyến đi: '+error.message)}
+  }catch(error){localizedAlert('Không thể liên kết thành viên: '+error.message)}
  });
-}
-$('joinSharedTripBtn').onclick=()=>askName(joinFromSharedView);
+});
 $('sharedAccountBtn').onclick=openAccount;
 async function showTrip(){
  $('welcome').classList.add('hidden');
@@ -347,10 +349,11 @@ async function showTrip(){
  if(readOnly){
    const access=window.TripTogetherUI.sharedAccess(user,trip,members);
    $('sharedAccountBtn').classList.toggle('hidden',access.signedIn);
-   $('joinSharedTripBtn').textContent=access.signedIn?'Tham gia chuyến đi để xin quyền sửa':'Tham gia để xin quyền sửa';
+   $('claimMemberForm').classList.toggle('hidden',!access.signedIn);
+   $('claimMemberEmail').value=access.signedIn?(user.email||''):'';
    $('sharedAccessDescription').textContent=access.signedIn
-    ?'Bạn đã đăng nhập nhưng tài khoản này chưa là thành viên của chuyến đi. Tham gia chuyến đi rồi gửi yêu cầu để Host cấp quyền chỉnh sửa.'
-    :'Link chia sẻ chỉ cho phép xem. Đăng nhập bằng tài khoản đã tham gia chuyến đi hoặc tham gia để gửi yêu cầu chỉnh sửa.';
+    ?'Host phải gắn email đã xác minh của bạn với một thành viên có sẵn. Liên kết sẽ không tạo thêm người hay thay đổi số tiền.'
+    :'Link chia sẻ chỉ để xem. Đăng nhập bằng email được Host gắn với một thành viên có sẵn để liên kết tài khoản.';
  }
  status(readOnly?'Chỉ xem':'Đã đồng bộ');
  window.TripTogetherShell?.openTrip();
@@ -421,7 +424,7 @@ async function refresh(){
    db.from('expenses').select('*').eq('trip_id',tripId).order('spent_on',{ascending:false}),
    db.from('contributions').select('*').eq('trip_id',tripId).order('paid_on',{ascending:false}),
    db.from('member_debts').select('*').eq('trip_id',tripId).order('incurred_on',{ascending:false}),
-   fetchEditRequests(tripId),
+   Promise.resolve({items:[],available:false}),
    db.from('trip_payments').select('*').eq('trip_id',tripId).order('created_at',{ascending:false}),
    db.from('trip_activity').select('*').eq('trip_id',tripId).order('recorded_at',{ascending:false}).limit(40)
   ]);
@@ -431,7 +434,7 @@ async function refresh(){
   // A joined member without edit rights may see 0 rows under older Supabase RLS.
   // Confirm that an apparently empty trip really is empty before replacing its
   // previously visible shared-link finances with misleading zero balances.
-  const joinedMember=(a.data||[]).find(m=>m.user_id===user?.id);
+  const joinedMember=(a.data||[]).find(m=>m.user_id===user?.id||m.account_user_id===user?.id);
   const isReadOnlyMember=!!joinedMember&&!joinedMember.can_edit&&trip.created_by!==user?.id;
   let usedSharedFallback=false;
   if(isReadOnlyMember&&nextExpenses.length===0&&nextContributions.length===0&&nextDebts.length===0&&trip.invite_code){
@@ -490,8 +493,8 @@ function render(){
  $('memberList').querySelectorAll('.edit-member').forEach(button=>button.onclick=()=>openMemberEditor(button.dataset.userId));
  $('memberList').querySelectorAll('.remove-member').forEach(button=>button.onclick=()=>removeMemberSafely(button));
  const requestPanel=$('editRequestPanel'), requestState=$('editRequestState'), requestBtn=$('requestEditBtn');
- const isHost=trip.created_by===user?.id, joined=members.some(m=>m.user_id===user?.id);
- requestPanel.classList.toggle('hidden',readOnly||!joined||isHost||canEdit);
+ const isHost=trip.created_by===user?.id, joined=members.some(m=>m.user_id===user?.id||m.account_user_id===user?.id);
+ requestPanel.classList.add('hidden');
  if(!readOnly&&joined&&!isHost&&!canEdit){
   const mine=editRequests.find(r=>r.user_id===user.id);
   requestState.textContent=!editRequestsAvailable?'Host cần cài trip_edit_requests.sql trên Supabase để bật yêu cầu cấp quyền.':mine?.status==='pending'?'Đang chờ Host duyệt yêu cầu.':mine?.status==='rejected'?'Yêu cầu trước đã bị từ chối. Bạn có thể gửi lại.':'Bạn hiện chỉ được xem. Gửi yêu cầu để Host cấp quyền sửa.';
@@ -499,7 +502,7 @@ function render(){
  }
  const pendingRequests=editRequests.filter(r=>r.status==='pending');
  const hostRequestPanel=$('hostEditRequestsPanel'),hostRequestList=$('hostEditRequestsList');
- hostRequestPanel.classList.toggle('hidden',readOnly||!isHost);
+ hostRequestPanel.classList.add('hidden');
  $('memberAccessBtn').classList.toggle('hidden',readOnly||!isHost);
  if(!readOnly&&isHost){
   hostRequestList.innerHTML=!editRequestsAvailable?'<p class="muted small">Hãy chạy trip_edit_requests.sql trong Supabase để nhận yêu cầu.</p>':pendingRequests.length?pendingRequests.map(r=>`<div class="member-permission-row"><span><b>${esc(r.name)}</b><small class="member-permission-status">Đang xin quyền chỉnh sửa</small></span><div class="section-actions"><button class="primary compact edit-request-review" data-user-id="${esc(r.user_id)}" data-approve="true">Duyệt</button><button class="secondary compact edit-request-review" data-user-id="${esc(r.user_id)}" data-approve="false">Từ chối</button></div></div>`).join(''):'<p class="muted small">Chưa có yêu cầu cấp quyền mới.</p>';
