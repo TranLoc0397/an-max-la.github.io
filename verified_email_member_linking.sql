@@ -49,6 +49,12 @@ begin
    select 1 from public.members where trip_id=p_trip_id and user_id=p_member_user_id
    and is_guest and account_user_id is null
  ) then raise exception 'Select an unlinked manually added member'; end if;
+ if normalized<>'' and exists(
+   select 1 from auth.users u
+   join public.members linked on linked.trip_id=p_trip_id
+    and (linked.user_id=u.id or linked.account_user_id=u.id)
+   where lower(trim(u.email))=normalized
+ ) then raise exception 'This email already belongs to a trip member'; end if;
  if normalized='' then
    delete from trip_private.member_email_invites where trip_id=p_trip_id and member_user_id=p_member_user_id;
  else
