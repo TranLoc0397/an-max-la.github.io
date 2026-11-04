@@ -13,8 +13,16 @@
    app.dataset.shellView=view;
    app.classList.toggle('tt-overview-mode',view==='overview');
    if(view!=='overview'){
-     const tab=document.querySelector('.tabs .tab[data-tab="'+view+'"]');
-     tab?.click(); // Reuse the existing tab navigation; do not duplicate business logic.
+     // Update tab and panel together. Do not dispatch a synthetic click:
+     // a tab click also calls activate(), which would leave navigation out of sync.
+     document.querySelectorAll('.tabs .tab[data-tab]').forEach(tab=>{
+       const selected=tab.dataset.tab===view;
+       tab.classList.toggle('active',selected);
+       tab.setAttribute('aria-selected',String(selected));
+     });
+     for(const key of ['expenses','fund','people']){
+       pick(key+'Tab')?.classList.toggle('hidden',key!==view);
+     }
    }
    document.querySelectorAll('[data-shell-view]').forEach(button=>{
      const active=button.dataset.shellView===view;
