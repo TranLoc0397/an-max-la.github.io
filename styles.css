@@ -1271,3 +1271,11 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .tt-merge-dialog menu{display:flex;gap:10px;margin:6px 0 0;padding:0}
 .tt-merge-dialog menu button{flex:1;min-height:44px}
 @media(max-width:520px){.tt-merge-dialog{width:calc(100vw - 24px);padding:20px 16px}.tt-merge-dialog menu button{font-size:13px}.member-edit-actions .merge-member{min-height:38px}}
+
+/* Host member-account linking: visible, accessible states in the member editor. */
+.member-account-link-status{margin:14px 0;padding:14px 15px;border:1px solid #d9d4fa;background:#f5f3ff;border-radius:13px}
+.member-account-link-status strong{font:700 13px/1.5 'Roboto',Arial,sans-serif;color:#4f46a9}
+.member-account-link-status p{font-size:12px;line-height:1.6;margin:7px 0 0;color:#59566d}
+.member-account-link-status .member-linked-email{font-weight:700;color:#5145c7;overflow-wrap:anywhere}
+.member-edit-actions .link-member-email{color:#5145c7;background:#eeebff;white-space:normal}
+.member-edit-actions .link-member-email:hover{background:#e1dcff}
