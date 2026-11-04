@@ -1466,3 +1466,24 @@ select:hover{border-color:#cfc9ef}
 @media(prefers-reduced-motion:reduce){
   .member-edit-actions .member-actions-menu>summary{transition:none}
 }
+
+/* Member settings trigger: compact, identical across all cards, with no wrapped
+   member names, role badges, or dropdown actions. */
+.member-row>.item-title{min-width:0;padding-right:54px}
+.member-name-line{display:flex;align-items:center;gap:7px;min-width:0;max-width:100%;white-space:nowrap}
+.member-display-name{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.member-name-line .creator-label{flex:none;white-space:nowrap;margin:0}
+.member-row>.member-edit-actions{top:12px;right:12px}
+.member-edit-actions .member-actions-menu>summary{
+  width:40px;height:40px;min-width:40px;min-height:40px;
+  border-radius:12px;background:#f5f3ff;color:#6759d4;
+}
+.member-actions-menu>summary .member-menu-icon{width:19px;height:19px}
+.member-actions-dropdown{width:max-content;min-width:185px;max-width:calc(100vw - 32px)}
+.member-actions-dropdown button,.member-edit-actions .member-actions-dropdown .compact{
+  white-space:nowrap;overflow-wrap:normal;min-height:42px;
+}
+@media(max-width:520px){
+  .member-row>.item-title{padding-right:52px}
+  .member-row>.member-edit-actions{top:12px;right:12px}
+}
