@@ -43,7 +43,7 @@ test('edit request loader returns pending requests for the specified trip', asyn
     items: [{user_id: 'member-id', status: 'pending', name: 'Member'}],
     available: true
   });
-  assert.deepEqual(calls, [{
+  assert.deepEqual(JSON.parse(JSON.stringify(calls)), [{
     name: 'list_trip_edit_requests',
     params: {p_trip_id: 'trip-id'}
   }]);
