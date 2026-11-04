@@ -1271,3 +1271,88 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .tt-merge-dialog menu{display:flex;gap:10px;margin:6px 0 0;padding:0}
 .tt-merge-dialog menu button{flex:1;min-height:44px}
 @media(max-width:520px){.tt-merge-dialog{width:calc(100vw - 24px);padding:20px 16px}.tt-merge-dialog menu button{font-size:13px}.member-edit-actions .merge-member{min-height:38px}}
+/* Ledger rows: fixed amount/action columns so amounts align across rows */
+.record-row{grid-template-columns:minmax(0,1fr) 150px 230px}
+.record-row>.record-amount{text-align:right;white-space:nowrap;font-size:14px;font-weight:700;color:var(--ink)}
+.record-note{font-size:12px;color:var(--muted);line-height:1.5;margin-top:3px}
+@media(max-width:700px){.record-row{grid-template-columns:minmax(0,1fr) auto}.record-row>.record-amount{grid-column:2;grid-row:1}.record-row>.record-buttons{grid-column:1/-1;justify-content:flex-start}}
+.tt-side-link>span,.tt-mobile-icon{display:inline-flex;align-items:center;justify-content:center}
+.tt-nav-svg{width:20px;height:20px;display:block}
+.tt-mobile-icon .tt-nav-svg{width:22px;height:22px}
+/* SVG icon system */
+#syncStatus::before{content:"";display:inline-block;width:7px;height:7px;margin-right:7px;border-radius:50%;background:currentColor;vertical-align:1px}
+.tt-icon{width:1.15em;height:1.15em;flex:none;vertical-align:-.2em}
+.tt-icon-after{margin-left:2px}
+.tt-reconciliation-icon .tt-icon{width:20px;height:20px}
+.tt-reconciliation-card-icon .tt-icon{width:17px;height:17px}
+.tt-recent-icon .tt-icon,.tt-invite-icon .tt-icon{width:20px;height:20px;color:#6559e8}
+.account-intro-icon .tt-icon{width:22px;height:22px}
+.tt-mobile-plus .tt-icon{width:22px;height:22px;stroke-width:2.2}
+.tt-trip-create-tile>span .tt-icon{width:1em;height:1em}
+.tt-nav-svg.tt-icon{width:20px;height:20px;vertical-align:0}
+.tt-mobile-icon .tt-nav-svg.tt-icon{width:22px;height:22px}
+/* Fund-owes-member card */
+#peopleTab .tt-reconciliation-wide{grid-column:1/-1}
+.fund-due-total{font-weight:700;color:var(--ink)}
+.fund-due-total b{color:#a35b13}
+.fund-due-entry{align-items:center}
+.fund-due-amount{color:#a35b13}
+@media(max-width:860px){#peopleTab .tt-reconciliation-wide{grid-column:auto}}
+/* Overview: members card */
+.tt-people-summary{display:flex;align-items:center;gap:14px;padding:12px 14px;margin:2px 0 10px;border-radius:14px;background:#f7f6ff;border:1px solid #eeebff}
+.tt-avatar-stack{display:flex;flex:none}
+.tt-avatar-stack .tt-stack-avatar{width:32px;height:32px;border-radius:50%;font-size:12px;border:2px solid #fff;margin-left:-9px;box-shadow:0 2px 6px #4c3aa31a}
+.tt-avatar-stack .tt-stack-avatar:first-child{margin-left:0}
+.tt-stack-more{background:#fff!important;color:var(--tt-muted)!important;font-weight:700}
+.tt-people-summary-text{min-width:0}
+.tt-people-summary-text b{display:block;font-size:13px}
+.tt-people-summary-text small{display:block;font-size:11px;color:var(--tt-muted);margin-top:2px}
+.tt-people-list .tt-person-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;padding:10px 2px;border-top:1px solid #f0eef8}
+.tt-people-list .tt-person-row:first-child{border-top:0}
+.tt-people-list .tt-person-avatar{width:36px;height:36px;border-radius:50%;font-size:14px}
+.tt-person-avatar.tt-tone-0{background:#eae7ff;color:#5b4fd6}
+.tt-person-avatar.tt-tone-1{background:#e1f6ef;color:#178a6b}
+.tt-person-avatar.tt-tone-2{background:#fdeedd;color:#b0631a}
+.tt-person-avatar.tt-tone-3{background:#e3effd;color:#2f6db8}
+.tt-person-avatar.tt-tone-4{background:#fbe6ef;color:#b23a6d}
+.tt-people-list .tt-person-row:nth-child(even) .tt-person-avatar.tt-tone-0{background:#eae7ff;color:#5b4fd6}
+.tt-people-list .tt-person-row:nth-child(even) .tt-person-avatar.tt-tone-1{background:#e1f6ef;color:#178a6b}
+.tt-people-list .tt-person-row:nth-child(even) .tt-person-avatar.tt-tone-2{background:#fdeedd;color:#b0631a}
+.tt-people-list .tt-person-row:nth-child(even) .tt-person-avatar.tt-tone-3{background:#e3effd;color:#2f6db8}
+.tt-people-list .tt-person-row:nth-child(even) .tt-person-avatar.tt-tone-4{background:#fbe6ef;color:#b23a6d}
+.tt-people-list .tt-person-description small{margin-top:3px}
+.tt-host-chip{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:#fff4dc;color:#9b5a13;font-size:10px;font-weight:700;vertical-align:1px}
+.tt-person-flag{color:#a35b13!important;font-weight:600}
+.tt-person-flag .tt-icon{width:12px;height:12px;vertical-align:-2px;margin-right:2px}
+.tt-person-stat{text-align:right;white-space:nowrap}
+.tt-person-stat b{display:block;font-size:13px;font-weight:700}
+.tt-person-stat small{display:block;font-size:10px;color:var(--tt-muted);margin-top:3px;text-transform:uppercase;letter-spacing:.04em}
+.tt-people-more{width:100%;margin-top:8px;padding:10px;border:1px dashed #dcd7f7;border-radius:12px;background:transparent;color:var(--tt-purple);font-size:12px;font-weight:700;cursor:pointer}
+.tt-people-more:hover{background:#f7f6ff}
+/* Desktop trip view: the sidebar already shows the brand, so hide the duplicate in the top bar */
+@media(min-width:1051px){
+ body.tt-trip-open .topbar .brand{display:none}
+ body.tt-trip-open .topbar .topbar-actions{margin-left:auto}
+}
+/* Merge-duplicate option lives in the member edit dialog */
+.member-merge-field{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0 4px;padding:12px 14px;border:1px dashed #e3dff6;border-radius:12px;background:#faf9ff}
+.member-merge-field.hidden{display:none}
+.member-merge-field b{font-size:13px}
+.member-merge-field p{margin:3px 0 0}
+.member-merge-field button{flex:none}
+/* Selects: custom chevron with breathing room instead of the native arrow hugging the edge */
+select,dialog select,.expense-toolbar select,.tt-merge-dialog select{
+ -webkit-appearance:none;appearance:none;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b6880' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")!important;
+ background-repeat:no-repeat!important;background-position:right 14px center!important;background-size:16px!important;
+ padding-right:44px;cursor:pointer;text-overflow:ellipsis;
+}
+select:hover{border-color:#cfc9ef}
+/* Expense/contribution/debt rows: wider action column so 3–4 buttons stay on one line */
+.record-row{grid-template-columns:minmax(0,1fr) 140px 360px}
+.record-buttons .compact{white-space:nowrap}
+@media(max-width:1200px) and (min-width:701px){.record-row{grid-template-columns:minmax(0,1fr) 130px 300px}}
+@media(max-width:700px){.record-row{grid-template-columns:minmax(0,1fr) auto}.record-row>.record-buttons{grid-column:1/-1;justify-content:flex-start}}
+/* Trip card covers use SVG icons */
+.tt-trip-cover span{display:grid;place-items:center;color:#fff}
+.tt-trip-cover span .tt-icon{width:56px;height:56px;stroke-width:1.4}

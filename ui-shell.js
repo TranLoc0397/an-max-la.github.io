@@ -10,7 +10,10 @@
  function activate(view,scroll=true){
    if(!views.includes(view)||!pick('app')||pick('app').classList.contains('hidden'))return;
    const app=pick('app');
-   app.dataset.shellView=view;
+   // Store the current view under its own attribute. data-shell-view marks navigation controls, and the
+   // global click handler treats any element inside one as a nav click (preventDefault), which would
+   // break every form submit inside #app.
+   app.dataset.activeView=view;
    app.classList.toggle('tt-overview-mode',view==='overview');
    if(view!=='overview'){
      // Update tab and panel together. Do not dispatch a synthetic click:
@@ -49,19 +52,34 @@
    const fmt=n=>Math.round(Number(n)||0).toLocaleString('vi-VN')+' ₫';
    const recent=expenses.slice(0,4);
    const expenseUI=recent.map(item=>{
-     const symbol=({Food:'🍜',Transport:'🚗',Accommodation:'🏠',Tickets:'🎟️',Shopping:'🛍️'})[item.category]||'🧾';
+     const symbol=window.TTIcon(({Food:'utensils',Transport:'car',Accommodation:'home',Tickets:'ticket',Shopping:'bag'})[item.category]||'receipt');
      return '<div class="tt-recent-row"><span class="tt-recent-icon" aria-hidden="true">'+symbol+'</span>'+
        '<span class="tt-recent-body"><b>'+escapeText(item.title)+'</b><small>'+escapeText(item.payer_name||'Quỹ chung')+' · '+escapeText(item.spent_on||'')+'</small></span>'+
        '<strong class="tt-recent-amount">'+fmt(item.amount)+'</strong></div>';
    }).join('');
    pick('ttRecentExpenses').innerHTML=expenseUI||'<p class="tt-overview-empty">Chưa có khoản chi.</p>';
-   const memberUI=members.slice(0,5).map(member=>{
-     const initial=Array.from(String(member.name||'?'))[0]?.toLocaleUpperCase('vi')||'?';
-     return '<div class="tt-person-row"><span class="tt-person-avatar" aria-hidden="true">'+escapeText(initial)+'</span>'+
-       '<span class="tt-person-description"><b>'+escapeText(member.name)+'</b><small>'+
-       (member.user_id===trip?.created_by?'Host':'Thành viên')+'</small></span></div>';
+   const balanceById=new Map((data.balances||[]).map(item=>[item.id,item]));
+   const initialOf=name=>Array.from(String(name||'?').trim())[0]?.toLocaleUpperCase('vi')||'?';
+   const tone=name=>{let h=0;for(const ch of String(name||''))h=(h*31+ch.codePointAt(0))>>>0;return 'tt-tone-'+(h%5)};
+   const avatar=(member,cls)=>'<span class="tt-person-avatar '+tone(member.name)+(cls?' '+cls:'')+'" aria-hidden="true">'+escapeText(initialOf(member.name))+'</span>';
+   const ordered=[...members].sort((a,b)=>(b.user_id===trip?.created_by)-(a.user_id===trip?.created_by));
+   const share=balanceById.size?[...balanceById.values()][0].share:0;
+   const VISIBLE=4;
+   const stack=ordered.slice(0,5).map(member=>avatar(member,'tt-stack-avatar')).join('')+
+     (ordered.length>5?'<span class="tt-person-avatar tt-stack-avatar tt-stack-more" aria-hidden="true">+'+(ordered.length-5)+'</span>':'');
+   const summary=members.length?'<div class="tt-people-summary"><div class="tt-avatar-stack">'+stack+'</div>'+
+     '<div class="tt-people-summary-text"><b>'+members.length+' thành viên</b><small>Mỗi người chịu ~'+fmt(share)+'</small></div></div>':'';
+   const rows=ordered.slice(0,VISIBLE).map(member=>{
+     const info=balanceById.get(member.user_id)||{};
+     const isHost=member.user_id===trip?.created_by;
+     const owed=Number(info.outstanding||0);
+     const sub=owed>0?'<small class="tt-person-flag">'+window.TTIcon('wallet')+' Quỹ nợ '+fmt(owed)+'</small>':'<small>'+(isHost?'Quản lý chuyến đi':'Thành viên')+'</small>';
+     return '<div class="tt-person-row">'+avatar(member)+
+       '<span class="tt-person-description"><b>'+escapeText(member.name)+(isHost?'<span class="tt-host-chip">Host</span>':'')+'</b>'+sub+'</span>'+
+       '<span class="tt-person-stat"><b>'+fmt(info.contributed)+'</b><small>đã đóng</small></span></div>';
    }).join('');
-   pick('ttRecentMembers').innerHTML=memberUI||'<p class="tt-overview-empty">Chưa có thành viên.</p>';
+   const more=ordered.length>VISIBLE?'<button type="button" class="tt-people-more" data-shell-view="people">+'+(ordered.length-VISIBLE)+' thành viên khác'+window.TTIcon('arrow-right','tt-icon-after')+'</button>':'';
+   pick('ttRecentMembers').innerHTML=members.length?summary+'<div class="tt-people-list">'+rows+'</div>'+more:'<p class="tt-overview-empty">Chưa có thành viên.</p>';
    pick('ttOverviewNetFund').textContent=fmt(actualFund);
    document.querySelectorAll('[data-shell-action="expense"]').forEach(button=>{
      button.disabled=!canEdit;

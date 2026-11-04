@@ -4,11 +4,12 @@ const fs=require('node:fs');
 const path=require('node:path');
 const read=file=>fs.readFileSync(path.join(__dirname,'..',file),'utf8');
 
-test('Host sees merge action for non-Host members only',()=>{
- const app=read('app.js');
- assert.match(app,/class="secondary compact merge-member"/);
- assert.match(app,/trip\.created_by===user\?\.id&&m\.id!==trip\.created_by/);
- assert.match(app,/openMergeMemberDialog\(button\.dataset\.userId\)/);
+test('Host sees merge action for non-Host members only, inside the edit dialog',()=>{
+ const app=read('app.js'),html=read('index.html');
+ assert.doesNotMatch(app,/class="secondary compact merge-member"/,'merge must not be a per-row button');
+ assert.match(html,/id="memberMergeField" class="member-merge-field hidden"/);
+ assert.match(app,/const mayMerge=!!member&&!readOnly&&trip\?\.created_by===user\?\.id&&member\.user_id!==trip\.created_by/);
+ assert.match(app,/\$\('memberMergeBtn'\)\.onclick=\(\)=>\{\$\('memberDialog'\)\.close\(\);openMergeMemberDialog\(member\.user_id\)\}/);
  assert.match(app,/if\(readOnly\|\|trip\?\.created_by!==user\?\.id\)return/);
 });
 
@@ -42,4 +43,10 @@ test('existing remove-member guard still blocks deletion of members with transac
  const app=read('app.js');
  assert.match(app,/if\(connected\)\{localizedAlert\('Không thể xóa thành viên có giao dịch/);
  assert.match(app,/remove_trip_member_safe/);
+});
+
+test('missing merge RPC shows an install hint instead of the raw PostgREST error',()=>{
+ const app=read('app.js');
+ assert.match(app,/error\?\.code==='PGRST202'\|\|\/Could not find the function\/i/);
+ assert.match(app,/Tính năng hợp nhất chưa được cài trên máy chủ/);
 });

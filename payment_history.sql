@@ -57,13 +57,16 @@ grant select on public.trip_activity to authenticated;
 
 create or replace function public.log_trip_activity()
 returns trigger language plpgsql security definer set search_path=public,pg_temp as $$
-declare before_row jsonb; after_row jsonb; current_row jsonb;
+declare before_row jsonb; after_row jsonb; current_row jsonb; target_trip uuid;
 begin
  before_row := case when TG_OP in ('UPDATE','DELETE') then to_jsonb(OLD) else null end;
  after_row := case when TG_OP in ('INSERT','UPDATE') then to_jsonb(NEW) else null end;
  current_row := coalesce(after_row,before_row);
+ target_trip := (current_row->>'trip_id')::uuid;
+ -- During a trip delete the cascade removes child rows after the trip row is gone; skip logging.
+ if not exists(select 1 from public.trips where id=target_trip) then return coalesce(NEW,OLD); end if;
  insert into public.trip_activity(trip_id,source_table,action,record_id,actor_id,before_data,after_data)
- values((current_row->>'trip_id')::uuid,TG_TABLE_NAME,TG_OP,(current_row->>'id')::uuid,auth.uid(),before_row,after_row);
+ values(target_trip,TG_TABLE_NAME,TG_OP,(current_row->>'id')::uuid,auth.uid(),before_row,after_row);
  return coalesce(NEW,OLD);
 end;
 $$;

@@ -34,7 +34,8 @@ test('shell navigation keeps top tabs, panels and bottom navigation in sync',()=
  const window={};
  vm.runInNewContext(read('ui-shell.js'),{document,window,matchMedia:()=>({matches:true})});
  window.TripTogetherShell.activate('people',false);
- assert.equal(app.dataset.shellView,'people');
+ assert.equal(app.dataset.activeView,'people');
+ assert.equal(app.dataset.shellView,undefined,'#app must never become a [data-shell-view] nav control');
  assert.equal(app.classList.contains('tt-overview-mode'),false);
  assert.deepEqual(topTabs.map(t=>t.classList.contains('active')),[false,false,true]);
  assert.deepEqual(['expensesTab','fundTab','peopleTab'].map(k=>panels[k].classList.contains('hidden')),[true,true,false]);
@@ -44,7 +45,8 @@ test('shell navigation keeps top tabs, panels and bottom navigation in sync',()=
  assert.deepEqual(['expensesTab','fundTab','peopleTab'].map(k=>panels[k].classList.contains('hidden')),[true,false,true]);
  window.TripTogetherShell.activate('overview',false);
  assert.equal(app.classList.contains('tt-overview-mode'),true);
- assert.equal(app.dataset.shellView,'overview');
+ assert.equal(app.dataset.activeView,'overview');
+ assert.equal(app.dataset.shellView,undefined);
 });
 test('top tab clicks delegate to unified shell controller',()=>{
  const app=read('app.js'),shell=read('ui-shell.js');
@@ -52,4 +54,12 @@ test('top tab clicks delegate to unified shell controller',()=>{
  assert.match(shell,/pick\(key\+'Tab'\)\?\.classList\.toggle\('hidden',key!==view\)/);
  assert.doesNotMatch(shell,/tab\?\.click\(\)/);
  assert.match(app,/tt-overview-mode/);
+});
+
+test('clicks inside the open trip (e.g. the claim form submit) are not swallowed by shell navigation',()=>{
+ const shell=read('ui-shell.js');
+ assert.doesNotMatch(shell,/app\.dataset\.shellView=/,'#app must not carry data-shell-view');
+ const html=read('index.html');
+ assert.match(html,/<section id="app" class="hidden">/);
+ assert.match(html,/<form id="claimMemberForm"[\s\S]*?<button id="claimMemberBtn" class="primary compact" type="submit">/);
 });

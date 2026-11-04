@@ -21,3 +21,10 @@ test('mobile layout uses comfortable hit targets and respects reduced motion',()
  assert.match(css,/env\(safe-area-inset-bottom\)/);
  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
 });
+
+test('account dialog closes itself shortly after the password is saved',()=>{
+ const app=require('node:fs').readFileSync(require('node:path').join(__dirname,'..','app.js'),'utf8');
+ const i=app.indexOf("accountNotice('Đã lưu mật khẩu.");
+ assert.ok(i>0);
+ assert.match(app.slice(i,i+300),/setTimeout\(\(\)=>\{if\(\$\('accountDialog'\)\.open\)\$\('accountDialog'\)\.close\(\)\},1600\)/);
+});

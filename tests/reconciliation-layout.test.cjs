@@ -11,11 +11,11 @@ test('financial reconciliation and history are grouped in one panel with unique 
  assert.ok(start!==-1,'reconciliation section exists');
  const segment=html.slice(start,end===-1?undefined:end);
  assert.match(segment,/id="reconciliationTitle">Đối soát quỹ/);
- for(const id of ['expenseSettlements','debtList','debtSettlements','paymentHistory','activityPanel','activityList']){
+ for(const id of ['expenseSettlements','fundDueList','debtList','debtSettlements','paymentHistory','activityPanel','activityList']){
    assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,id+' must appear exactly once');
    assert.ok(segment.includes('id="'+id+'"'),id+' must remain inside the grouped section');
  }
- assert.equal((segment.match(/class="tt-reconciliation-card(?:\s|")/g)||[]).length,5);
+ assert.equal((segment.match(/class="tt-reconciliation-card(?:\s|")/g)||[]).length,6);
 });
 
 test('responsive reconciliation cards do not hide content or change data sources',()=>{
@@ -24,7 +24,7 @@ test('responsive reconciliation cards do not hide content or change data sources
  assert.match(css,/@media\(max-width:860px\)/);
  assert.match(css,/@media\(max-width:650px\)/);
  assert.match(css,/#peopleTab \.tt-reconciliation-activity \.tt-reconciliation-content\{grid-template-columns:1fr/);
- for(const id of ['expenseSettlements','debtList','debtSettlements','paymentHistory','activityPanel','activityList'])
+ for(const id of ['expenseSettlements','fundDueList','debtList','debtSettlements','paymentHistory','activityPanel','activityList'])
    assert.ok(app.includes("'"+id+"'"),'existing renderer still uses '+id);
  assert.match(app,/TripTogetherFinance\.calculateTotals/);
  assert.match(app,/record_trip_payment/);
