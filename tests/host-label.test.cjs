@@ -9,6 +9,9 @@ test('trip card shows Host, not the former Vietnamese owner label', () => {
   assert.doesNotMatch(app, /♛ Chủ chuyến đi/);
 });
 test('app script and offline cache use refreshed versions', () => {
-  assert.match(read('index.html'), /app\.js\?v=52/);
-  assert.match(read('sw.js'), /triptogether-v63/);
+  const appVersion=Number(read('index.html').match(/app\\.js\\?v=(\\d+)/)?.[1]);
+  const cacheVersion=Number(read('sw.js').match(/triptogether-v(\\d+)/)?.[1]);
+  assert.ok(appVersion>=52,'app version must not regress below the Host label fix');
+  assert.ok(cacheVersion>=63,'service worker cache must not regress');
+
 });
