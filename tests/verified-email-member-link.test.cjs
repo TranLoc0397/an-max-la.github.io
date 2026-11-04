@@ -23,7 +23,8 @@ test('join-to-request removed; verified email claim form does not add new member
  assert.match(app,/db\.rpc\('claim_existing_trip_member'/);
  assert.match(app,/email!==user\.email\.trim\(\)\.toLowerCase\(\)/);
  assert.match(app,/openSharedTrip\(code\)/);
- assert.match(app,/account_user_id\.eq\.'/);
+ assert.match(app,/\.eq\('account_user_id',user\.id\)/);
+ assert.match(app,/\.eq\('user_id',user\.id\)/);
 });
 test('Host can assign invitation email to an existing member',()=>{
  const app=read('app.js'),html=read('index.html');
