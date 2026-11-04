@@ -1243,3 +1243,16 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 @media(prefers-reduced-motion:reduce){
   #accountDialog button{transition:none!important}
 }
+
+/* Invite by verified email, without creating duplicate financial participants. */
+.tt-claim-form{display:flex;flex-direction:column;align-items:stretch;gap:10px;margin-top:13px;max-width:430px}
+.tt-claim-form.hidden{display:none}
+.tt-claim-form label{font:700 13px/1.45 'Roboto',Arial,sans-serif;color:#49426e}
+.tt-claim-form input{min-height:46px;border:1px solid #dad5f2;border-radius:12px;background:white;padding:10px 13px;font-size:14px;width:100%}
+.tt-claim-form button{width:100%;min-height:46px}
+#memberInviteEmailField{margin:12px 0}
+#memberInviteEmailField label{display:block}
+#memberInviteEmailField input{width:100%;min-height:44px;margin-top:7px}
+#memberInviteEmailField p{margin:6px 0 0;font-size:12px;line-height:1.6}
+.member-invite-email{display:block;font-size:11px;font-weight:500;color:#6559e8;overflow-wrap:anywhere;margin-top:4px}
+@media(max-width:520px){.tt-claim-form{max-width:none;width:100%}.tt-claim-form button{white-space:normal}}
