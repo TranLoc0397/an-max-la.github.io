@@ -1298,3 +1298,43 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .member-edit-actions .member-actions-dropdown .remove-member:hover{background:#fff0ee}
 .member-row:last-child .member-actions-dropdown{top:auto;bottom:calc(100% + 7px)}
 @media(max-width:760px){.member-edit-actions .member-actions-menu>summary{min-width:44px;min-height:44px}.member-edit-actions{border-top:0}.member-row{isolation:isolate}.member-row:has(.member-actions-menu[open]){isolation:auto}}
+
+/* Member actions: pin the three-dot trigger beside the member name, not below balances. */
+.member-row{position:relative;overflow:visible}
+.member-row>.item-title{padding-right:56px;min-width:0}
+.member-row>.member-edit-actions{
+ position:absolute;
+ top:12px;
+ right:12px;
+ left:auto;
+ bottom:auto;
+ grid-column:auto;
+ width:auto;
+ padding:0;
+ margin:0;
+ border:0;
+ display:block;
+ z-index:12;
+}
+.member-edit-actions .member-actions-menu{position:relative;z-index:12}
+.member-actions-menu>summary{
+ display:flex;
+ width:44px;
+ height:44px;
+ min-width:44px;
+ min-height:44px;
+ position:relative;
+ z-index:13;
+ pointer-events:auto;
+ cursor:pointer;
+}
+.member-actions-menu[open]>.member-actions-dropdown{z-index:40}
+.member-row:last-child .member-actions-dropdown{top:calc(100% + 7px);bottom:auto}
+@media(max-width:760px){
+ .member-row>.member-edit-actions{top:12px;right:12px;padding:0;border:0;grid-column:auto}
+ .member-row>.item-title{padding-right:58px}
+}
+@media(max-width:520px){
+ .member-row>.member-edit-actions{top:12px;right:12px;padding:0;border:0;grid-column:auto}
+ .member-row>.item-title{padding-right:58px}
+}
