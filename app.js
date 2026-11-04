@@ -725,9 +725,11 @@ $('addDebt').onclick=()=>{if(members.length<2){localizedAlert('Cần ít nhất 
 $('debtCancel').onclick=()=>{$('debtDialog').close();$('debtForm').reset()};
 $('debtForm').addEventListener('submit',async ev=>{if(ev.submitter?.id!=='debtSave')return;ev.preventDefault();const debtorId=$('debtDebtor').value,creditorId=$('debtCreditor').value;if(debtorId===creditorId){localizedAlert('Người nợ và người nhận nợ phải khác nhau.');return}await withButtonLoading($('debtSave'),'Đang lưu…',async()=>{try{const {error}=await db.from('member_debts').insert({trip_id:trip.id,debtor_id:debtorId,creditor_id:creditorId,amount:Number($('debtAmount').value),note:$('debtNote').value.trim(),incurred_on:$('debtDate').value,created_by:user.id});if(error){localizedAlert('Không thể lưu khoản nợ: '+error.message);return}$('debtDialog').close();$('debtForm').reset();await refresh()}catch(error){localizedAlert('Không thể lưu khoản nợ: '+error.message)}})});
 $('memberForm').addEventListener('submit',async ev=>{
- if(ev.submitter?.id!=='memberSave')return;ev.preventDefault();
+ ev.preventDefault();
+ if(actionInFlight)return;
  const name=$('memberName').value.trim(),memberId=$('memberEditUserId').value;
- if(!name||!canEdit||readOnly||!trip)return;
+ if(!name){localizedAlert('Vui lòng nhập tên thành viên.');return}
+ if(!trip||readOnly||!canEdit){localizedAlert('Bạn cần quyền chỉnh sửa của chuyến đi để thêm hoặc sửa thành viên.');return}
  const amountText=$('memberOpeningFund').value.trim();
  const amount=amountText===''?0:Number(amountText);
  if(!memberId&&(!Number.isSafeInteger(amount)||amount<0)){
