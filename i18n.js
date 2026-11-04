@@ -2,6 +2,12 @@
 (function(){
 'use strict';
 const dictionary={
+  "Chỉ thành viên đã liên kết tài khoản email mới hiện ở đây. Host có thể gắn email cho thành viên thủ công trong mục Sửa.":"Only members linked to an email account appear here. The Host can assign an email to a member under Edit.","Chưa có thành viên nào đã liên kết tài khoản.":"No members have linked an account yet.",
+  "Chuyến đi này đã bị xóa hoặc bạn không còn quyền truy cập.":"This trip was deleted or you no longer have access.",
+  "Tính năng hợp nhất chưa được cài trên máy chủ. Host cần chạy merge_duplicate_trip_members.sql trong Supabase SQL Editor. Dữ liệu chưa bị thay đổi.":"Member merging is not installed on the server yet. The Host needs to run merge_duplicate_trip_members.sql in the Supabase SQL Editor. No data was changed.",
+  "Thêm trùng người này?":"Added this person twice?","Gộp vào một thành viên khác. Khoản chi, đóng quỹ và nợ sẽ được chuyển sang.":"Merge into another member. Expenses, contributions and debts move over.","Hợp nhất…":"Merge…",
+  "đã đóng":"contributed",
+  "Quỹ còn nợ thành viên":"Fund owes members","Các khoản thành viên ứng trước cho chi tiêu chung mà quỹ chưa hoàn lại.":"Shared expenses members paid upfront that the fund has not reimbursed yet.","Tổng quỹ còn nợ":"Total owed by fund","Quỹ không còn nợ thành viên nào.":"The fund owes no members.",
   "Đăng nhập / Tạo tài khoản": "Sign in / Sign up",
   "Tài khoản": "Account",
   "Đăng nhập": "Sign in",
@@ -309,6 +315,11 @@ Object.assign(dictionary,{
  "Không có thành viên phù hợp để hợp nhất.":"There is no eligible member to merge."
 });
 const reverse=new Map(Object.entries(dictionary).map(([vi,en])=>[en,vi]));
+// Icons are now SVG, so text nodes no longer carry ＋/→/✨/🚀/● decorations; register stripped keys.
+(function(){
+ const strip=t=>t.replace(/^[＋●✦]\s*/,'').replace(/\s*(→|✨|🚀|✦)$/,'').trim();
+ for(const [vi,en] of Object.entries(dictionary)){const k=strip(vi);if(k&&k!==vi&&!(k in dictionary)){dictionary[k]=strip(en);reverse.set(strip(en),k)}}
+})();
 let language=localStorage.getItem('tt_language')==='en'?'en':'vi';
 const sourceText=new WeakMap();
 const sourceAttributes=new WeakMap();
@@ -319,6 +330,8 @@ function translation(original){
  if(translated)return translated;
  const variablePrefixes={
   'Quỹ còn nợ: ':'Fund owes: ',
+  'Quỹ nợ ':'Fund owes ',
+  'Mỗi người chịu ~':'Each person ~',
   'Không thể tạo chuyến: ':'Could not create trip: ',
   'Không thể mở chuyến đi: ':'Could not open trip: ',
   'Không thể tham gia chuyến đi: ':'Could not join trip: ',
@@ -339,6 +352,8 @@ function translation(original){
  // Preserve user-generated names and notes; replace only known UI fragments.
  const m=original.match(/^(\d+) thành viên$/);
  if(m)return m[1]+' members';
+ const more=original.match(/^\+(\d+) thành viên khác$/);
+ if(more)return '+'+more[1]+' more members';
  return original;
 }
 function translateNode(node){
