@@ -285,6 +285,17 @@ Object.assign(dictionary,{
   "Để trống nếu chưa đóng quỹ. Số tiền sẽ được ghi vào lịch sử Đóng quỹ của thành viên.":"Leave blank if they have not contributed. The amount will appear in the member's contribution history.",
   "Số tiền đóng quỹ phải là số nguyên không âm (VNĐ).":"The contribution must be a non-negative whole amount in VND."
 });
+Object.assign(dictionary,{
+ "Email tài khoản đã được Host mời":"Email invited by the Host",
+ "Liên kết với thành viên hiện có":"Link existing member",
+ "Email mời (tùy chọn)":"Invitation email (optional)",
+ "Host nhập email của thành viên đã có trong danh sách. Email này sẽ được dùng để liên kết tài khoản, không tạo thêm người.":"The Host assigns an email to an existing member. Linking an account will not create another participant.",
+ "Email phải trùng với tài khoản đang đăng nhập và đã xác minh.":"Enter the verified email of your signed-in account.",
+ "Không thể liên kết thành viên: ":"Could not link existing member: ",
+ "Đang liên kết…":"Linking…",
+ "Host phải gắn email đã xác minh của bạn với một thành viên có sẵn. Liên kết sẽ không tạo thêm người hay thay đổi số tiền.":"The Host must assign your verified email to an existing member. Linking does not add a person or change finances.",
+ "Link chia sẻ chỉ để xem. Đăng nhập bằng email được Host gắn với một thành viên có sẵn để liên kết tài khoản.":"Shared links are view-only. Sign in with an email the Host has assigned to an existing member to link your account."
+});
 const reverse=new Map(Object.entries(dictionary).map(([vi,en])=>[en,vi]));
 let language=localStorage.getItem('tt_language')==='en'?'en':'vi';
 const sourceText=new WeakMap();
