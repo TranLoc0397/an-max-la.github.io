@@ -32,5 +32,21 @@
      mode:joined?(canEdit?'editor':'member'):signedIn?'signed-in-viewer':'guest-viewer'
    };
  }
- return {filterExpenses,sharedAccess};
+
+ // What the Host's "Quản lý quyền truy cập" dialog shows. Pure: no DOM, no Supabase.
+ // Only members who signed in with an account (not manually added guests) can be granted edit access.
+ function memberPermissionView({trip,user,members=[],readOnly=false,editPermissionsReady=false}={}){
+   const isHost=!!(user?.id&&trip?.created_by===user.id);
+   const visible=isHost&&!readOnly;
+   if(!visible)return {showButton:false,showPanel:false,state:'hidden',rows:[]};
+   if(!editPermissionsReady)return {showButton:true,showPanel:true,state:'migration',rows:[]};
+   const rows=members.filter(m=>!m.is_guest&&m.user_id!==trip.created_by).map(m=>({
+     userId:m.user_id,name:m.name,canEdit:!!m.can_edit,
+     status:m.can_edit?'Có quyền chỉnh sửa':'Chỉ xem',
+     actionLabel:m.can_edit?'Thu hồi quyền':'Cấp quyền sửa',
+     allow:!m.can_edit
+   }));
+   return {showButton:true,showPanel:true,state:rows.length?'list':'empty',rows};
+ }
+ return {filterExpenses,sharedAccess,memberPermissionView};
 });
