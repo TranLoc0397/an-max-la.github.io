@@ -510,6 +510,11 @@ function render(){
  $('memberList').querySelectorAll('.merge-member').forEach(button=>button.onclick=()=>openMergeMemberDialog(button.dataset.userId));
  // Keep one compact menu open at a time and close it when an action is selected.
  $('memberList').querySelectorAll('.member-actions-menu').forEach(menu=>{
+  // Explicitly toggle the native details element for reliable mobile taps.
+  menu.querySelector('summary')?.addEventListener('click',event=>{
+   event.preventDefault();
+   menu.open=!menu.open;
+  });
   menu.addEventListener('toggle',()=>{
    if(menu.open)$('memberList').querySelectorAll('.member-actions-menu').forEach(other=>{if(other!==menu)other.open=false});
   });
