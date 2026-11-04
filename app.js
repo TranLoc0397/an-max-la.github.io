@@ -79,6 +79,18 @@ async function reviewEditRequest(button){
 }
 $('requestEditBtn').onclick=requestEditAccess;
 async function withButtonLoading(button,message,action){if(!button||actionInFlight)return;actionInFlight=true;const controls=[...document.querySelectorAll('button')],disabled=controls.map(b=>b.disabled),label=button.textContent;controls.forEach(b=>b.disabled=true);button.classList.add('is-loading');button.setAttribute('aria-busy','true');button.textContent=message;try{return await action()}finally{controls.forEach((b,i)=>{if(b.isConnected)b.disabled=disabled[i]});button.classList.remove('is-loading');button.removeAttribute('aria-busy');button.textContent=label;actionInFlight=false}}
+// Close member action menus on outside click or Escape; native <details> handles keyboard opening.
+document.addEventListener('pointerdown',event=>{
+ if(event.target.closest('.member-actions-menu'))return;
+ document.querySelectorAll('.member-actions-menu[open]').forEach(menu=>{menu.open=false});
+});
+document.addEventListener('keydown',event=>{
+ if(event.key!=='Escape')return;
+ const menus=[...document.querySelectorAll('.member-actions-menu[open]')];
+ if(!menus.length)return;
+ menus.forEach(menu=>{menu.open=false});
+ if(!document.querySelector('dialog[open]'))menus[0].querySelector('summary')?.focus();
+});
 async function init(){
  addPasswordVisibilityControls();
  pageLoading(true,'Connecting to your trip…');
@@ -491,11 +503,19 @@ function render(){
  contributionList.querySelectorAll('.delete-contribution').forEach(button=>button.onclick=()=>removeRecord('contributions',button,`Xóa khoản đóng quỹ “${button.dataset.note}”? Thao tác này không thể hoàn tác.`));
  const memberName=id=>members.find(m=>m.user_id===id)?.name||'Thành viên';
  const expenseBalances=window.TripTogetherFinance.calculateMemberBalances(members,displayExpenses,contributions,{spent,initial,actualFund});
- $('memberList').innerHTML=expenseBalances.length?expenseBalances.map(m=>`<div class="item member-row"><span class="item-title">${esc(m.name)}${m.id===trip.created_by?'<span class="creator-label" title="Trip creator">Host</span>':''}${trip.created_by===user?.id&&memberInviteEmails.some(x=>x.member_user_id===m.id)?`<small class="member-invite-email">✉ ${esc(memberInviteEmails.find(x=>x.member_user_id===m.id)?.email)}</small>`:''}${m.outstanding?`<small class="member-outstanding">Quỹ còn nợ: ${money(m.outstanding)}</small>`:''}</span><span class="member-cell"><small class="member-mobile-label">Đã chi cá nhân</small><span class="member-value">${money(m.paid)}</span></span><span class="member-cell"><small class="member-mobile-label">Đã đóng quỹ</small><span class="member-value">${money(m.contributed)}</span></span><span class="member-cell"><small class="member-mobile-label">Phần chi</small><span class="member-value">${money(m.share)}</span></span>${canEdit?`<div class="member-edit-actions"><button type="button" class="secondary compact edit-member" data-user-id="${esc(m.id)}">Sửa</button>${trip.created_by===user?.id&&m.is_guest&&!m.account_user_id&&memberInviteEmailsAvailable?`<button type="button" class="secondary compact link-member-email" data-user-id="${esc(m.id)}">✉ Liên kết email</button>`:''}${trip.created_by===user?.id&&m.id!==trip.created_by?`<button type="button" class="secondary compact merge-member" data-user-id="${esc(m.id)}">Hợp nhất</button>`:''}${m.id!==trip.created_by&& (m.is_guest||trip.created_by===user?.id)?`<button type="button" class="danger compact remove-member" data-user-id="${esc(m.id)}">Xóa</button>`:''}</div>`:''}</div>`).join(''):'<p class="muted ledger-empty">Chưa có thành viên.</p>';
+ $('memberList').innerHTML=expenseBalances.length?expenseBalances.map(m=>`<div class="item member-row"><span class="item-title">${esc(m.name)}${m.id===trip.created_by?'<span class="creator-label" title="Trip creator">Host</span>':''}${trip.created_by===user?.id&&memberInviteEmails.some(x=>x.member_user_id===m.id)?`<small class="member-invite-email">✉ ${esc(memberInviteEmails.find(x=>x.member_user_id===m.id)?.email)}</small>`:''}${m.outstanding?`<small class="member-outstanding">Quỹ còn nợ: ${money(m.outstanding)}</small>`:''}</span><span class="member-cell"><small class="member-mobile-label">Đã chi cá nhân</small><span class="member-value">${money(m.paid)}</span></span><span class="member-cell"><small class="member-mobile-label">Đã đóng quỹ</small><span class="member-value">${money(m.contributed)}</span></span><span class="member-cell"><small class="member-mobile-label">Phần chi</small><span class="member-value">${money(m.share)}</span></span>${canEdit?`<div class="member-edit-actions"><details class="member-actions-menu"><summary aria-label="Thao tác thành viên: ${esc(m.name)}" title="Thao tác thành viên">⋯</summary><div class="member-actions-dropdown" role="group" aria-label="Các thao tác của ${esc(m.name)}"><button type="button" class="secondary compact edit-member" data-user-id="${esc(m.id)}">Sửa</button>${trip.created_by===user?.id&&m.is_guest&&!m.account_user_id&&memberInviteEmailsAvailable?`<button type="button" class="secondary compact link-member-email" data-user-id="${esc(m.id)}">✉ Liên kết email</button>`:''}${trip.created_by===user?.id&&m.id!==trip.created_by?`<button type="button" class="secondary compact merge-member" data-user-id="${esc(m.id)}">Hợp nhất</button>`:''}${m.id!==trip.created_by&& (m.is_guest||trip.created_by===user?.id)?`<button type="button" class="danger compact remove-member" data-user-id="${esc(m.id)}">Xóa</button>`:''}</div></details></div>`:''}</div>`).join(''):'<p class="muted ledger-empty">Chưa có thành viên.</p>';
  $('memberList').querySelectorAll('.edit-member').forEach(button=>button.onclick=()=>openMemberEditor(button.dataset.userId));
  $('memberList').querySelectorAll('.link-member-email').forEach(button=>button.onclick=()=>openMemberEditor(button.dataset.userId,true));
  $('memberList').querySelectorAll('.remove-member').forEach(button=>button.onclick=()=>removeMemberSafely(button));
  $('memberList').querySelectorAll('.merge-member').forEach(button=>button.onclick=()=>openMergeMemberDialog(button.dataset.userId));
+ // Keep one compact menu open at a time and close it when an action is selected.
+ $('memberList').querySelectorAll('.member-actions-menu').forEach(menu=>{
+  menu.addEventListener('toggle',()=>{
+   if(menu.open)$('memberList').querySelectorAll('.member-actions-menu').forEach(other=>{if(other!==menu)other.open=false});
+  });
+  menu.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>{menu.open=false}));
+ });
+ // Close open member menus when clicking elsewhere or pressing Escape.
  const requestPanel=$('editRequestPanel'), requestState=$('editRequestState'), requestBtn=$('requestEditBtn');
  const isHost=trip.created_by===user?.id, joined=members.some(m=>m.user_id===user?.id||m.account_user_id===user?.id);
  requestPanel.classList.add('hidden');

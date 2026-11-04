@@ -1279,3 +1279,22 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .member-account-link-status .member-linked-email{font-weight:700;color:#5145c7;overflow-wrap:anywhere}
 .member-edit-actions .link-member-email{color:#5145c7;background:#eeebff;white-space:normal}
 .member-edit-actions .link-member-email:hover{background:#e1dcff}
+
+/* Compact member actions: one keyboard-accessible overflow menu per row. */
+.member-row{position:relative;overflow:visible}
+.member-row:has(.member-actions-menu[open]){z-index:8}
+.member-edit-actions{position:relative;min-width:0}
+.member-edit-actions .member-actions-menu{position:relative}
+.member-actions-menu>summary{list-style:none;display:flex;align-items:center;justify-content:center;width:42px;height:40px;padding:0;border:1px solid #e5e1f8;border-radius:12px;background:#f2efff;color:#5c4dd9;font:800 26px/1 'Roboto',Arial,sans-serif;cursor:pointer;user-select:none;touch-action:manipulation}
+.member-actions-menu>summary::-webkit-details-marker{display:none}
+.member-actions-menu>summary::marker{content:''}
+.member-actions-menu>summary:hover,.member-actions-menu[open]>summary{background:#e9e4ff;color:#4738c4}
+.member-actions-menu>summary:focus-visible{outline:3px solid #786bf1;outline-offset:2px}
+.member-actions-dropdown{position:absolute;right:0;top:calc(100% + 7px);width:190px;max-width:calc(100vw - 42px);display:flex;flex-direction:column;gap:3px;padding:7px;border:1px solid #e9e6f5;border-radius:14px;background:#fff;box-shadow:0 15px 38px #20234226;z-index:30}
+.member-actions-dropdown button,.member-edit-actions .member-actions-dropdown .compact{display:block;width:100%;min-height:40px;min-width:0;border:0;border-radius:9px;padding:10px 12px;text-align:left;font:600 13px/1.3 'Roboto',Arial,sans-serif;background:transparent;color:#25284a;white-space:normal;cursor:pointer}
+.member-actions-dropdown button:hover,.member-edit-actions .member-actions-dropdown .link-member-email:hover{background:#f2efff}
+.member-edit-actions .member-actions-dropdown .link-member-email{background:transparent;color:#5145c7}
+.member-edit-actions .member-actions-dropdown .remove-member{background:transparent;color:#c24a46}
+.member-edit-actions .member-actions-dropdown .remove-member:hover{background:#fff0ee}
+.member-row:last-child .member-actions-dropdown{top:auto;bottom:calc(100% + 7px)}
+@media(max-width:760px){.member-edit-actions .member-actions-menu>summary{min-width:44px;min-height:44px}.member-edit-actions{border-top:0}.member-row{isolation:isolate}.member-row:has(.member-actions-menu[open]){isolation:auto}}
