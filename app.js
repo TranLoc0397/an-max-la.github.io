@@ -7,7 +7,7 @@ const money = n => new Intl.NumberFormat('vi-VN',{style:'currency',currency:'VND
 const dateToday = () => window.TripTogetherFinance.vietnamDate();
 let db, user, trip, members=[], expenses=[], contributions=[], debts=[], channel, readOnly=false, canEdit=false, editPermissionsReady=false, sharedCode=null, sharedPasscode=null, viewerTimer=null;
 let editRequests=[], editRequestsAvailable=false, editRequestTimer=null;
-let payments=[],activityEvents=[],memberInviteEmails=[];
+let payments=[],activityEvents=[],memberInviteEmails=[],memberInviteEmailsAvailable=false;
 let refreshSequence=0;
 let pendingAction=null;
 let pendingTripTitleAction=null;
@@ -430,7 +430,8 @@ async function refresh(){
    trip.created_by===user?.id?db.rpc('get_trip_member_invite_emails',{p_trip_id:tripId}):Promise.resolve({data:[],error:null})
   ]);
   if(!current())return; // Never commit an older or different-trip response.
-  if(a.error||b.error||c.error||d.error||ledger.error||history.error||invites.error){status('Sync error');return}
+  if(a.error||b.error||c.error||d.error||ledger.error||history.error){status('Sync error');return}
+  if(invites.error&&invites.error.code!=='PGRST202')console.warn('Member email invitations unavailable:',invites.error);
   let nextExpenses=b.data||[],nextContributions=c.data||[],nextDebts=d.data||[],nextPayments=ledger.data||[];
   // A joined member without edit rights may see 0 rows under older Supabase RLS.
   // Confirm that an apparently empty trip really is empty before replacing its
@@ -455,7 +456,7 @@ async function refresh(){
    }
   }
   if(!current())return;
-  members=a.data||[];expenses=nextExpenses;contributions=nextContributions;debts=nextDebts;payments=nextPayments;activityEvents=history.data||[];memberInviteEmails=invites.data||[];
+  members=a.data||[];expenses=nextExpenses;contributions=nextContributions;debts=nextDebts;payments=nextPayments;activityEvents=history.data||[];memberInviteEmails=invites.error?[]:(invites.data||[]);memberInviteEmailsAvailable=!invites.error;
   editRequests=requests.items;editRequestsAvailable=requests.available;
   render();status(usedSharedFallback?'Chỉ xem · dữ liệu chia sẻ':'Synced');
  }catch(error){if(current()){console.error('Trip refresh failed',error);status('Sync error')}}
@@ -608,7 +609,7 @@ function openMemberEditor(memberId=null){
  $('memberSave').textContent=member?'Lưu thay đổi':'Thêm thành viên';
  $('memberOpeningFundField').classList.toggle('hidden',!!member);
  $('memberOpeningFund').value='';
- const mayAssignEmail=trip?.created_by===user?.id&&(!member||member.is_guest&&!member.account_user_id);
+ const mayAssignEmail=memberInviteEmailsAvailable&&trip?.created_by===user?.id&&(!member||member.is_guest&&!member.account_user_id);
  $('memberInviteEmailField').classList.toggle('hidden',!mayAssignEmail);
  $('memberInviteEmail').value=member?memberInviteEmails.find(x=>x.member_user_id===member.user_id)?.email||'':'';
  $('memberDialog').showModal();$('memberName').focus();
@@ -719,10 +720,10 @@ $('memberForm').addEventListener('submit',async ev=>{
    const email=isHost&&!$('memberInviteEmailField').classList.contains('hidden')
     ?$('memberInviteEmail').value.trim().toLowerCase():'';
    const {error}=memberId
-    ?(isHost&&existing?.is_guest&&!existing?.account_user_id
+    ?(isHost&&existing?.is_guest&&!existing?.account_user_id&&memberInviteEmailsAvailable
       ?await db.rpc('update_trip_guest_invitation',{p_trip_id:tripId,p_member_user_id:memberId,p_name:name,p_email:email})
       :await db.rpc('update_trip_member_name',{p_trip_id:tripId,p_member_user_id:memberId,p_name:name}))
-    :(isHost
+    :(isHost&&email
       ?await db.rpc('add_guest_member_with_email_and_fund',{p_trip_id:tripId,p_name:name,p_amount:amount,p_email:email})
       :await db.rpc('add_guest_member_with_fund',{p_trip_id:tripId,p_name:name,p_amount:amount}));
    if(error)throw error;
