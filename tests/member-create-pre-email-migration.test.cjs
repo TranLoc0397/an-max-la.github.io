@@ -11,7 +11,7 @@ test('missing optional email invitation RPC does not block refresh',()=>{
  assert.match(app,/if\(a\.error\|\|b\.error\|\|c\.error\|\|d\.error\|\|ledger\.error\|\|history\.error\)/);
  assert.doesNotMatch(app,/\|\|invites\.error\)\{status\('Sync error'\)/);
  assert.match(app,/memberInviteEmailsAvailable=!invites\.error/);
- assert.match(app,/const mayAssignEmail=memberInviteEmailsAvailable&&trip\?\.created_by/);
+ assert.match(app,/const canInvite=isHost&&memberInviteEmailsAvailable/);
 });
 test('renaming existing members uses installed RPC before email migration',()=>{
  assert.match(app,/existing\?\.is_guest&&!existing\?\.account_user_id&&memberInviteEmailsAvailable/);

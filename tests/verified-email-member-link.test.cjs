@@ -32,7 +32,7 @@ test('Host can assign invitation email to an existing member',()=>{
  assert.match(app,/get_trip_member_invite_emails/);
  assert.match(app,/update_trip_guest_invitation/);
  assert.match(app,/add_guest_member_with_email_and_fund/);
- assert.match(app,/memberInviteEmailField'\)\.classList\.toggle\('hidden',!mayAssignEmail\)/);
+ assert.match(app,/memberInviteEmailField'\)\.classList\.toggle\('hidden',!canInvite\)/);
 });
 test('SQL links an authenticated verified email without rewriting financial references',()=>{
  const sql=read('verified_email_member_linking.sql');
