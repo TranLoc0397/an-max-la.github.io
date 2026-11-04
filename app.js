@@ -267,7 +267,7 @@ $('accountClose').onclick=()=>$('accountDialog').close();
 async function loadMyTrips(){
  if(!db||!user)return;
  try{
-  const {data:memberships,error}=await db.from('members').select('trip_id').or('user_id.eq.'+user.id+',account_user_id.eq.'+user.id);
+  const {data:memberships,error}=await db.from('members').select('trip_id').eq('user_id',user.id);
   if(error)throw error;
   const tripIds=[...new Set((memberships||[]).map(m=>m.trip_id))];
   if(!tripIds.length){
