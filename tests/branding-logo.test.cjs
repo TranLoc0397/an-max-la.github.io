@@ -10,18 +10,19 @@ test('brand assets use approved purple car and coin logo',()=>{
  assert.match(svg,/id="gold"/);
  assert.match(svg,/id="car"/);
  assert.doesNotMatch(svg,/data:image\/png;base64/);
+ assert.doesNotMatch(svg,/<rect[^>]*rx="35"[^>]*fill=/);
 });
 
 test('header, sidebar, favicon and mobile icon point to updated logo',()=>{
  const html=read('index.html');
- assert.match(html,/<link rel="icon" href="triptogether-purple-icon.png\?v=2"/);
- assert.match(html,/<link rel="apple-touch-icon" href="triptogether-purple-icon.png\?v=2"/);
- assert.match(html,/<link rel="manifest" href="manifest.webmanifest\?v=2"/);
- assert.match(html,/class="brand-icon"><img src="triptogether-purple-icon.png\?v=2"/);
- assert.match(html,/class="tt-sidebar-brand"[^>]*><img src="triptogether-purple-icon.png\?v=2"/);
+ assert.match(html,/<link rel="icon" href="triptogether-purple-icon.png\?v=3"/);
+ assert.match(html,/<link rel="apple-touch-icon" href="triptogether-purple-icon.png\?v=3"/);
+ assert.match(html,/<link rel="manifest" href="manifest.webmanifest\?v=3"/);
+ assert.match(html,/class="brand-icon"><img src="triptogether-purple-icon.png\?v=3"/);
+ assert.match(html,/class="tt-sidebar-brand"[^>]*><img src="triptogether-purple-icon.png\?v=3"/);
  const manifest=JSON.parse(read('manifest.webmanifest'));
- assert.ok(manifest.icons.some(x=>x.src==='triptogether-purple-icon.png?v=2'&&x.type==='image/png'));
- assert.ok(manifest.icons.some(x=>x.src==='triptogether-purple-icon.svg?v=2'&&x.type==='image/svg+xml'));
+ assert.ok(manifest.icons.some(x=>x.src==='triptogether-purple-icon.png?v=3'&&x.type==='image/png'));
+ assert.ok(manifest.icons.some(x=>x.src==='triptogether-purple-icon.svg?v=3'&&x.type==='image/svg+xml'));
  const sw=read('sw.js');
  assert.match(sw, /'\.\/triptogether-purple-icon.png'/);
  assert.match(sw, /'\.\/triptogether-purple-icon.svg'/);
