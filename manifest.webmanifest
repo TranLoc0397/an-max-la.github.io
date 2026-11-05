@@ -8,16 +8,16 @@
   "description": "Shared group trip expenses",
   "icons": [
     {
-      "src": "triptogether-purple-icon.png?v=2",
+      "src": "triptogether-purple-icon.png?v=3",
       "sizes": "160x160",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "triptogether-purple-icon.svg?v=2",
+      "src": "triptogether-purple-icon.svg?v=3",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }
