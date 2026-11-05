@@ -1,7 +1,7 @@
-/* Decorative airport motion layer — matches approved concept at 30% opacity. */
+/* Decorative airport motion layer — matches approved concept at 22% opacity. */
 body{isolation:isolate}
 .airport-scene{
-  --airport-opacity:.30;
+  --airport-opacity:.22;
   --airport-speed:1;
   position:fixed;
   inset:0;
