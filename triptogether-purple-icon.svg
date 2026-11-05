@@ -4,11 +4,8 @@
   <linearGradient id="car" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#4937ed"/><stop offset="1" stop-color="#5c43ec"/></linearGradient>
   <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffd04e"/><stop offset="1" stop-color="#ffad0d"/></linearGradient>
 </defs>
-<rect x="2" y="2" width="156" height="156" rx="35" fill="url(#lavender)"/>
-<path d="M2 88Q36 64 75 106T158 137V158H2Z" fill="#c6b6fc" opacity=".24"/>
-<path d="M2 143Q48 112 91 131T158 149V158H2Z" fill="#b7a8f2" opacity=".16"/>
 <path d="M26 123Q54 144 87 130T120 115Q133 111 145 129" fill="none" stroke="#6150e8" stroke-width="6" stroke-linecap="round" stroke-dasharray="5 9"/>
-<path d="M33 84 51 76 63 56Q66 51 73 51H97Q104 51 107 56L120 76 132 83Q137 86 137 92V103Q137 110 130 110H34Q27 110 27 103V92Q27 87 33 84Z" fill="white" stroke="white" stroke-width="9" stroke-linejoin="round"/>
+<path d="M33 84 51 76 63 56Q66 51 73 51H97Q104 51 107 56L120 76 132 83Q137 86 137 92V103Q137 110 130 110H34Q27 110 27 103V92Q27 87 33 84Z" fill="#f4efff" stroke="white" stroke-width="9" stroke-linejoin="round"/>
 <path d="M33 84 51 76 63 56Q66 51 73 51H97Q104 51 107 56L120 76 132 83Q137 86 137 92V103Q137 110 130 110H34Q27 110 27 103V92Q27 87 33 84Z" fill="none" stroke="url(#car)" stroke-width="7" stroke-linejoin="round"/>
 <path d="M52 78H119M33 104H132" stroke="#5944ea" stroke-width="6" stroke-linecap="round"/>
 <circle cx="56" cy="107" r="10" fill="#241280" stroke="white" stroke-width="5"/>
