@@ -15,7 +15,7 @@ test('PWA metadata and offline precache use purple mark',()=>{
  const manifest=JSON.parse(read('manifest.webmanifest'));
  const sw=read('sw.js');
  assert.equal(manifest.theme_color,'#6559e8');
- assert.equal(manifest.icons[0].src,'triptogether-purple-icon.png?v=1');
+ assert.equal(manifest.icons[0].src,'triptogether-purple-icon.png?v=2');
  assert.match(sw,/triptogether-purple-icon\.svg/);
  assert.match(sw,/triptogether-purple-icon\.png/);
 });
