@@ -7,7 +7,7 @@ const read=n=>fs.readFileSync(path.join(__dirname,'..',n),'utf8');
 test('member settings stay aligned at the top-right on mobile',()=>{
  const css=read('styles.css');
  assert.match(css,/\.member-row>\.member-edit-actions\{\s*position:absolute;\s*top:12px;\s*right:12px;/);
- assert.match(css,/@media\(max-width:520px\)\{\s*\.member-row>\.member-edit-actions\{top:12px;right:12px/);
+ assert.match(css,/@media\(max-width:520px\)\{[\s\S]*?\.member-row>\.member-edit-actions\{top:50%;right:12px;transform:translateY\(-50%\)/);
  assert.match(css,/\.member-edit-actions \.member-actions-menu>summary\{[\s\S]*?width:40px;height:40px;min-width:40px;min-height:40px/);
 });
 
@@ -46,4 +46,11 @@ test('desktop member list uses four data columns without an empty settings colum
  assert.match(css,/\.member-row>\.member-edit-actions\{position:absolute;top:12px;right:12px\}/);
  const html=read('index.html');
  assert.match(html,/class="member-table-head"><span>Thành viên<\/span><span>Đã chi cá nhân<\/span><span>Đã đóng quỹ<\/span><span>Phần chi<\/span>/);
+});
+
+test('settings button is vertically centered in each member row at every size',()=>{
+ const css=read('styles.css');
+ assert.match(css,/\.member-row>\.member-edit-actions\{top:50%;right:12px;transform:translateY\(-50%\)\}/);
+ assert.match(css,/@media\(max-width:520px\)\{[\s\S]*?\.member-row>\.member-edit-actions\{top:50%;right:12px;transform:translateY\(-50%\)\}/);
+ assert.match(css,/\.member-edit-actions \.member-actions-menu>summary\{[\s\S]*?width:40px;height:40px/);
 });

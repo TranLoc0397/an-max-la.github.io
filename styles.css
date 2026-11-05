@@ -1481,7 +1481,7 @@ select:hover{border-color:#cfc9ef}
 .member-name-line{display:flex;align-items:center;gap:7px;min-width:0;max-width:100%;white-space:nowrap}
 .member-display-name{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .member-name-line .creator-label{flex:none;white-space:nowrap;margin:0}
-.member-row>.member-edit-actions{top:12px;right:12px}
+.member-row>.member-edit-actions{top:50%;right:12px;transform:translateY(-50%)}
 .member-edit-actions .member-actions-menu>summary{
   width:40px;height:40px;min-width:40px;min-height:40px;
   border-radius:12px;background:#f5f3ff;color:#6759d4;
@@ -1493,5 +1493,5 @@ select:hover{border-color:#cfc9ef}
 }
 @media(max-width:520px){
   .member-row>.item-title{padding-right:52px}
-  .member-row>.member-edit-actions{top:12px;right:12px}
+  .member-row>.member-edit-actions{top:50%;right:12px;transform:translateY(-50%)}
 }
