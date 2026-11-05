@@ -25,8 +25,8 @@ test('approved icon is supplied as a valid transparent 160px PNG and scalable SV
  assert.equal(png.readUInt32BE(16),160);
  assert.equal(png.readUInt32BE(20),160);
  assert.ok(png.includes(Buffer.from('tRNS')),'indexed PNG has transparency');
- assert.doesNotMatch(svg,/rx="35" fill="url\(#lavender\)"/);
  const svg=read('triptogether-purple-icon.svg');
+ assert.doesNotMatch(svg,/rx="35" fill="url\(#lavender\)"/);
  assert.match(svg,/TripTogether: car, journey and shared expenses/);
  assert.match(svg,/id="gold"/);
 });
