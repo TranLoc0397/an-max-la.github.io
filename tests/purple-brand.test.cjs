@@ -6,10 +6,10 @@ const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
 
 test('new supplied purple logo appears in header, desktop sidebar and favicon',()=>{
  const html=read('index.html');
- assert.match(html,/class="brand-icon"><img src="triptogether-purple-icon\.svg\?v=1"/);
+ assert.match(html,/class="brand-icon"><img src="triptogether-purple-icon\.png\?v=2"/);
  assert.match(html,/class="tt-sidebar-brand"/);
- assert.match(html,/rel="icon" href="triptogether-purple-icon\.svg\?v=1"/);
- assert.match(html,/rel="apple-touch-icon" href="triptogether-purple-icon\.png\?v=1"/);
+ assert.match(html,/rel="icon" href="triptogether-purple-icon\.png\?v=2"/);
+ assert.match(html,/rel="apple-touch-icon" href="triptogether-purple-icon\.png\?v=2"/);
 });
 test('PWA metadata and offline precache use purple mark',()=>{
  const manifest=JSON.parse(read('manifest.webmanifest'));
@@ -19,14 +19,15 @@ test('PWA metadata and offline precache use purple mark',()=>{
  assert.match(sw,/triptogether-purple-icon\.svg/);
  assert.match(sw,/triptogether-purple-icon\.png/);
 });
-test('transparent supplied image remains embedded and valid PNG in SVG',()=>{
- const svg=read('triptogether-purple-icon.svg');
- const encoded=svg.match(/data:image\/png;base64,([^"]+)/)?.[1];
- assert.ok(encoded,'SVG should include the optimized supplied purple icon');
- const png=Buffer.from(encoded,'base64');
+test('approved icon is supplied as a valid transparent 160px PNG and scalable SVG',()=>{
+ const png=fs.readFileSync(path.join(__dirname,'..','triptogether-purple-icon.png'));
  assert.equal(png.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
- assert.equal(png.readUInt32BE(16),64);
- assert.equal(png.readUInt32BE(20),64);
+ assert.equal(png.readUInt32BE(16),160);
+ assert.equal(png.readUInt32BE(20),160);
+ assert.ok(png.includes(Buffer.from('tRNS')),'indexed PNG has transparency');
+ const svg=read('triptogether-purple-icon.svg');
+ assert.match(svg,/TripTogether: car, journey and shared expenses/);
+ assert.match(svg,/id="gold"/);
 });
 test('purple accent typography replaces legacy green brand text',()=>{
  const css=read('styles.css');
