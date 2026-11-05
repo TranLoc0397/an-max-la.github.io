@@ -1495,3 +1495,23 @@ select:hover{border-color:#cfc9ef}
   .member-row>.item-title{padding-right:52px}
   .member-row>.member-edit-actions{top:50%;right:12px;transform:translateY(-50%)}
 }
+
+/* On mobile each member becomes a multi-line card, so center the settings
+   button in the HEADER rather than the entire card's financial detail area.
+   Keep desktop rows vertically centered. */
+@media(max-width:760px){
+  .member-row>.item-title{
+    box-sizing:border-box;
+    min-height:52px;
+    padding-right:56px;
+    padding-bottom:12px;
+  }
+  .member-row>.member-edit-actions{
+    top:12px;
+    right:12px;
+    transform:none;
+    padding:0;
+    border:0;
+    grid-column:auto;
+  }
+}
