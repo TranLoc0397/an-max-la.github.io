@@ -3,10 +3,34 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#6559e8"><meta name="description" content="Quản lý chi tiêu và quỹ chung cho chuyến đi">
+<link rel="stylesheet" href="airport-background.css?v=1">
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="triptogether-purple-icon.svg?v=1" type="image/svg+xml"><link rel="apple-touch-icon" href="triptogether-purple-icon.png?v=1">
 <title>TripTogether</title><link rel="stylesheet" href="styles.css?v=68">
 </head>
 <body>
+<div class="airport-scene" aria-hidden="true">
+  <div class="airport-visual">
+    <svg class="airport-svg" viewBox="0 0 1440 1000" preserveAspectRatio="xMidYMid slice" focusable="false">
+      <defs><pattern id="airport-tiles" width="55" height="55" patternUnits="userSpaceOnUse"><path d="M55 0H0V55" stroke="#a8a6d9" stroke-width=".7" opacity=".14" fill="none"/></pattern></defs>
+      <rect width="1440" height="1000" fill="url(#airport-tiles)"/>
+      <path class="airport-runway" d="M-120 380 1550 100"/><path class="airport-runway-edge" d="M-120 363 1550 83M-120 397 1550 117"/>
+      <path class="airport-runway" d="M-100 900 1500 530"/><path class="airport-runway-edge" d="M-100 887 1500 517M-100 913 1500 543"/>
+      <path class="airport-taxi" d="M-120 345 C160 295 360 420 700 260 S1220 110 1600 160"/>
+      <path class="airport-taxi" d="M1630 690 C1340 610 1100 690, 820 540 S320 430 -140 590"/>
+      <path class="airport-taxi-secondary" d="M120 1100 C90 820 160 600 450 510 S900 390 1150 -90"/>
+      <path class="airport-lane" d="M-60 760 C180 690 330 710 520 645 S900 605 1210 660 S1460 710 1620 610"/>
+      <path class="airport-terminal" d="M185 765Q185 737 215 737H605Q630 737 630 760V831Q630 854 606 854H216Q185 854 185 833Z"/>
+      <path class="airport-apron" d="M238 734V668M300 734V650M362 734V663M424 734V660M486 734V650M548 734V662"/>
+      <path class="airport-terminal" d="M890 210h190l24 33v70l-24 30H890l-22-30v-70z"/>
+      <path class="airport-apron" d="M895 344v48m54-48v48m54-48v48m54-48v48"/>
+      <g><circle cx="1185" cy="295" r="90" class="airport-radar-pulse"/><circle cx="1185" cy="295" r="90" class="airport-radar-pulse delay"/><circle cx="1185" cy="295" r="38" fill="none" stroke="#7970d0" opacity=".4" stroke-dasharray="3 7"/><path class="airport-radar" d="M1185 295 L1185 215 A80 80 0 0 1 1265 295 Z"/><circle cx="1185" cy="295" r="5" fill="#7665ce" opacity=".5"/></g>
+      <g class="airport-plane airport-plane-one"><path d="M0-48c2 0 5 3 5 8v27L37 8v8L5 7v30l13 8v6L0 46l-18 5v-6l13-8V7l-32 9V8l32-21v-27c0-5 3-8 5-8Z"/></g>
+      <g class="airport-plane airport-plane-two"><path d="M0-44c2 0 4 2 5 7v26L33 8v8L5 7v29l12 8v5L0 44l-17 5v-5l12-8V7l-28 9V8l28-19v-26c1-5 3-7 5-7Z"/></g>
+      <g class="airport-plane airport-plane-three"><path d="M0-40c2 0 4 2 4 6v26L29 7v8L4 6v27l11 7v5L0 41l-15 4v-5l11-7V6l-25 9V7l25-15v-26c0-4 2-6 4-6Z"/></g>
+      <g class="airport-vehicle airport-shuttle"><rect x="-24" y="-10" width="48" height="20" rx="6"/><rect x="-8" y="-9" width="10" height="18" rx="2" fill="#bdb5ef"/><circle cx="-13" cy="12" r="5" fill="#7770bb"/><circle cx="13" cy="12" r="5" fill="#7770bb"/></g>
+    </svg>
+  </div>
+</div>
 <div id="pageLoader" class="page-loader" role="status" aria-live="polite"><span class="loading-spinner" aria-hidden="true"></span><span id="pageLoaderText">Loading TripTogether…</span></div>
 <header class="topbar"><a class="brand" href="./" aria-label="TripTogether – Home"><span class="brand-icon"><img src="triptogether-purple-icon.svg?v=1" alt="" width="50" height="50"></span><span class="brand-wordmark">TripTogether</span></a><div class="topbar-actions"><div class="language-switch" role="group" aria-label="Language / Ngôn ngữ"><button class="language-option" type="button" data-language-option="vi" aria-label="Tiếng Việt" aria-pressed="true">VI</button><button class="language-option" type="button" data-language-option="en" aria-label="English" aria-pressed="false">EN</button></div><button id="accountBtn" class="ghost">Tài khoản</button><button id="shareBtn" class="ghost hidden"><svg class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg> Chia sẻ link xem</button></div></header>
 <aside class="tt-sidebar" id="ttSidebar" aria-label="Điều hướng chuyến đi">

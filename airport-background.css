@@ -1,0 +1,46 @@
+/* Decorative airport motion layer — matches approved concept at 30% opacity. */
+body{isolation:isolate}
+.airport-scene{
+  --airport-opacity:.30;
+  --airport-speed:1;
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  overflow:hidden;
+  pointer-events:none;
+  background:linear-gradient(135deg,#f8f9ff 0%,#f2f1ff 52%,#ecf3fc 100%);
+}
+.airport-scene::before{
+  content:"";
+  position:absolute;
+  inset:-20%;
+  background:radial-gradient(circle at 20% 15%,#c9c3ff78,transparent 32%),radial-gradient(circle at 80% 70%,#d6e6ff88,transparent 38%);
+  animation:airport-mist 24s ease-in-out infinite alternate;
+}
+.airport-visual{position:absolute;inset:0;opacity:var(--airport-opacity)}
+.airport-svg{position:absolute;inset:0;width:100%;height:100%;min-height:650px;display:block}
+.airport-runway{stroke:#8279d7;stroke-width:10;stroke-linecap:round;fill:none;opacity:.35}
+.airport-runway-edge{stroke:#a5a0e9;stroke-width:1.6;fill:none;opacity:.5}
+.airport-taxi{stroke:#9081db;stroke-width:2.6;stroke-dasharray:10 9;stroke-linecap:round;fill:none;opacity:.62}
+.airport-taxi-secondary{stroke:#b0a4e5;stroke-width:1.5;stroke-dasharray:5 10;fill:none}
+.airport-terminal{fill:#afa5f1;opacity:.28;stroke:#897cdb;stroke-width:2}
+.airport-lane{stroke:#8b8dc7;stroke-width:2;fill:none;stroke-dasharray:9 8}
+.airport-apron{stroke:#9e94df;stroke-width:1.3;fill:none;opacity:.55}
+.airport-plane{filter:drop-shadow(0 5px 7px #7169c64a)}
+.airport-plane path{fill:#6053c7;stroke:#6257c0;stroke-width:1.3}
+.airport-vehicle rect,.airport-vehicle path{fill:#7a78c8}
+.airport-plane-one{offset-path:path('M -120 345 C 160 295, 360 420, 700 260 S 1220 110, 1600 160');offset-rotate:auto;animation:airport-travel calc(35s * var(--airport-speed)) linear infinite}
+.airport-plane-two{offset-path:path('M 1630 690 C 1340 610, 1100 690, 820 540 S 320 430, -140 590');offset-rotate:auto;animation:airport-travel calc(51s * var(--airport-speed)) linear infinite}
+.airport-shuttle{offset-path:path('M -60 760 C 180 690 330 710 520 645 S 900 605 1210 660 S 1460 710 1620 610');offset-rotate:auto;animation:airport-travel calc(43s * var(--airport-speed)) linear infinite}
+.airport-plane-three{offset-path:path('M 120 1100 C 90 820 160 600 450 510 S 900 390 1150 -90');offset-rotate:auto;animation:airport-travel calc(58s * var(--airport-speed)) linear infinite}
+.airport-radar{fill:none;stroke:#7666d3;stroke-width:1.3;opacity:.45;transform-origin:1185px 295px;animation:airport-rotate 13s linear infinite}
+.airport-radar-pulse{fill:none;stroke:#8f80e9;stroke-width:3;opacity:0;transform-origin:1185px 295px;animation:airport-pulse 9s ease-out infinite}
+.airport-radar-pulse.delay{animation-delay:-4.5s}
+@keyframes airport-travel{from{offset-distance:0%}to{offset-distance:100%}}
+@keyframes airport-mist{from{transform:translate3d(-2%,-2%,0)}to{transform:translate3d(3%,2%,0)}}
+@keyframes airport-rotate{to{transform:rotate(360deg)}}
+@keyframes airport-pulse{0%{transform:scale(.3);opacity:.65}75%,100%{transform:scale(3);opacity:0}}
+@media(prefers-reduced-motion:reduce){
+  .airport-scene::before,.airport-scene *{animation:none!important}
+}
+/* Keep native dialogs / overlays in their own stacking contexts. */
