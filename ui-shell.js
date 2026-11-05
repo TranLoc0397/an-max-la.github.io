@@ -68,7 +68,7 @@
    const stack=ordered.slice(0,5).map(member=>avatar(member,'tt-stack-avatar')).join('')+
      (ordered.length>5?'<span class="tt-person-avatar tt-stack-avatar tt-stack-more" aria-hidden="true">+'+(ordered.length-5)+'</span>':'');
    const summary=members.length?'<div class="tt-people-summary"><div class="tt-avatar-stack">'+stack+'</div>'+
-     '<div class="tt-people-summary-text"><b>'+members.length+' thành viên</b><small>Mỗi người chịu ~'+fmt(share)+'</small></div></div>':'';
+     '<div class="tt-people-summary-text"><b>'+members.length+' thành viên</b><small>Mỗi người đã chi ~'+fmt(share)+'</small></div></div>':'';
    const rows=ordered.slice(0,VISIBLE).map(member=>{
      const info=balanceById.get(member.user_id)||{};
      const isHost=member.user_id===trip?.created_by;
