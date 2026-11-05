@@ -6,16 +6,16 @@ const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
 
 test('new supplied purple logo appears in header, desktop sidebar and favicon',()=>{
  const html=read('index.html');
- assert.match(html,/class="brand-icon"><img src="triptogether-purple-icon\.png\?v=2"/);
+ assert.match(html,/class="brand-icon"><img src="triptogether-purple-icon\.png\?v=3"/);
  assert.match(html,/class="tt-sidebar-brand"/);
- assert.match(html,/rel="icon" href="triptogether-purple-icon\.png\?v=2"/);
- assert.match(html,/rel="apple-touch-icon" href="triptogether-purple-icon\.png\?v=2"/);
+ assert.match(html,/rel="icon" href="triptogether-purple-icon\.png\?v=3"/);
+ assert.match(html,/rel="apple-touch-icon" href="triptogether-purple-icon\.png\?v=3"/);
 });
 test('PWA metadata and offline precache use purple mark',()=>{
  const manifest=JSON.parse(read('manifest.webmanifest'));
  const sw=read('sw.js');
  assert.equal(manifest.theme_color,'#6559e8');
- assert.equal(manifest.icons[0].src,'triptogether-purple-icon.png?v=2');
+ assert.equal(manifest.icons[0].src,'triptogether-purple-icon.png?v=3');
  assert.match(sw,/triptogether-purple-icon\.svg/);
  assert.match(sw,/triptogether-purple-icon\.png/);
 });
@@ -25,6 +25,7 @@ test('approved icon is supplied as a valid transparent 160px PNG and scalable SV
  assert.equal(png.readUInt32BE(16),160);
  assert.equal(png.readUInt32BE(20),160);
  assert.ok(png.includes(Buffer.from('tRNS')),'indexed PNG has transparency');
+ assert.doesNotMatch(svg,/rx="35" fill="url\(#lavender\)"/);
  const svg=read('triptogether-purple-icon.svg');
  assert.match(svg,/TripTogether: car, journey and shared expenses/);
  assert.match(svg,/id="gold"/);
