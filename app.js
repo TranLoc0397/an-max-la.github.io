@@ -610,6 +610,45 @@ function render(){
  window.TripTogetherShell?.render({trip,user,canEdit,members,expenses,contributions,actualFund,balances:expenseBalances});
  $('deleteTripBtn').classList.toggle('hidden',readOnly||trip.created_by!==user.id);$('shareBtn').classList.toggle('hidden',readOnly);$('inviteBtn').classList.toggle('hidden',readOnly);$('leaveBtn').classList.toggle('hidden',readOnly);$('addExpense').classList.toggle('hidden',!canEdit);$('addContribution').classList.toggle('hidden',!canEdit);$('editInitialFundBtn').classList.toggle('hidden',!canEdit);$('addMember').classList.toggle('hidden',!canEdit);$('addDebt').classList.toggle('hidden',!canEdit);$('syncStatus').textContent=readOnly?'Chế độ chỉ xem':canEdit?'Đã đồng bộ':'Chỉ xem · chưa được cấp quyền sửa';
 }
+// Always fetch a fresh, complete database snapshot, not the filtered UI list
+// or a potentially stale realtime cache. Paginate past Supabase's row limit.
+async function excelExportRows(table,tripId){
+ const items=[];
+ for(let start=0;;start+=500){
+  const {data,error}=await db.from(table).select('*').eq('trip_id',tripId).order('id',{ascending:true}).range(start,start+499);
+  if(error)throw new Error('Không thể lấy dữ liệu '+table+': '+error.message);
+  if(!data)throw new Error('Không thể đọc dữ liệu '+table);
+  items.push(...data);
+  if(data.length<500)break;
+ }
+ return items;
+}
+$('exportExcelBtn').onclick=async()=>{
+ if(!trip||readOnly||!canEdit||!user){
+  localizedAlert('Chỉ Host hoặc thành viên có quyền chỉnh sửa mới được xuất bản sao tài chính.');
+  return;
+ }
+ const tripId=trip.id;
+ await withButtonLoading($('exportExcelBtn'),'Đang tạo Excel…',async()=>{
+  try{
+   const {data:freshTrip,error:tripError}=await db.from('trips').select('*').eq('id',tripId).single();
+   if(tripError||!freshTrip)throw new Error('Không thể lấy thông tin chuyến đi: '+(tripError?.message||'Không tìm thấy'));
+   const [freshMembers,freshExpenses,freshContributions,freshDebts,freshPayments]=await Promise.all([
+    excelExportRows('members',tripId),excelExportRows('expenses',tripId),
+    excelExportRows('contributions',tripId),excelExportRows('member_debts',tripId),
+    excelExportRows('trip_payments',tripId)
+   ]);
+   if(trip?.id!==tripId)throw new Error('Chuyến đi đã thay đổi; vui lòng thử lại.');
+   const {view_passcode_hash, ...safeTrip}=freshTrip; // Never back up secret viewing passcodes.
+   const file=window.TripTogetherExcelBackup.download({
+    trip:safeTrip,members:freshMembers,expenses:freshExpenses,
+    contributions:freshContributions,debts:freshDebts,payments:freshPayments
+   });
+   localizedAlert('Đã tạo bản sao Excel: '+file+'\nHãy lưu file tại nơi an toàn. Ảnh hóa đơn cần được sao lưu riêng.');
+  }catch(error){localizedAlert('Không thể xuất Excel: '+error.message)}
+ });
+};
+
 let pendingPayment=null;
 function openPaymentDialog(kind,referenceId,reverse=false){
  if(!canEdit)return;
