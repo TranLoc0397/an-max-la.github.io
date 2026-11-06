@@ -1529,3 +1529,8 @@ select:hover{border-color:#cfc9ef}
 .receipt-remove-row input{width:18px;height:18px;flex:none;accent-color:#6559e8}
 .expense-view-receipt{margin-top:8px;font-size:12px;min-height:36px}
 @media(max-width:520px){.receipt-pickers button{flex:1 1 130px}}
+
+/* Keep backup and add-expense actions readable at desktop and phone widths. */
+.excel-export-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+#exportExcelBtn{white-space:nowrap;min-height:40px}
+@media(max-width:600px){#expensesTab>.sectionhead{flex-wrap:wrap;gap:12px}.excel-export-actions{width:100%;justify-content:stretch}.excel-export-actions button{flex:1 1 145px}}
