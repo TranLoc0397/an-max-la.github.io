@@ -116,7 +116,7 @@
   </section>
   <nav class="tabs"><button class="tab active" data-tab="expenses">Chi tiêu</button><button class="tab" data-tab="fund">Đóng quỹ</button><button class="tab" data-tab="people">Thành viên</button></nav>
   <section id="expensesTab" class="tabbody">
-    <div class="sectionhead"><div><h2>Danh sách chi tiêu</h2><p class="muted small">Chạm Sửa để cập nhật ngày, hạng mục, người trả, số tiền hoặc ghi chú.</p></div><button class="primary compact" id="addExpense"><svg class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg> Thêm khoản chi</button></div><div class="expense-toolbar" role="search" aria-label="Lọc chi tiêu">
+    <div class="sectionhead"><div><h2>Danh sách chi tiêu</h2><p class="muted small">Chạm Sửa để cập nhật ngày, hạng mục, người trả, số tiền hoặc ghi chú.</p></div><div class="section-actions excel-export-actions"><button type="button" class="secondary compact" id="exportExcelBtn" title="Tải toàn bộ giao dịch và công thức Excel để sao lưu offline">Xuất Excel dự phòng</button><button class="primary compact" id="addExpense"><svg class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg> Thêm khoản chi</button></div></div><div class="expense-toolbar" role="search" aria-label="Lọc chi tiêu">
       <label class="sr-only" for="expenseSearch">Tìm khoản chi</label>
       <input id="expenseSearch" type="search" placeholder="Tìm theo tên, ghi chú hoặc người trả" autocomplete="off">
       <label class="sr-only" for="expenseCategoryFilter">Lọc danh mục</label>
@@ -263,5 +263,6 @@ window.__supabaseSdkReady=new Promise(resolve=>{const sources=['https://cdn.jsde
 <script src="icons.js?v=2"></script>
 <script src="money-input.js?v=1"></script>
 <script src="receipts.js?v=1"></script>
+<script src="excel-backup.js?v=1"></script>
 <script src="app.js?v=72"></script>
 </body></html>
