@@ -5,7 +5,7 @@
 <meta name="theme-color" content="#6559e8"><meta name="description" content="Quản lý chi tiêu và quỹ chung cho chuyến đi">
 <link rel="stylesheet" href="airport-background.css?v=1">
 <link rel="manifest" href="manifest.webmanifest?v=3"><link rel="icon" href="triptogether-purple-icon.png?v=3" type="image/png" sizes="160x160"><link rel="apple-touch-icon" href="triptogether-purple-icon.png?v=3">
-<title>TripTogether</title><link rel="stylesheet" href="styles.css?v=68">
+<title>TripTogether</title><link rel="stylesheet" href="styles.css?v=69">
 </head>
 <body>
 <div class="airport-scene" aria-hidden="true">
@@ -222,7 +222,20 @@
 <dialog id="accountDialog" aria-labelledby="accountDialogTitle"><section class="account-dialog-content"><h2 id="accountDialogTitle">Tài khoản TripTogether</h2><div id="accountContent"></div><menu><button class="secondary" type="button" id="accountClose">Đóng</button></menu></section></dialog>
 
 
-<dialog id="expenseDialog"><form method="dialog" id="expenseForm"><input id="expenseId" type="hidden"><h2 id="expenseDialogTitle">Thêm khoản chi</h2><label>Hạng mục / nội dung<input id="expenseTitle" required maxlength="100" placeholder="Ví dụ: Vé máy bay"></label><div class="formgrid"><label>Số tiền (VNĐ)<input id="expenseAmount" data-money type="text" inputmode="numeric" required min="1" placeholder="250.000"></label><label>Nguồn thanh toán<select id="expensePayer"><option value="">Lấy từ quỹ chung</option></select><span class="field-hint">Nếu thành viên ứng tiền, quỹ chỉ giảm khi đánh dấu đã hoàn trả.</span></label></div><div class="formgrid"><label>Ngày<input id="expenseDate" type="date" required></label><label>Phân loại<select id="expenseCategory"><option value="Food">Ăn uống</option><option value="Transport">Di chuyển</option><option value="Accommodation">Lưu trú</option><option value="Tickets">Vé tham quan</option><option value="Shopping">Mua sắm</option><option value="Other">Khác</option></select></label></div><label>Ghi chú<input id="expenseNote" maxlength="200" placeholder="Thông tin thêm nếu có"></label><menu><button class="secondary" id="expenseCancel" type="button">Hủy</button><button class="primary" id="expenseSave" value="default">Lưu khoản chi</button></menu></form></dialog>
+<dialog id="expenseDialog"><form method="dialog" id="expenseForm"><input id="expenseId" type="hidden"><h2 id="expenseDialogTitle">Thêm khoản chi</h2><label>Hạng mục / nội dung<input id="expenseTitle" required maxlength="100" placeholder="Ví dụ: Vé máy bay"></label><div class="formgrid"><label>Số tiền (VNĐ)<input id="expenseAmount" data-money type="text" inputmode="numeric" required min="1" placeholder="250.000"></label><label>Nguồn thanh toán<select id="expensePayer"><option value="">Lấy từ quỹ chung</option></select><span class="field-hint">Nếu thành viên ứng tiền, quỹ chỉ giảm khi đánh dấu đã hoàn trả.</span></label></div><div class="formgrid"><label>Ngày<input id="expenseDate" type="date" required></label><label>Phân loại<select id="expenseCategory"><option value="Food">Ăn uống</option><option value="Transport">Di chuyển</option><option value="Accommodation">Lưu trú</option><option value="Tickets">Vé tham quan</option><option value="Shopping">Mua sắm</option><option value="Other">Khác</option></select></label></div><label>Ghi chú<input id="expenseNote" maxlength="200" placeholder="Thông tin thêm nếu có"></label>
+<div class="receipt-field">
+ <span class="receipt-field-title">Ảnh hóa đơn <small>(không bắt buộc · tối đa 5 MB)</small></span>
+ <div class="receipt-pickers">
+  <button type="button" id="expensePickReceipt" class="secondary compact">Tải ảnh lên</button>
+  <button type="button" id="expenseCaptureReceipt" class="secondary compact">Chụp bằng camera</button>
+  <input id="expenseReceiptFile" type="file" accept="image/jpeg,image/png,image/webp" class="receipt-hidden-input" aria-label="Chọn ảnh hóa đơn từ thiết bị">
+  <input id="expenseReceiptCamera" type="file" accept="image/*" capture="environment" class="receipt-hidden-input" aria-label="Chụp ảnh hóa đơn bằng camera">
+ </div>
+ <p id="expenseReceiptStatus" class="receipt-status" aria-live="polite">Chưa chọn ảnh.</p>
+ <img id="expenseReceiptPreview" class="receipt-preview hidden" alt="Xem trước ảnh hóa đơn">
+ <label id="expenseReceiptRemoveRow" class="receipt-remove-row hidden"><input type="checkbox" id="expenseRemoveReceipt"> Gỡ ảnh hóa đơn hiện tại</label>
+</div>
+<menu><button class="secondary" id="expenseCancel" type="button">Hủy</button><button class="primary" id="expenseSave" value="default">Lưu khoản chi</button></menu></form></dialog>
 <dialog id="fundDialog"><form method="dialog" id="fundForm"><input id="fundId" type="hidden"><h2 id="fundDialogTitle">Đóng quỹ thêm</h2><div class="formgrid"><label>Số tiền (VNĐ)<input id="fundAmount" data-money type="text" inputmode="numeric" required min="1"></label><label>Người đóng<select id="fundPayer"></select></label></div><label>Ghi chú<input id="fundNote" maxlength="100" placeholder="Ví dụ: Đóng quỹ lần 1"></label><label>Ngày đóng<input id="fundDate" type="date" required></label><menu><button class="secondary" id="fundCancel" type="button">Hủy</button><button class="primary" id="fundSave" value="default">Lưu khoản đóng</button></menu></form></dialog>
 <dialog id="initialFundDialog"><form method="dialog" id="initialFundForm"><h2>Sửa quỹ ban đầu</h2><p class="muted">Nhập số tiền trong quỹ trước các lần đóng thêm.</p><label>Quỹ ban đầu (VNĐ)<input id="initialFundInput" data-money type="text" inputmode="numeric" required min="0"></label><menu><button class="secondary" id="initialFundCancel" type="button">Hủy</button><button class="primary" id="initialFundSave" value="default">Lưu quỹ ban đầu</button></menu></form></dialog>
 <dialog id="memberAccessDialog" aria-labelledby="memberAccessTitle" class="member-access-dialog"><h2 id="memberAccessTitle">Quản lý quyền truy cập</h2><div id="hostEditRequestsPanel" class="settlement member-permissions hidden" style="display:none"><h3>Yêu cầu quyền chỉnh sửa</h3><div id="hostEditRequestsList"></div></div><div id="editPermissionsPanel" class="settlement member-permissions hidden"><h3>Quyền chỉnh sửa thành viên</h3><div id="memberPermissionList"></div></div><menu><button class="secondary" type="button" id="memberAccessClose">Đóng</button></menu></dialog>
@@ -249,5 +262,6 @@ window.__supabaseSdkReady=new Promise(resolve=>{const sources=['https://cdn.jsde
 </script><script src="i18n.js?v=16"></script><script src="finance.js?v=3"></script><script src="trip-ui.js?v=5"></script><script src="ui-shell.js?v=6"></script>
 <script src="icons.js?v=2"></script>
 <script src="money-input.js?v=1"></script>
-<script src="app.js?v=71"></script>
+<script src="receipts.js?v=1"></script>
+<script src="app.js?v=72"></script>
 </body></html>
