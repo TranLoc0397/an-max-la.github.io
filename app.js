@@ -608,7 +608,7 @@ function render(){
   activityList.querySelectorAll('.restore-activity').forEach(button=>button.onclick=()=>restoreActivity(button));
  }
  window.TripTogetherShell?.render({trip,user,canEdit,members,expenses,contributions,actualFund,balances:expenseBalances});
- $('deleteTripBtn').classList.toggle('hidden',readOnly||trip.created_by!==user.id);$('shareBtn').classList.toggle('hidden',readOnly);$('inviteBtn').classList.toggle('hidden',readOnly);$('leaveBtn').classList.toggle('hidden',readOnly);$('addExpense').classList.toggle('hidden',!canEdit);$('addContribution').classList.toggle('hidden',!canEdit);$('editInitialFundBtn').classList.toggle('hidden',!canEdit);$('addMember').classList.toggle('hidden',!canEdit);$('addDebt').classList.toggle('hidden',!canEdit);$('syncStatus').textContent=readOnly?'Chế độ chỉ xem':canEdit?'Đã đồng bộ':'Chỉ xem · chưa được cấp quyền sửa';
+ $('deleteTripBtn').classList.toggle('hidden',readOnly||trip.created_by!==user.id);$('shareBtn').classList.toggle('hidden',readOnly);$('inviteBtn').classList.toggle('hidden',readOnly);$('leaveBtn').classList.toggle('hidden',readOnly);$('addExpense').classList.toggle('hidden',!canEdit);$('exportExcelBtn').classList.toggle('hidden',readOnly||!canEdit);$('addContribution').classList.toggle('hidden',!canEdit);$('editInitialFundBtn').classList.toggle('hidden',!canEdit);$('addMember').classList.toggle('hidden',!canEdit);$('addDebt').classList.toggle('hidden',!canEdit);$('syncStatus').textContent=readOnly?'Chế độ chỉ xem':canEdit?'Đã đồng bộ':'Chỉ xem · chưa được cấp quyền sửa';
 }
 // Always fetch a fresh, complete database snapshot, not the filtered UI list
 // or a potentially stale realtime cache. Paginate past Supabase's row limit.
