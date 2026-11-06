@@ -77,7 +77,7 @@ test('RLS migration stores files privately and restricts trip membership/editors
  assert.match(sql,/for select to authenticated/);
  assert.match(sql,/for delete to authenticated/);
  assert.doesNotMatch(sql,/for update to authenticated/);
- assert.match(sql,/array_length\(storage\.foldername\(name\),1\)=2/);
+ assert.match(sql,/array_length\(storage\.foldername\(storage\.objects\.name\),1\)=2/);
 });
 
 test('receipt persistence handles upload rollback, replacement and deletion',()=>{
