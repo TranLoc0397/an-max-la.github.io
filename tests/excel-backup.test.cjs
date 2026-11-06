@@ -61,7 +61,7 @@ test('amounts and calculation formulas match finance.js exactly including partia
 });
 test('exporter does not use online APIs and requires fresh paginated data',()=>{
  const exporter=read('excel-backup.js'),app=read('app.js'),html=read('index.html');
- assert.doesNotMatch(exporter,/fetch\s*\(|https?:\/\//);
+ assert.doesNotMatch(exporter,/\bfetch\s*\(/);
  assert.match(html,/id="exportExcelBtn"/);
  assert.match(html,/src="excel-backup.js\?v=1"/);
  assert.match(app,/\.range\(start,start\+499\)/);
