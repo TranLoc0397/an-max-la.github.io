@@ -7,7 +7,7 @@ alter table public.expenses
 alter table public.expenses
   add constraint expenses_receipt_path_shape check (
     receipt_path is null or (
-      receipt_path ~ ('^' || trip_id::text || '/' || id::text || '/[0-9a-f-]{36}\\.(jpg|png|webp)$')
+      receipt_path ~ ('^' || trip_id::text || '/' || id::text || '/[0-9a-f-]{36}[.](jpg|png|webp)$')
       and length(receipt_path) <= 200
     )
   );
@@ -36,7 +36,7 @@ drop policy if exists "trip receipts upload" on storage.objects;
 create policy "trip receipts upload" on storage.objects
 for insert to authenticated with check (
   bucket_id='trip-receipts'
-  and array_length(storage.foldername(name),1)=3
+  and array_length(storage.foldername(name),1)=2
   and public.can_edit_trip(((storage.foldername(name))[1])::uuid)
   and (storage.foldername(name))[2] ~ '^[0-9a-f-]{36}$'
   and storage.extension(name) in ('jpg','png','webp')
