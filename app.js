@@ -780,7 +780,7 @@ function selectExpenseReceipt(file){
  expenseReceiptObjectUrl=URL.createObjectURL(file);
  $('expenseReceiptPreview').src=expenseReceiptObjectUrl;
  $('expenseReceiptPreview').classList.remove('hidden');
- $('expenseReceiptRemove').checked=false;
+ $('expenseRemoveReceipt').checked=false;
  $('expenseReceiptStatus').textContent=file.name||'Ảnh chụp hóa đơn';
 }
 $('expensePickReceipt').onclick=()=>$('expenseReceiptFile').click();
