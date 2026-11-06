@@ -133,7 +133,7 @@
   const width=Math.max(1,...rows.map(x=>x.length));
   return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
    '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+
-   '<sheetViews><sheetView workbookViewId="0"/></sheetViews><dimension ref="A1:'+column(width-1)+Math.max(1,rows.length)+'"/>'+
+   '<dimension ref="A1:'+column(width-1)+Math.max(1,rows.length)+'"/><sheetViews><sheetView workbookViewId="0"/></sheetViews>'+
    '<sheetFormatPr defaultRowHeight="16"/><sheetData>'+body+'</sheetData></worksheet>';
  }
  const le16=(a,n)=>{a.push(n&255,(n>>>8)&255)};
