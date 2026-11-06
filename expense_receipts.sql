@@ -19,33 +19,38 @@ set public=false,
     file_size_limit=excluded.file_size_limit,
     allowed_mime_types=excluded.allowed_mime_types;
 
+-- Match the policies installed in Supabase on 2026-11-06.
+-- Compare trip IDs as text to avoid unsafe UUID casts on arbitrary object names.
 drop policy if exists "trip receipts read" on storage.objects;
 create policy "trip receipts read" on storage.objects
 for select to authenticated using (
-  bucket_id='trip-receipts'
-  and (
-    public.is_trip_member(((storage.foldername(name))[1])::uuid)
-    or exists (
-      select 1 from public.trips t
-      where t.id=((storage.foldername(name))[1])::uuid
-        and t.created_by=(select auth.uid())
-    )
-  )
+ bucket_id='trip-receipts' and exists (
+   select 1 from public.trips t
+   where t.id::text=(storage.foldername(name))[1]
+     and (t.created_by=(select auth.uid()) or public.is_trip_member(t.id))
+ )
 );
 drop policy if exists "trip receipts upload" on storage.objects;
 create policy "trip receipts upload" on storage.objects
 for insert to authenticated with check (
-  bucket_id='trip-receipts'
-  and array_length(storage.foldername(name),1)=2
-  and public.can_edit_trip(((storage.foldername(name))[1])::uuid)
-  and (storage.foldername(name))[2] ~ '^[0-9a-f-]{36}$'
-  and storage.extension(name) in ('jpg','png','webp')
+ bucket_id='trip-receipts'
+ and array_length(storage.foldername(name),1)=2
+ and (storage.foldername(name))[2] ~ '^[0-9a-f-]{36}$'
+ and storage.extension(name) in ('jpg','png','webp')
+ and exists (
+   select 1 from public.trips t
+   where t.id::text=(storage.foldername(name))[1]
+     and public.can_edit_trip(t.id)
+ )
 );
 drop policy if exists "trip receipts delete" on storage.objects;
 create policy "trip receipts delete" on storage.objects
 for delete to authenticated using (
-  bucket_id='trip-receipts'
-  and public.can_edit_trip(((storage.foldername(name))[1])::uuid)
+ bucket_id='trip-receipts' and exists (
+   select 1 from public.trips t
+   where t.id::text=(storage.foldername(name))[1]
+     and public.can_edit_trip(t.id)
+ )
 );
 -- No UPDATE policy: immutable, randomly named files uploaded with upsert:false.
 -- SQL migration doesn't delete storage objects for historic expense deletes;
