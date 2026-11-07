@@ -968,7 +968,7 @@ async function handleDeletedTrip(tripId){
 async function openTripList(){
  if(!trip)return;
  await closeTripView();
- window.scrollTo({top:0,behavior:'instant'});
+ window.scrollTo({top:0,behavior:'auto'});
 }
 $('tripListNavTop').addEventListener('click',openTripList);
 $('tripListNavSide').addEventListener('click',openTripList);
