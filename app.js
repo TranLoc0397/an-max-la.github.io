@@ -533,6 +533,9 @@ function render(){
    menu.open=!menu.open;
   });
   menu.addEventListener('toggle',()=>{
+   // Elevate the entire card: raising only the dropdown cannot escape a
+   // neighboring card's settings-button stacking context.
+   menu.closest('.member-row')?.classList.toggle('member-menu-open',menu.open);
    if(menu.open)$('memberList').querySelectorAll('.member-actions-menu').forEach(other=>{if(other!==menu)other.open=false});
   });
   menu.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>{menu.open=false}));
