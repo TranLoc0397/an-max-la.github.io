@@ -364,7 +364,7 @@ $('claimMemberForm').addEventListener('submit',async event=>{
 });
 $('sharedAccountBtn').onclick=openAccount;
 async function showTrip(){
- $('tripListNavTop').classList.remove('hidden');
+ 
  $('welcome').classList.add('hidden');
  $('app').classList.remove('hidden');
  $('shareBtn').classList.toggle('hidden',readOnly);
@@ -970,10 +970,10 @@ async function openTripList(){
  await closeTripView();
  window.scrollTo({top:0,behavior:'auto'});
 }
-$('tripListNavTop').addEventListener('click',openTripList);
+
 $('tripListNavSide').addEventListener('click',openTripList);
-async function closeTripView(){++refreshSequence;if(channel){await db.removeChannel(channel);channel=null}if(viewerTimer){clearInterval(viewerTimer);viewerTimer=null}if(editRequestTimer){clearInterval(editRequestTimer);editRequestTimer=null}trip=null;$('tripListNavTop').classList.add('hidden');window.TripTogetherShell?.closeTrip();history.replaceState({},'',location.pathname);$('app').classList.add('hidden');$('welcome').classList.remove('hidden');$('shareBtn').classList.add('hidden');await loadMyTrips()}
-$('deleteTripBtn').onclick=()=>{if(trip.created_by!==user.id)return;if(!localizedConfirm(`Delete “${trip.name}” and permanently remove all its expenses, deposits, and members? This cannot be undone.`))return;return withButtonLoading($('deleteTripBtn'),'Deleting…',async()=>{try{const {error}=await db.rpc('delete_trip',{p_trip_id:trip.id});if(error){localizedAlert(`Could not delete trip: ${error.message}\nIf delete-trip support is not installed yet, run delete_trip.sql in the Supabase SQL Editor.`);return}++refreshSequence;if(channel)await db.removeChannel(channel);channel=null;if(editRequestTimer){clearInterval(editRequestTimer);editRequestTimer=null}if(viewerTimer){clearInterval(viewerTimer);viewerTimer=null}trip=null;$('tripListNavTop').classList.add('hidden');window.TripTogetherShell?.closeTrip();history.replaceState({},'',location.pathname);$('app').classList.add('hidden');$('welcome').classList.remove('hidden');$('shareBtn').classList.add('hidden');await loadMyTrips()}catch(error){localizedAlert(`Could not delete trip: ${error.message}`)}})};
+async function closeTripView(){++refreshSequence;if(channel){await db.removeChannel(channel);channel=null}if(viewerTimer){clearInterval(viewerTimer);viewerTimer=null}if(editRequestTimer){clearInterval(editRequestTimer);editRequestTimer=null}trip=null;window.TripTogetherShell?.closeTrip();history.replaceState({},'',location.pathname);$('app').classList.add('hidden');$('welcome').classList.remove('hidden');$('shareBtn').classList.add('hidden');await loadMyTrips()}
+$('deleteTripBtn').onclick=()=>{if(trip.created_by!==user.id)return;if(!localizedConfirm(`Delete “${trip.name}” and permanently remove all its expenses, deposits, and members? This cannot be undone.`))return;return withButtonLoading($('deleteTripBtn'),'Deleting…',async()=>{try{const {error}=await db.rpc('delete_trip',{p_trip_id:trip.id});if(error){localizedAlert(`Could not delete trip: ${error.message}\nIf delete-trip support is not installed yet, run delete_trip.sql in the Supabase SQL Editor.`);return}++refreshSequence;if(channel)await db.removeChannel(channel);channel=null;if(editRequestTimer){clearInterval(editRequestTimer);editRequestTimer=null}if(viewerTimer){clearInterval(viewerTimer);viewerTimer=null}trip=null;window.TripTogetherShell?.closeTrip();history.replaceState({},'',location.pathname);$('app').classList.add('hidden');$('welcome').classList.remove('hidden');$('shareBtn').classList.add('hidden');await loadMyTrips()}catch(error){localizedAlert(`Could not delete trip: ${error.message}`)}})};
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&trip)void refresh()});
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));
 init();
