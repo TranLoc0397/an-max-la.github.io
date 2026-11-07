@@ -1534,3 +1534,20 @@ select:hover{border-color:#cfc9ef}
 .excel-export-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
 #exportExcelBtn{white-space:nowrap;min-height:40px}
 @media(max-width:600px){#expensesTab>.sectionhead{flex-wrap:wrap;gap:12px}.excel-export-actions{width:100%;justify-content:stretch}.excel-export-actions button{flex:1 1 145px}}
+
+/* Date sorting and expandable financial audit changes */
+.expense-toolbar{grid-template-columns:minmax(0,2fr) repeat(3,minmax(130px,1fr))}
+.sort-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin:8px 0 12px;flex-wrap:wrap}
+.sort-toolbar label{font-size:12px;font-weight:600;color:var(--muted)}
+.sort-toolbar select{min-height:40px;max-width:210px;padding:8px 30px 8px 12px;font-size:13px}
+.audit-detail{margin-top:9px;max-width:100%}
+.audit-detail summary{cursor:pointer;color:#6559e8;font-weight:700;font-size:12px;list-style:revert}
+.audit-detail summary:focus-visible{outline:2px solid #6559e8;outline-offset:3px;border-radius:4px}
+.audit-changes{display:grid;gap:6px;margin-top:9px;padding:11px 12px;border:1px solid #e9e5fa;background:#faf9ff;border-radius:10px}
+.audit-change{display:grid;grid-template-columns:minmax(90px,35%) minmax(0,1fr);gap:8px;align-items:start;font-size:12px;line-height:1.55}
+.audit-field{font-weight:700;color:#413977}
+.audit-values{overflow-wrap:anywhere}
+.audit-old{color:#8c545a;text-decoration:line-through}
+.audit-new{color:#3d6b55;font-weight:600}
+@media(max-width:800px){.expense-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.expense-toolbar>input{grid-column:1/-1}}
+@media(max-width:480px){.sort-toolbar{justify-content:space-between}.sort-toolbar select{max-width:65%}.audit-change{grid-template-columns:1fr;gap:0}}
