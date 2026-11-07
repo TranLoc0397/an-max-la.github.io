@@ -2,6 +2,8 @@
 (function(){
 'use strict';
 const dictionary={
+  "Danh sách chuyến đi":"My trips",
+  "Xem tất cả chuyến đi":"View all trips",
   "Chỉ thành viên đã liên kết tài khoản email mới hiện ở đây. Host có thể gắn email cho thành viên thủ công trong mục Sửa.":"Only members linked to an email account appear here. The Host can assign an email to a member under Edit.","Chưa có thành viên nào đã liên kết tài khoản.":"No members have linked an account yet.",
   "Chuyến đi này đã bị xóa hoặc bạn không còn quyền truy cập.":"This trip was deleted or you no longer have access.",
   "Tính năng hợp nhất chưa được cài trên máy chủ. Host cần chạy merge_duplicate_trip_members.sql trong Supabase SQL Editor. Dữ liệu chưa bị thay đổi.":"Member merging is not installed on the server yet. The Host needs to run merge_duplicate_trip_members.sql in the Supabase SQL Editor. No data was changed.",
