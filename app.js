@@ -495,15 +495,15 @@ function render(){
  const categories=[...new Set(displayExpenses.map(x=>x.category||'Khác'))].sort((a,b)=>a.localeCompare(b,'vi'));
  categoryFilter.innerHTML='<option value="">Tất cả danh mục</option>'+categories.map(category=>`<option value="${esc(category)}">${esc(categoryLabel(category))}</option>`).join('');
  categoryFilter.value=categories.includes(existingCategory)?existingCategory:'';
- const visibleExpenses=window.TripTogetherUI.filterExpenses(displayExpenses,{
+ const visibleExpenses=window.TripTogetherUI.sortByDate(window.TripTogetherUI.filterExpenses(displayExpenses,{
    query:searchInput.value,category:categoryFilter.value,status:statusFilter.value
- });
+ }),'spent_on',$('expenseDateSort').value);
  expenseList.innerHTML=visibleExpenses.length?visibleExpenses.map(x=>{
    const isPersonal=!!x.payer_id,paid=Number(x.paid_amount||0),remaining=Number(x.amount)-paid;
    const refundLabel=!isPersonal?'Trả trực tiếp từ quỹ':remaining===0?'Quỹ đã hoàn trả':paid>0?'Đã hoàn một phần: '+money(paid)+' / '+money(x.amount):'Quỹ còn nợ '+esc(x.payer_name||'thành viên');
    return `<div class="item record-row"><div class="record-main"><div class="record-title">${esc(x.title)}</div><div class="record-meta">${esc(x.spent_on)} · ${esc(categoryLabel(x.category))} · ${isPersonal?'Ứng bởi '+esc(x.payer_name||'thành viên'):'Lấy từ quỹ chung'}</div><div class="record-status ${isPersonal&&remaining>0?(paid>0?'record-status-partial':'record-status-due'):''}">${refundLabel}</div>${x.note?`<div class="record-note">${esc(x.note)}</div>`:''}${x.receipt_path&&(user&&(trip.created_by===user.id||members.some(m=>m.user_id===user.id||m.account_user_id===user.id)))?`<button type="button" class="secondary compact expense-view-receipt" data-receipt-path="${esc(x.receipt_path)}">Xem ảnh hóa đơn</button>`:''}</div><div class="record-meta record-amount">${money(x.amount)}</div>${canEdit?`<div class="record-buttons">${isPersonal&&remaining>0?`<button class="secondary compact record-payment" data-kind="expense" data-id="${esc(x.id)}" data-reverse="false">Ghi hoàn trả</button>`:''}${isPersonal&&paid>0?`<button class="secondary compact record-payment" data-kind="expense" data-id="${esc(x.id)}" data-reverse="true">Hoàn tác thanh toán</button>`:''}<button class="secondary compact edit-expense" data-id="${esc(x.id)}">Sửa</button><button class="danger compact delete-expense" data-id="${esc(x.id)}" data-title="${esc(x.title)}" aria-label="Xóa khoản chi ${esc(x.title)}">Xóa</button></div>`:''}</div>`;
  }).join(''):'<p class="muted ledger-empty">'+(expenses.length?'Không tìm thấy khoản chi phù hợp.':'Chưa có khoản chi. Thêm khoản chi đầu tiên.')+'</p>';
- contributionList.innerHTML=contributions.length?contributions.map(x=>`<div class="item record-row"><div class="record-main"><div class="record-title">${esc(x.note||'Đóng quỹ')}</div><div class="record-meta">${esc(x.paid_on)} · ${esc(x.payer_name)}</div></div><div class="record-meta record-amount">${money(x.amount)}</div>${canEdit?`<div class="record-buttons"><button class="secondary compact edit-contribution" data-id="${esc(x.id)}">Sửa</button><button class="danger compact delete-contribution" data-id="${esc(x.id)}" data-note="${esc(x.note||'Đóng quỹ')}" aria-label="Xóa khoản đóng quỹ">Xóa</button></div>`:''}</div>`).join(''):'<p class="muted ledger-empty">Chưa có khoản đóng thêm.</p>';
+ contributionList.innerHTML=contributions.length?window.TripTogetherUI.sortByDate(contributions,'paid_on',$('fundDateSort').value).map(x=>`<div class="item record-row"><div class="record-main"><div class="record-title">${esc(x.note||'Đóng quỹ')}</div><div class="record-meta">${esc(x.paid_on)} · ${esc(x.payer_name)}</div></div><div class="record-meta record-amount">${money(x.amount)}</div>${canEdit?`<div class="record-buttons"><button class="secondary compact edit-contribution" data-id="${esc(x.id)}">Sửa</button><button class="danger compact delete-contribution" data-id="${esc(x.id)}" data-note="${esc(x.note||'Đóng quỹ')}" aria-label="Xóa khoản đóng quỹ">Xóa</button></div>`:''}</div>`).join(''):'<p class="muted ledger-empty">Chưa có khoản đóng thêm.</p>';
  expenseList.querySelectorAll('.edit-expense').forEach(button=>button.onclick=()=>openExpense(expenses.find(x=>x.id===button.dataset.id)));
  expenseList.querySelectorAll('.expense-view-receipt').forEach(button=>button.onclick=async()=>{
   const current=button.dataset.receiptPath;
@@ -595,7 +595,7 @@ function render(){
  if(!readOnly){
   const entityNames={expenses:'Khoản chi',contributions:'Đóng quỹ',member_debts:'Nợ riêng',trip_payments:'Thanh toán'};
   const actionNames={INSERT:'Đã thêm',UPDATE:'Đã sửa',DELETE:'Đã xóa'};
-  activityList.innerHTML=activityEvents.length?activityEvents.map(event=>{
+  activityList.innerHTML=activityEvents.length?window.TripTogetherUI.sortByDate(activityEvents,'recorded_at',$('activityDateSort').value).map(event=>{
    const d=event.after_data||event.before_data||{},entity=entityNames[event.source_table]||event.source_table;
    const title=d.title||d.note||d.payer_name||entity;
    const exists=event.source_table==='expenses'?expenses.some(x=>x.id===event.record_id):
@@ -603,7 +603,28 @@ function render(){
    const canRestore=canEdit&&event.action==='DELETE'&&!exists&&
      (event.source_table==='expenses'||event.source_table==='contributions');
    const actor=event.actor_id?memberDisplay(event.actor_id):'Hệ thống';
-   return `<div class="item activity-entry"><div><b>${esc(actionNames[event.action]||event.action)} · ${esc(entity)}</b><small class="activity-meta">${esc(String(title).slice(0,70))} · ${esc(actor)} · ${esc(new Date(event.recorded_at).toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'}))}</small></div>${canRestore?`<button type="button" class="secondary compact restore-activity" data-id="${esc(event.id)}">Khôi phục</button>`:''}</div>`;
+   const changes=window.TripTogetherUI.activityChanges(event);
+   const displayChange=(key,value)=>{
+    if(value===null||value===undefined||value==='')return 'Không có';
+    if(key==='receipt_path')return 'Có ảnh đính kèm';
+    if(key==='amount')return money(value);
+    if(['payer_id','debtor_id','creditor_id'].includes(key))return memberDisplay(value);
+    if(['reimbursed','is_settled'].includes(key))return value?'Có':'Không';
+    if(['reimbursed_at','settled_at'].includes(key)){
+     const date=new Date(value);return Number.isNaN(date.getTime())?String(value):date.toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'});
+    }
+    if(key==='category')return categoryLabel(value);
+    return String(value);
+   };
+   const changedRows=changes.map(change=>{
+    const before=displayChange(change.key,change.before),after=displayChange(change.key,change.after);
+    const description=event.action==='UPDATE'
+     ?`<span class="audit-old">${esc(before)}</span><span aria-hidden="true"> → </span><span class="audit-new">${esc(after)}</span>`
+     :esc(displayChange(change.key,event.action==='DELETE'?change.before:change.after));
+    return `<div class="audit-change"><span class="audit-field">${esc(change.label)}</span><span class="audit-values">${description}</span></div>`;
+   }).join('');
+   const detail=changedRows||'<p class="muted small">Không có trường dữ liệu nào thay đổi.</p>';
+   return `<div class="item activity-entry"><div><b>${esc(actionNames[event.action]||event.action)} · ${esc(entity)}</b><small class="activity-meta">${esc(String(title).slice(0,70))} · ${esc(actor)} · ${esc(new Date(event.recorded_at).toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'}))}</small><details class="audit-detail"><summary>Chi tiết thay đổi (${changes.length})</summary><div class="audit-changes">${detail}</div></details></div>${canRestore?`<button type="button" class="secondary compact restore-activity" data-id="${esc(event.id)}">Khôi phục</button>`:''}</div>`;
   }).join(''):'<p class="muted small">Chưa có thay đổi nào được ghi nhận.</p>';
   activityList.querySelectorAll('.restore-activity').forEach(button=>button.onclick=()=>restoreActivity(button));
  }
@@ -829,13 +850,14 @@ $('expenseReceiptCamera').addEventListener('change',event=>{if(event.target.file
 $('expenseDialog').addEventListener('close',()=>resetExpenseReceiptPicker());
 
 function openExpense(record=null){$('expenseForm').reset();$('expenseId').value=record?.id||'';$('expenseTitle').value=record?.title||'';$('expenseAmount').value=record?.amount||'';$('expenseDate').value=record?.spent_on||dateToday();$('expenseNote').value=record?.note||'';if(record?.category&&!Array.from($('expenseCategory').options).some(o=>o.value===record.category))$('expenseCategory').add(new Option(record.category,record.category));$('expenseCategory').value=record?.category||'Food';if(record?.payer_id)$('expensePayer').value=record.payer_id;$('expenseDialogTitle').textContent=record?'Sửa khoản chi':'Thêm khoản chi';$('expenseSave').textContent=record?'Lưu thay đổi':'Lưu khoản chi';resetExpenseReceiptPicker(record);$('expenseDialog').showModal()}
-function openContribution(record=null){$('fundForm').reset();$('fundId').value=record?.id||'';$('fundAmount').value=record?.amount||'';$('fundDate').value=record?.paid_on||dateToday();$('fundNote').value=record?.note||'';if(record?.payer_id)$('fundPayer').value=record.payer_id;$('fundDialogTitle').textContent=record?'Sửa khoản đóng quỹ':'Đóng quỹ thêm';$('fundSave').textContent=record?'Lưu thay đổi':'Lưu khoản đóng';$('fundDialog').showModal()}
+function openContribution(record=null){$('fundForm').reset();$('fundId').value=record?.id||'';$('fundAmount').value=record?.amount||'';$('fundDate').value=record?.paid_on||dateToday();$('fundNote').value=record?.note||'';if(record?.payer_id)$('fundPayer').value=record.payer_id;$('fundDialogTitle').textContent=record?'Sửa khoản đóng quỹ':'Ghi đóng quỹ';$('fundSave').textContent=record?'Lưu thay đổi':'Lưu khoản đóng';$('fundDialog').showModal()}
 const settle = balances => window.TripTogetherFinance.settle(balances);
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function invite(ev){const button=ev?.currentTarget;if(!button)return;return withButtonLoading(button,'Đang tạo link…',async()=>{const url=location.origin+location.pathname+'?trip='+trip.invite_code;try{await navigator.clipboard.writeText(url);localizedAlert('Đã sao chép link xem (không cần mã). Chỉ chia sẻ với người đáng tin cậy.\n'+url)}catch{localizedAlert('Link xem chuyến đi (không cần mã, hãy giữ kín):\n'+url)}})}
 $('expenseSearch').addEventListener('input',()=>{if(trip)render()});
 $('expenseCategoryFilter').addEventListener('change',()=>{if(trip)render()});
 $('expenseStatusFilter').addEventListener('change',()=>{if(trip)render()});
+['expenseDateSort','fundDateSort','activityDateSort'].forEach(id=>$(id).addEventListener('change',()=>{if(trip)render()}));
 document.querySelectorAll('.tabs .tab[data-tab]').forEach(button=>button.onclick=()=>{
   const view=button.dataset.tab;
   if(window.TripTogetherShell?.activate){
