@@ -48,5 +48,34 @@
    }));
    return {showButton:true,showPanel:true,state:rows.length?'list':'empty',rows};
  }
- return {filterExpenses,sharedAccess,memberPermissionView};
+
+// Sort by event date first, then exact creation timestamp when dates match.
+// ISO dates are intentionally compared lexically so there is no timezone shift.
+function sortByDate(items,dateField,direction='newest'){
+ const sign=direction==='oldest'?1:-1;
+ const time=value=>String(value||'');
+ return [...items].sort((a,b)=>{
+  const date=time(a[dateField]).localeCompare(time(b[dateField]));
+  if(date)return date*sign;
+  const exact=time(a.created_at||a.recorded_at).localeCompare(time(b.created_at||b.recorded_at));
+  if(exact)return exact*sign;
+  return time(a.id).localeCompare(time(b.id))*sign;
+ });
+}
+const AUDIT_FIELDS={
+ expenses:{title:'Hạng mục',amount:'Số tiền',payer_id:'Người ứng tiền',payer_name:'Người thanh toán',spent_on:'Ngày chi',category:'Phân loại',note:'Ghi chú',receipt_path:'Ảnh hóa đơn',reimbursed:'Đã hoàn trả',reimbursed_at:'Thời điểm hoàn trả'},
+ contributions:{amount:'Số tiền',payer_id:'Người đóng',payer_name:'Tên người đóng',paid_on:'Ngày đóng',note:'Ghi chú'},
+ member_debts:{amount:'Số tiền',debtor_id:'Người nợ',creditor_id:'Người cho vay',incurred_on:'Ngày ghi nợ',is_settled:'Đã thanh toán',settled_at:'Thời điểm thanh toán',note:'Ghi chú'},
+ trip_payments:{amount:'Số tiền',expense_id:'Khoản chi liên quan',debt_id:'Khoản nợ liên quan',paid_on:'Ngày thanh toán',note:'Ghi chú'}
+};
+function activityChanges(event){
+ const before=event.before_data||{},after=event.after_data||{};
+ const allowed=AUDIT_FIELDS[event.source_table]||{};
+ return Object.entries(allowed).filter(([key])=>{
+  const oldValue=before[key]??null,newValue=after[key]??null;
+  if(event.action==='UPDATE')return JSON.stringify(oldValue)!==JSON.stringify(newValue);
+  return (event.action==='DELETE'?oldValue:newValue)!==null&&(event.action==='DELETE'?oldValue:newValue)!=='';
+ }).map(([key,label])=>({key,label,before:before[key]??null,after:after[key]??null}));
+}
+ return {filterExpenses,sharedAccess,memberPermissionView,sortByDate,activityChanges};
 });
