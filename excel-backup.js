@@ -72,13 +72,13 @@
    ['No rieng con lai',enrichedDebts.reduce((n,d)=>n+Math.max(0,number(d.amount)-number(d.paid_amount)),0),'Khong cong vao can doi quy'],
    ['Xuat luc',new Date().toISOString(),'Ban sao tai thoi diem xuat'],
    ['Quy can du phong',reminders.reduce((sum,x)=>sum+Math.max(0,number(x.total_amount)-number(x.paid_amount)),0),'Chi la so tien du kien; chua tru vao tien mat quy'],
-   ['Tien mat sau du phong',number(totals.cashFund)-reminders.reduce((sum,x)=>sum+Math.max(0,number(x.total_amount)-number(x.paid_amount)),0),'Tien mat quy tru di cac khoan can giu lai']
+   ['Tien mat sau du phong',number(totals.actualFund)-reminders.reduce((sum,x)=>sum+Math.max(0,number(x.total_amount)-number(x.paid_amount)),0),'Tien mat quy tru di cac khoan can giu lai']
   ];
   const fm={
    3:null,
    5:'SUM('+er('G')+')',6:'SUM('+cr('E')+')',7:'B4+B6',
    8:'SUM('+er('L')+')',9:'SUM('+er('M')+')',10:'B7-B8',11:'B10-B9',
-   12:'IFERROR(B5/B3,0)',13:'SUM('+dr('I')+')',15:'SUM('+range('Nhac quy','F',reminders.length)+')',16:'B10-B15'
+   12:'IFERROR(B5/B3,0)',13:'SUM('+dr('I')+')',15:'SUM('+range('Nhac quy','F',reminders.length)+')',16:'B11-B15'
   };
   Object.entries(fm).forEach(([row,f])=>{if(f)summary[Number(row)-1][1]=c(summary[Number(row)-1][1],f)});
   const transferRows=[['Loai','Nguoi chuyen','Nguoi nhan','So tien (VND)','Ghi chu']];
