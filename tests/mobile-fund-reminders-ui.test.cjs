@@ -9,8 +9,8 @@ test('fund reservation summary is shown before the add reminder action',()=>{
  const panel=html.slice(html.indexOf('class="fund-reminder-panel"'),html.indexOf('</section>',html.indexOf('class="fund-reminder-panel"')));
  assert.ok(panel.indexOf('id="fundReminderSummary"')<panel.indexOf('id="addFundReminder"'));
  assert.match(panel,/aria-live="polite"/);
- assert.match(html,/styles\.css\?v=75/);
- assert.match(html,/app\.js\?v=78/);
+ assert.match(html,/styles\.css\?v=76/);
+ assert.match(html,/app\.js\?v=79/);
 });
 test('summary renders independent reservation and remaining fund cards without modifying ledger totals',()=>{
  const app=read('app.js');

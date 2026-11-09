@@ -517,7 +517,11 @@ function render(){
  }
  const today=dateToday();
  const outstandingReminders=window.TripTogetherUI.sortByDate(fundReminders,'due_on','oldest').filter(x=>reminderMath.remaining(x)>0);
- reminderPanel.innerHTML=fundRemindersAvailable?(fundReminders.length?window.TripTogetherUI.sortByDate(fundReminders,'due_on','oldest').map(item=>{
+ const reminderSort=$('fundReminderSort').value;
+ const sortedReminders=reminderSort==='due_soon'
+  ?window.TripTogetherUI.sortByDate(fundReminders,'due_on','oldest')
+  :window.TripTogetherUI.sortByDate(fundReminders,'created_at',reminderSort);
+ reminderPanel.innerHTML=fundRemindersAvailable?(fundReminders.length?sortedReminders.map(item=>{
   const remaining=reminderMath.remaining(item),overdue=!!item.due_on&&item.due_on<today&&remaining>0;
   const state=remaining===0?'Đã đủ khoản cần trả':overdue?'Đã quá hạn':item.due_on?'Hạn: '+item.due_on:'Chưa đặt hạn';
   return `<div class="item fund-reminder-row"><div class="fund-reminder-info"><b>${esc(item.title)}</b><small>${esc(state)} · Tổng ${money(item.total_amount)} · Đã cọc/trả ${money(item.paid_amount)}</small>${item.note?`<small>${esc(item.note)}</small>`:''}</div><div class="fund-reminder-right"><div class="fund-reminder-amount"><strong class="${overdue?'fund-reminder-overdue':''}">${money(remaining)}</strong><small>${remaining?'Cần giữ lại':'Đã thanh toán'}</small></div>${canEdit?`<div class="fund-reminder-actions"><button class="secondary compact edit-fund-reminder" data-id="${esc(item.id)}" type="button">Sửa</button><button class="danger compact delete-fund-reminder" data-id="${esc(item.id)}" type="button">Xóa</button></div>`:''}</div></div>`;
@@ -952,7 +956,7 @@ function invite(ev){const button=ev?.currentTarget;if(!button)return;return with
 $('expenseSearch').addEventListener('input',()=>{if(trip)render()});
 $('expenseCategoryFilter').addEventListener('change',()=>{if(trip)render()});
 $('expenseStatusFilter').addEventListener('change',()=>{if(trip)render()});
-['expenseDateSort','fundDateSort','activityDateSort'].forEach(id=>$(id).addEventListener('change',()=>{if(trip)render()}));
+['expenseDateSort','fundDateSort','activityDateSort','fundReminderSort'].forEach(id=>$(id).addEventListener('change',()=>{if(trip)render()}));
 document.querySelectorAll('.tabs .tab[data-tab]').forEach(button=>button.onclick=()=>{
   const view=button.dataset.tab;
   if(window.TripTogetherShell?.activate){

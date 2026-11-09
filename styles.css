@@ -1661,3 +1661,13 @@ select:hover{border-color:#cfc9ef}
  .fund-reminder-right{align-items:flex-start}
  .fund-reminder-amount{align-items:flex-start}
 }
+
+/* Fund reservation list order control: readable, touch-friendly on mobile. */
+.fund-reminder-sort-toolbar{margin:4px 0 12px;gap:10px;justify-content:space-between}
+.fund-reminder-sort-toolbar label{font-size:13px;color:#383164;font-weight:700}
+.fund-reminder-sort-toolbar select{min-width:148px;max-width:100%;min-height:44px;border-radius:11px}
+@media(max-width:420px){
+ .fund-reminder-sort-toolbar{align-items:stretch}
+ .fund-reminder-sort-toolbar label{flex:1 1 100%;line-height:1.4}
+ .fund-reminder-sort-toolbar select{width:100%;max-width:100%}
+}
