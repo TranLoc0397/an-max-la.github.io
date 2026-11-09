@@ -496,7 +496,7 @@ function render(){
  const displayExpenses=enriched.expenses,displayDebts=enriched.debts;
  const {spent,additional,initial,fund,dueToMembers,cashFund,actualFund}=window.TripTogetherFinance.calculateTotals(trip,displayExpenses,contributions);
  const reminderMath=window.TripTogetherFundReminders;
- const remainingReminder=reminderMath.totals(fundReminders,cashFund);
+ const remainingReminder=reminderMath.totals(fundReminders,actualFund);
  const reminderPanel=$('fundReminderList'),reminderOverview=$('fundReminderOverview');
  $('addFundReminder').classList.toggle('hidden',readOnly||!canEdit||!fundRemindersAvailable);
  $('fundReminderSetup').classList.toggle('hidden',readOnly||fundRemindersAvailable);
