@@ -500,15 +500,27 @@ function render(){
  const reminderPanel=$('fundReminderList'),reminderOverview=$('fundReminderOverview');
  $('addFundReminder').classList.toggle('hidden',readOnly||!canEdit||!fundRemindersAvailable);
  $('fundReminderSetup').classList.toggle('hidden',readOnly||fundRemindersAvailable);
- $('fundReminderSummary').textContent=fundRemindersAvailable&&remainingReminder.outstanding
-   ?'Cần dự phòng: '+money(remainingReminder.outstanding)+' · Sau khi giữ lại: '+money(remainingReminder.afterReservations)
-   :fundRemindersAvailable?'Chưa có khoản thanh toán cần dự phòng.':'';
+ // Two distinct amounts are easier to read on a phone than an inline sentence.
+ // These are planning figures only; never subtract them from the actual fund ledger.
+ const reserveSummary=$('fundReminderSummary');
+ if(fundRemindersAvailable&&remainingReminder.outstanding){
+  reserveSummary.innerHTML=`<div class="fund-reserve-card" aria-label="Cần dự phòng ${money(remainingReminder.outstanding)}">
+   <span class="fund-reserve-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="9" cy="6" rx="5" ry="2.5"/><path d="M4 6v4c0 1.4 2.2 2.5 5 2.5 1.1 0 2.1-.2 2.9-.5M4 10v4c0 1.4 2.2 2.5 5 2.5h1"/><ellipse cx="16" cy="14" rx="5" ry="2.5"/><path d="M11 14v4c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5v-4"/></svg></span>
+   <span class="fund-reserve-details"><span class="fund-reserve-label">Cần dự phòng</span><strong class="fund-reserve-value">${money(remainingReminder.outstanding)}</strong></span>
+  </div>
+  <div class="fund-reserve-card fund-reserve-card-remaining ${remainingReminder.afterReservations<0?'fund-reserve-card-shortfall':''}" aria-label="Quỹ còn lại sau dự phòng ${money(remainingReminder.afterReservations)}">
+   <span class="fund-reserve-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="15" rx="3"/><path d="M3 9V6a3 3 0 0 1 3-3h11M14 13h7v5h-7a2.5 2.5 0 0 1 0-5z"/></svg></span>
+   <span class="fund-reserve-details"><span class="fund-reserve-label">Sau khi giữ lại</span><strong class="fund-reserve-value">${money(remainingReminder.afterReservations)}</strong></span>
+  </div>`;
+ }else{
+  reserveSummary.textContent=fundRemindersAvailable?'Chưa có khoản thanh toán cần dự phòng.':'';
+ }
  const today=dateToday();
  const outstandingReminders=window.TripTogetherUI.sortByDate(fundReminders,'due_on','oldest').filter(x=>reminderMath.remaining(x)>0);
  reminderPanel.innerHTML=fundRemindersAvailable?(fundReminders.length?window.TripTogetherUI.sortByDate(fundReminders,'due_on','oldest').map(item=>{
   const remaining=reminderMath.remaining(item),overdue=!!item.due_on&&item.due_on<today&&remaining>0;
   const state=remaining===0?'Đã đủ khoản cần trả':overdue?'Đã quá hạn':item.due_on?'Hạn: '+item.due_on:'Chưa đặt hạn';
-  return `<div class="item fund-reminder-row"><div class="fund-reminder-info"><b>${esc(item.title)}</b><small>${esc(state)} · Tổng ${money(item.total_amount)} · Đã cọc/trả ${money(item.paid_amount)}</small>${item.note?`<small>${esc(item.note)}</small>`:''}</div><div class="fund-reminder-right"><strong class="${overdue?'fund-reminder-overdue':''}">${money(remaining)}</strong><small>${remaining?'Cần giữ lại':'Đã thanh toán'}</small>${canEdit?`<div class="fund-reminder-actions"><button class="secondary compact edit-fund-reminder" data-id="${esc(item.id)}" type="button">Sửa</button><button class="danger compact delete-fund-reminder" data-id="${esc(item.id)}" type="button">Xóa</button></div>`:''}</div></div>`;
+  return `<div class="item fund-reminder-row"><div class="fund-reminder-info"><b>${esc(item.title)}</b><small>${esc(state)} · Tổng ${money(item.total_amount)} · Đã cọc/trả ${money(item.paid_amount)}</small>${item.note?`<small>${esc(item.note)}</small>`:''}</div><div class="fund-reminder-right"><div class="fund-reminder-amount"><strong class="${overdue?'fund-reminder-overdue':''}">${money(remaining)}</strong><small>${remaining?'Cần giữ lại':'Đã thanh toán'}</small></div>${canEdit?`<div class="fund-reminder-actions"><button class="secondary compact edit-fund-reminder" data-id="${esc(item.id)}" type="button">Sửa</button><button class="danger compact delete-fund-reminder" data-id="${esc(item.id)}" type="button">Xóa</button></div>`:''}</div></div>`;
  }).join(''):'<p class="muted small">Chưa có nhắc thanh toán.</p>'):'';
  reminderOverview.classList.toggle('hidden',!fundRemindersAvailable||!outstandingReminders.length);
  if(fundRemindersAvailable&&outstandingReminders.length){
