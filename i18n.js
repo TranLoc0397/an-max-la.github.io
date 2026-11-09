@@ -2,6 +2,20 @@
 (function(){
 'use strict';
 const dictionary={
+  "Tiền tệ":"Currency",
+  "Số tiền gốc":"Original amount",
+  "Tỷ giá":"Exchange rate",
+  "Lấy tỷ giá hôm nay":"Get today's rate",
+  "Đang lấy tỷ giá…":"Fetching rate…",
+  "Quy đổi (VNĐ)":"Converted (VND)",
+  "Nhập số tiền gốc và tỷ giá để quy đổi sang VND.":"Enter the original amount and rate to convert to VND.",
+  "Tỷ giá tham khảo từ open.er-api.com. Bạn có thể sửa theo tỷ giá thực tế đã đổi.":"Reference rate from open.er-api.com. Edit it to match the rate you actually got.",
+  "Vui lòng nhập số tiền gốc lớn hơn 0.":"Enter an original amount greater than 0.",
+  "Vui lòng nhập tỷ giá lớn hơn 0.":"Enter an exchange rate greater than 0.",
+  "Số tiền quy đổi phải ít nhất 1 ₫.":"The converted amount must be at least 1 ₫.",
+  "Số tiền quy đổi quá lớn.":"The converted amount is too large.",
+  "Loại tiền tệ không được hỗ trợ.":"This currency is not supported.",
+  "Tỷ giá không hợp lệ.":"Invalid exchange rate.",
   "Cần dự phòng":"Reserve needed",
   "Sau khi giữ lại":"After reserving",
   "Đã đủ khoản cần trả":"Fully paid",
@@ -365,6 +379,7 @@ function translation(original){
  if(translated)return translated;
  const variablePrefixes={
   'Quỹ còn nợ: ':'Fund owes: ',
+  'Tỷ giá (1 ':'Exchange rate (1 ',
   'Quỹ nợ ':'Fund owes ',
   'Mỗi người chịu ~':'Each person ~',
   'Không thể tạo chuyến: ':'Could not create trip: ',
