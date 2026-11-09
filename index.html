@@ -5,7 +5,7 @@
 <meta name="theme-color" content="#6559e8"><meta name="description" content="Quản lý chi tiêu và quỹ chung cho chuyến đi">
 <link rel="stylesheet" href="airport-background.css?v=1">
 <link rel="manifest" href="manifest.webmanifest?v=3"><link rel="icon" href="triptogether-purple-icon.png?v=3" type="image/png" sizes="160x160"><link rel="apple-touch-icon" href="triptogether-purple-icon.png?v=3">
-<title>TripTogether</title><link rel="stylesheet" href="styles.css?v=74">
+<title>TripTogether</title><link rel="stylesheet" href="styles.css?v=75">
 </head>
 <body>
 <div class="airport-scene" aria-hidden="true">
@@ -132,10 +132,10 @@
   <section class="fund-reminder-panel" aria-labelledby="fundReminderTitle">
     <div class="sectionhead">
       <div><h2 id="fundReminderTitle">Nhắc dự phòng quỹ</h2><p class="muted small">Theo dõi khoản phải thanh toán và số tiền cần giữ lại trong quỹ. Chưa trừ vào số dư quỹ hoặc tổng chi.</p></div>
-      <button id="addFundReminder" class="secondary compact" type="button">+ Thêm nhắc thanh toán</button>
     </div>
     <div id="fundReminderSetup" class="muted small hidden" role="status">Tính năng chưa được cấu hình. Host cần cài trip_fund_reminders.sql.</div>
-    <div id="fundReminderSummary" class="fund-reminder-summary"></div>
+    <div id="fundReminderSummary" class="fund-reminder-summary" role="status" aria-live="polite"></div>
+    <button id="addFundReminder" class="secondary compact fund-reminder-add" type="button">+ Thêm nhắc thanh toán</button>
     <div id="fundReminderList" class="list ledger-list" aria-live="polite"></div>
   </section>
     <div class="sectionhead"><div><h2>Theo dõi quỹ</h2><p class="muted small">Quỹ ban đầu được tính riêng. Các lần đóng thêm nằm trong danh sách dưới đây.</p></div><div class="section-actions"><button class="primary compact" id="addContribution"><svg class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg> Ghi đóng quỹ</button></div></div><div class="sort-toolbar"><label for="fundDateSort">Sắp xếp theo ngày</label><select id="fundDateSort" aria-label="Sắp xếp đóng quỹ theo ngày"><option value="newest">Mới nhất trước</option><option value="oldest">Cũ nhất trước</option></select></div><div id="contributionList" class="list ledger-list"></div>
@@ -293,5 +293,5 @@ window.__supabaseSdkReady=new Promise(resolve=>{const sources=['https://cdn.jsde
 <script src="receipts.js?v=1"></script>
 <script src="excel-backup.js?v=2"></script>
 <script src="fund-reminders.js?v=1"></script>
-<script src="app.js?v=77"></script>
+<script src="app.js?v=78"></script>
 </body></html>
