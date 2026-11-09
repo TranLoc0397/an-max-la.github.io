@@ -65,3 +65,24 @@ test('Excel contains separate reminder sheet and formulas, with complete raw sna
  assert.match(files['xl/worksheets/sheet1.xml'],/<f>B11-B15<\/f>/);
  assert.match(files['xl/worksheets/sheet9.xml'],/reminders/);
 });
+
+test('fund reservation list sorts newest by creation time, with older and due-date options',()=>{
+ const ui=require('../trip-ui.js');
+ const reminders=[
+  {id:'r-old',created_at:'2026-11-06T08:00:00Z',due_on:'2026-11-24'},
+  {id:'r-new',created_at:'2026-11-09T09:00:00Z',due_on:'2026-11-28'},
+  {id:'r-mid',created_at:'2026-11-08T15:00:00Z',due_on:'2026-11-22'}
+ ];
+ assert.deepEqual(ui.sortByDate(reminders,'created_at','newest').map(r=>r.id),['r-new','r-mid','r-old']);
+ assert.deepEqual(ui.sortByDate(reminders,'created_at','oldest').map(r=>r.id),['r-old','r-mid','r-new']);
+ assert.deepEqual(ui.sortByDate(reminders,'due_on','oldest').map(r=>r.id),['r-mid','r-old','r-new']);
+ assert.deepEqual(reminders.map(r=>r.id),['r-old','r-new','r-mid']);
+ const html=read('index.html'),app=read('app.js');
+ assert.match(html,/id="fundReminderSort"/);
+ assert.match(html,/<option value="newest">Mới nhất trước<\/option>/);
+ assert.match(html,/<option value="oldest">Cũ nhất trước<\/option>/);
+ assert.match(html,/<option value="due_soon">Hạn gần nhất<\/option>/);
+ assert.match(app,/reminderSort==='due_soon'/);
+ assert.match(app,/sortByDate\(fundReminders,'created_at',reminderSort\)/);
+ assert.match(app,/fundReminderSort'\].forEach/);
+});
