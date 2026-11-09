@@ -692,16 +692,16 @@ $('exportExcelBtn').onclick=async()=>{
   try{
    const {data:freshTrip,error:tripError}=await db.from('trips').select('*').eq('id',tripId).single();
    if(tripError||!freshTrip)throw new Error('Không thể lấy thông tin chuyến đi: '+(tripError?.message||'Không tìm thấy'));
-   const [freshMembers,freshExpenses,freshContributions,freshDebts,freshPayments]=await Promise.all([
+   const [freshMembers,freshExpenses,freshContributions,freshDebts,freshPayments,freshReminders]=await Promise.all([
     excelExportRows('members',tripId),excelExportRows('expenses',tripId),
     excelExportRows('contributions',tripId),excelExportRows('member_debts',tripId),
-    excelExportRows('trip_payments',tripId)
+    excelExportRows('trip_payments',tripId),excelExportRows('trip_fund_reminders',tripId)
    ]);
    if(trip?.id!==tripId)throw new Error('Chuyến đi đã thay đổi; vui lòng thử lại.');
    const {view_passcode_hash, ...safeTrip}=freshTrip; // Never back up secret viewing passcodes.
    const file=window.TripTogetherExcelBackup.download({
     trip:safeTrip,members:freshMembers,expenses:freshExpenses,
-    contributions:freshContributions,debts:freshDebts,payments:freshPayments
+    contributions:freshContributions,debts:freshDebts,payments:freshPayments,reminders:freshReminders
    });
    localizedAlert('Đã tạo bản sao Excel: '+file+'\nHãy lưu file tại nơi an toàn. Ảnh hóa đơn cần được sao lưu riêng.');
   }catch(error){localizedAlert('Không thể xuất Excel: '+error.message)}
