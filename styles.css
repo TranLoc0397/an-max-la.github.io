@@ -1611,3 +1611,53 @@ select:hover{border-color:#cfc9ef}
  .fund-reminder-right{align-items:flex-start}
  .fund-reminder-overview button{width:100%}
 }
+
+/* Fund reservation: glanceable cards on phones; planning values are not ledger expenses. */
+.fund-reminder-panel .sectionhead{margin-bottom:14px}
+.fund-reminder-panel .sectionhead p{max-width:58ch}
+.fund-reminder-summary:has(.fund-reserve-card){
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:10px;margin:12px 0 16px;
+}
+.fund-reserve-card{
+ display:flex;align-items:center;gap:10px;min-width:0;
+ border-radius:16px;background:linear-gradient(135deg,#f3f0ff,#eae6ff);
+ padding:16px 14px;color:#4d37b7;
+}
+.fund-reserve-card-remaining{background:linear-gradient(135deg,#f6f3ff,#eeebff)}
+.fund-reserve-icon{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border-radius:12px;background:#dfd9ff}
+.fund-reserve-icon svg{width:22px;height:22px}
+.fund-reserve-details{display:flex;flex-direction:column;min-width:0;gap:5px}
+.fund-reserve-label{font-size:12px;font-weight:700;line-height:1.25}
+.fund-reserve-value{font-size:clamp(17px,2.4vw,25px);line-height:1.18;font-weight:850;letter-spacing:-.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.fund-reserve-card-shortfall{background:#fff1ee;color:#b4443b}
+.fund-reserve-card-shortfall .fund-reserve-icon{background:#ffddd7}
+.fund-reminder-add{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;margin:0 0 16px;border-radius:13px;font-weight:800;color:#5342c7;background:#efedff}
+.fund-reminder-add:hover{background:#e6e2ff}
+.fund-reminder-panel #fundReminderList{display:grid;gap:10px}
+.fund-reminder-panel .fund-reminder-row{margin:0;padding:15px;align-items:center}
+.fund-reminder-amount{display:flex;flex-direction:column;align-items:center;gap:5px;border-radius:12px;padding:10px 12px;background:#f1eeff;min-width:0}
+.fund-reminder-amount strong{font-size:clamp(16px,2vw,21px);white-space:nowrap;font-variant-numeric:tabular-nums;letter-spacing:-.3px}
+.fund-reminder-right{min-width:0}
+.fund-reminder-actions{width:100%}
+.fund-reminder-actions button{flex:1;min-width:0;min-height:40px}
+@media(max-width:640px){
+ .fund-reminder-summary:has(.fund-reserve-card){gap:8px}
+ .fund-reserve-card{flex-direction:column;align-items:flex-start;gap:9px;padding:12px 10px;border-radius:14px}
+ .fund-reserve-icon{flex:0 0 32px;width:32px;height:32px;border-radius:10px}
+ .fund-reserve-icon svg{width:19px;height:19px}
+ .fund-reserve-label{font-size:11px}
+ .fund-reserve-value{font-size:clamp(15px,4.25vw,21px);letter-spacing:-.65px}
+ .fund-reminder-panel .fund-reminder-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:14px 12px}
+ .fund-reminder-info{min-width:0}
+ .fund-reminder-right{align-items:stretch}
+ .fund-reminder-amount{padding:9px 10px}
+ .fund-reminder-amount strong{font-size:clamp(15px,4.1vw,19px)}
+ .fund-reminder-actions button{padding:9px 11px}
+}
+@media(max-width:360px){
+ .fund-reserve-icon{display:none}
+ .fund-reminder-panel .fund-reminder-row{grid-template-columns:1fr}
+ .fund-reminder-right{align-items:flex-start}
+ .fund-reminder-amount{align-items:flex-start}
+}
