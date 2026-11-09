@@ -2,6 +2,9 @@
 (function(){
 'use strict';
 const dictionary={
+  "Danh sách quỹ dự phòng":"Fund reservation list",
+  "Sắp xếp danh sách quỹ dự phòng":"Sort fund reservation list",
+  "Hạn gần nhất":"Nearest due date",
   "Nhắc dự phòng quỹ":"Fund payment reminders",
   "+ Thêm nhắc thanh toán":"+ Add payment reminder",
   "Tính năng chưa được cấu hình. Host cần cài trip_fund_reminders.sql.":"Reminders are not set up. The Host must install trip_fund_reminders.sql.",
