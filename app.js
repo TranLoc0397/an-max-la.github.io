@@ -631,7 +631,7 @@ function render(){
  }).join(''):'<p class="muted small">Chưa có thanh toán nào.</p>';
  activityPanel.classList.toggle('hidden',readOnly);
  if(!readOnly){
-  const entityNames={expenses:'Khoản chi',contributions:'Đóng quỹ',member_debts:'Nợ riêng',trip_payments:'Thanh toán'};
+  const entityNames={expenses:'Khoản chi',contributions:'Đóng quỹ',member_debts:'Nợ riêng',trip_payments:'Thanh toán',trip_fund_reminders:'Nhắc dự phòng quỹ'};
   const actionNames={INSERT:'Đã thêm',UPDATE:'Đã sửa',DELETE:'Đã xóa'};
   activityList.innerHTML=activityEvents.length?window.TripTogetherUI.sortByDate(activityEvents,'recorded_at',$('activityDateSort').value).map(event=>{
    const d=event.after_data||event.before_data||{},entity=entityNames[event.source_table]||event.source_table;
@@ -645,7 +645,7 @@ function render(){
    const displayChange=(key,value)=>{
     if(value===null||value===undefined||value==='')return 'Không có';
     if(key==='receipt_path')return 'Có ảnh đính kèm';
-    if(key==='amount')return money(value);
+    if(['amount','total_amount','paid_amount'].includes(key))return money(value);
     if(['payer_id','debtor_id','creditor_id'].includes(key))return memberDisplay(value);
     if(['reimbursed','is_settled'].includes(key))return value?'Có':'Không';
     if(['reimbursed_at','settled_at'].includes(key)){
