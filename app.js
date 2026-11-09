@@ -7,6 +7,7 @@ const money = n => new Intl.NumberFormat('vi-VN',{style:'currency',currency:'VND
 const dateToday = () => window.TripTogetherFinance.vietnamDate();
 let db, user, trip, members=[], expenses=[], contributions=[], debts=[], channel, readOnly=false, canEdit=false, editPermissionsReady=false, sharedCode=null, sharedPasscode=null, viewerTimer=null;
 let editRequests=[], editRequestsAvailable=false, editRequestTimer=null;
+let fundReminders=[],fundRemindersAvailable=false;
 let payments=[],activityEvents=[],memberInviteEmails=[],memberInviteEmailsAvailable=false;
 let refreshSequence=0;
 let pendingAction=null;
@@ -342,7 +343,7 @@ async function openSharedTrip(code){
   if(access.joined){await joinTrip(data.trip.id,false);return}
   const ledger=await db.rpc('get_shared_trip_payments',{p_invite_code:code});
   if(ledger.error)throw ledger.error;
-  ++refreshSequence;readOnly=true;sharedCode=code;sharedPasscode=null;trip=data.trip;members=data.members||[];expenses=data.expenses||[];contributions=data.contributions||[];debts=data.debts||[];payments=ledger.data||[];activityEvents=[];render();await showTrip();if(viewerTimer)clearInterval(viewerTimer);viewerTimer=setInterval(()=>{if(readOnly&&trip)void refresh()},20000)
+  ++refreshSequence;readOnly=true;sharedCode=code;sharedPasscode=null;trip=data.trip;members=data.members||[];expenses=data.expenses||[];contributions=data.contributions||[];debts=data.debts||[];payments=ledger.data||[];activityEvents=[];fundReminders=[];fundRemindersAvailable=false;render();await showTrip();if(viewerTimer)clearInterval(viewerTimer);viewerTimer=setInterval(()=>{if(readOnly&&trip)void refresh()},20000)
  }catch(error){localizedAlert('Không thể mở chuyến đi. '+error.message)}finally{pageLoading(false)}
 }
 // A private invitation link allows viewing, never permission to edit.
@@ -399,13 +400,14 @@ async function joinTrip(id,ask=true){
   const {data:tdata,error}=await db.from('trips').select('id,invite_code,name,initial_fund,created_by,created_at').eq('id',tripId).single();
   if(error){localizedAlert('Không tìm thấy chuyến đi hoặc link không hợp lệ. '+error.message);return}
   if(channel){await db.removeChannel(channel);channel=null}
-  payments=[];activityEvents=[];memberInviteEmails=[];
+  payments=[];activityEvents=[];fundReminders=[];fundRemindersAvailable=false;memberInviteEmails=[];
   trip=tdata;await refresh();await loadMyTrips();await showTrip();
   // Always filter on the database trip ID; id may be an invitation code.
   const watchChanges=()=>{if(trip?.id===tripId&&!readOnly)void refresh()};
   channel=db.channel('trip-'+tripId)
    .on('postgres_changes',{event:'*',schema:'public',table:'expenses',filter:'trip_id=eq.'+tripId},watchChanges)
    .on('postgres_changes',{event:'*',schema:'public',table:'contributions',filter:'trip_id=eq.'+tripId},watchChanges)
+   .on('postgres_changes',{event:'*',schema:'public',table:'trip_fund_reminders',filter:'trip_id=eq.'+tripId},watchChanges)
    .on('postgres_changes',{event:'*',schema:'public',table:'members',filter:'trip_id=eq.'+tripId},watchChanges)
    .on('postgres_changes',{event:'*',schema:'public',table:'member_debts',filter:'trip_id=eq.'+tripId},watchChanges)
    .subscribe(state=>{
@@ -436,7 +438,7 @@ async function refresh(){
    payments=ledgerReply.data||[];activityEvents=[];
    render();status('Chỉ xem');return;
   }
-  const [a,b,c,d,requests,ledger,history,invites]=await Promise.all([
+  const [a,b,c,d,requests,ledger,history,invites,reminderReply]=await Promise.all([
    db.from('members').select('*').eq('trip_id',tripId).order('created_at'),
    db.from('expenses').select('*').eq('trip_id',tripId).order('spent_on',{ascending:false}),
    db.from('contributions').select('*').eq('trip_id',tripId).order('paid_on',{ascending:false}),
@@ -444,7 +446,8 @@ async function refresh(){
    fetchEditRequests(tripId),
    db.from('trip_payments').select('*').eq('trip_id',tripId).order('created_at',{ascending:false}),
    db.from('trip_activity').select('*').eq('trip_id',tripId).order('recorded_at',{ascending:false}).limit(40),
-   trip.created_by===user?.id?db.rpc('get_trip_member_invite_emails',{p_trip_id:tripId}):Promise.resolve({data:[],error:null})
+   trip.created_by===user?.id?db.rpc('get_trip_member_invite_emails',{p_trip_id:tripId}):Promise.resolve({data:[],error:null}),
+    db.from('trip_fund_reminders').select('*').eq('trip_id',tripId).order('created_at',{ascending:false})
   ]);
   if(!current())return; // Never commit an older or different-trip response.
   if(a.error||b.error||c.error||d.error||ledger.error||history.error){
@@ -477,7 +480,9 @@ async function refresh(){
    }
   }
   if(!current())return;
-  members=a.data||[];expenses=nextExpenses;contributions=nextContributions;debts=nextDebts;payments=nextPayments;activityEvents=history.data||[];memberInviteEmails=invites.error?[]:(invites.data||[]);memberInviteEmailsAvailable=!invites.error;
+  members=a.data||[];expenses=nextExpenses;contributions=nextContributions;debts=nextDebts;payments=nextPayments;activityEvents=history.data||[];
+  fundRemindersAvailable=!reminderReply.error;fundReminders=reminderReply.data||[];
+  if(reminderReply.error)console.warn('Fund reminders require trip_fund_reminders.sql:',reminderReply.error);memberInviteEmails=invites.error?[]:(invites.data||[]);memberInviteEmailsAvailable=!invites.error;
   editRequests=requests.items;editRequestsAvailable=requests.available;
   render();status(usedSharedFallback?'Chỉ xem · dữ liệu chia sẻ':'Synced');
  }catch(error){if(current()){console.error('Trip refresh failed',error);if(await handleDeletedTrip(trip?.id))return;status('Sync error')}}
@@ -490,6 +495,35 @@ function render(){
  const enriched=window.TripTogetherFinance.applyPayments(expenses,debts,payments);
  const displayExpenses=enriched.expenses,displayDebts=enriched.debts;
  const {spent,additional,initial,fund,dueToMembers,cashFund,actualFund}=window.TripTogetherFinance.calculateTotals(trip,displayExpenses,contributions);
+ const reminderMath=window.TripTogetherFundReminders;
+ const remainingReminder=reminderMath.totals(fundReminders,cashFund);
+ const reminderPanel=$('fundReminderList'),reminderOverview=$('fundReminderOverview');
+ $('addFundReminder').classList.toggle('hidden',readOnly||!canEdit||!fundRemindersAvailable);
+ $('fundReminderSetup').classList.toggle('hidden',readOnly||fundRemindersAvailable);
+ $('fundReminderSummary').textContent=fundRemindersAvailable&&remainingReminder.outstanding
+   ?'Cần dự phòng: '+money(remainingReminder.outstanding)+' · Sau khi giữ lại: '+money(remainingReminder.afterReservations)
+   :fundRemindersAvailable?'Chưa có khoản thanh toán cần dự phòng.':'';
+ const today=dateToday();
+ const outstandingReminders=window.TripTogetherUI.sortByDate(fundReminders,'due_on','oldest').filter(x=>reminderMath.remaining(x)>0);
+ reminderPanel.innerHTML=fundRemindersAvailable?(fundReminders.length?window.TripTogetherUI.sortByDate(fundReminders,'due_on','oldest').map(item=>{
+  const remaining=reminderMath.remaining(item),overdue=!!item.due_on&&item.due_on<today&&remaining>0;
+  const state=remaining===0?'Đã đủ khoản cần trả':overdue?'Đã quá hạn':item.due_on?'Hạn: '+item.due_on:'Chưa đặt hạn';
+  return `<div class="item fund-reminder-row"><div class="fund-reminder-info"><b>${esc(item.title)}</b><small>${esc(state)} · Tổng ${money(item.total_amount)} · Đã cọc/trả ${money(item.paid_amount)}</small>${item.note?`<small>${esc(item.note)}</small>`:''}</div><div class="fund-reminder-right"><strong class="${overdue?'fund-reminder-overdue':''}">${money(remaining)}</strong><small>${remaining?'Cần giữ lại':'Đã thanh toán'}</small>${canEdit?`<div class="fund-reminder-actions"><button class="secondary compact edit-fund-reminder" data-id="${esc(item.id)}" type="button">Sửa</button><button class="danger compact delete-fund-reminder" data-id="${esc(item.id)}" type="button">Xóa</button></div>`:''}</div></div>`;
+ }).join(''):'<p class="muted small">Chưa có nhắc thanh toán.</p>'):'';
+ reminderOverview.classList.toggle('hidden',!fundRemindersAvailable||!outstandingReminders.length);
+ if(fundRemindersAvailable&&outstandingReminders.length){
+  const upcoming=outstandingReminders[0];
+  reminderOverview.innerHTML=`<strong>Nhắc dự phòng quỹ: ${money(remainingReminder.outstanding)}</strong><span>${esc(upcoming.title)} · Còn ${money(reminderMath.remaining(upcoming))}${upcoming.due_on?' · Hạn '+esc(upcoming.due_on):''}</span><button class="secondary compact" type="button" data-shell-view="fund">Xem chi tiết</button>`;
+ }
+ reminderPanel.querySelectorAll('.edit-fund-reminder').forEach(button=>button.addEventListener('click',()=>openFundReminder(fundReminders.find(x=>x.id===button.dataset.id))));
+ reminderPanel.querySelectorAll('.delete-fund-reminder').forEach(button=>button.addEventListener('click',async()=>{
+  if(!canEdit||!localizedConfirm('Xóa nhắc thanh toán này?'))return;
+  await withButtonLoading(button,'Đang xóa…',async()=>{
+   const {error}=await db.from('trip_fund_reminders').delete().eq('id',button.dataset.id).eq('trip_id',trip.id);
+   if(error){localizedAlert('Không thể xóa nhắc: '+error.message);return}
+   await refresh();
+  });
+ }));
  $('totalSpent').textContent=money(spent);$('initialFund').textContent=money(initial);$('additionalFund').textContent=money(additional);$('fundTotal').textContent=money(fund);$('fundBalance').textContent=money(cashFund);$('reimbursementDue').textContent=money(dueToMembers);$('actualFundBalance').textContent=money(actualFund);$('actualFundStat').classList.toggle('stat-net-negative',actualFund<0);$('memberCount').textContent=members.length+' thành viên';$('memberCountHero').textContent=members.length+' thành viên';
  const searchInput=$('expenseSearch'),categoryFilter=$('expenseCategoryFilter'),statusFilter=$('expenseStatusFilter');
  const existingCategory=categoryFilter.value;
@@ -854,6 +888,51 @@ $('expenseReceiptCamera').addEventListener('change',event=>{if(event.target.file
 $('expenseDialog').addEventListener('close',()=>resetExpenseReceiptPicker());
 
 function openExpense(record=null){$('expenseForm').reset();$('expenseId').value=record?.id||'';$('expenseTitle').value=record?.title||'';$('expenseAmount').value=record?.amount||'';$('expenseDate').value=record?.spent_on||dateToday();$('expenseNote').value=record?.note||'';if(record?.category&&!Array.from($('expenseCategory').options).some(o=>o.value===record.category))$('expenseCategory').add(new Option(record.category,record.category));$('expenseCategory').value=record?.category||'Food';if(record?.payer_id)$('expensePayer').value=record.payer_id;$('expenseDialogTitle').textContent=record?'Sửa khoản chi':'Thêm khoản chi';$('expenseSave').textContent=record?'Lưu thay đổi':'Lưu khoản chi';resetExpenseReceiptPicker(record);$('expenseDialog').showModal()}
+function openFundReminder(record=null){
+ if(!canEdit||!fundRemindersAvailable)return;
+ $('fundReminderForm').reset();
+ $('fundReminderId').value=record?.id||'';
+ $('fundReminderName').value=record?.title||'Thuê phòng';
+ $('fundReminderTotal').value=record?.total_amount??2100000;
+ $('fundReminderPaid').value=record?.paid_amount??400000;
+ $('fundReminderDue').value=record?.due_on||'';
+ $('fundReminderNote').value=record?.note||'';
+ $('fundReminderDialogTitle').textContent=record?'Sửa khoản cần dự phòng':'Nhắc khoản phải thanh toán';
+ updateFundReminderPreview();
+ $('fundReminderDialog').showModal();
+}
+function updateFundReminderPreview(){
+ const total=Number($('fundReminderTotal').value||0),paid=Number($('fundReminderPaid').value||0);
+ const valid=Number.isSafeInteger(total)&&Number.isSafeInteger(paid)&&total>0&&paid>=0&&paid<=total;
+ $('fundReminderPreview').textContent=valid?'Cần giữ lại trong quỹ: '+money(total-paid):'Số tiền đã trả không được vượt quá tổng tiền.';
+}
+$('addFundReminder').onclick=()=>openFundReminder();
+$('fundReminderCancel').onclick=()=>$('fundReminderDialog').close();
+['fundReminderTotal','fundReminderPaid'].forEach(id=>$(id).addEventListener('input',updateFundReminderPreview));
+$('fundReminderForm').addEventListener('submit',async event=>{
+ event.preventDefault();
+ if(!trip||readOnly||!canEdit||!fundRemindersAvailable)return;
+ const originalTripId=trip.id;
+ const payload={
+  title:$('fundReminderName').value.trim(),
+  total_amount:Number($('fundReminderTotal').value),
+  paid_amount:Number($('fundReminderPaid').value),
+  due_on:$('fundReminderDue').value||null,
+  note:$('fundReminderNote').value.trim()
+ };
+ const error=window.TripTogetherFundReminders.validate(payload);
+ if(error){localizedAlert(error);return}
+ const editId=$('fundReminderId').value;
+ await withButtonLoading($('fundReminderSave'),'Đang lưu…',async()=>{
+  const response=editId
+   ?await db.from('trip_fund_reminders').update(payload).eq('id',editId).eq('trip_id',originalTripId)
+   :await db.from('trip_fund_reminders').insert({...payload,trip_id:originalTripId,created_by:user.id});
+  if(response.error){localizedAlert('Không thể lưu nhắc thanh toán: '+response.error.message);return}
+  $('fundReminderDialog').close();
+  if(trip?.id===originalTripId)await refresh();
+ });
+});
+
 function openContribution(record=null){$('fundForm').reset();$('fundId').value=record?.id||'';$('fundAmount').value=record?.amount||'';$('fundDate').value=record?.paid_on||dateToday();$('fundNote').value=record?.note||'';if(record?.payer_id)$('fundPayer').value=record.payer_id;$('fundDialogTitle').textContent=record?'Sửa khoản đóng quỹ':'Ghi đóng quỹ';$('fundSave').textContent=record?'Lưu thay đổi':'Lưu khoản đóng';$('fundDialog').showModal()}
 const settle = balances => window.TripTogetherFinance.settle(balances);
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
