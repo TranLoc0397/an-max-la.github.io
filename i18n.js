@@ -2,6 +2,22 @@
 (function(){
 'use strict';
 const dictionary={
+  "Nhắc dự phòng quỹ":"Fund payment reminders",
+  "+ Thêm nhắc thanh toán":"+ Add payment reminder",
+  "Tính năng chưa được cấu hình. Host cần cài trip_fund_reminders.sql.":"Reminders are not set up. The Host must install trip_fund_reminders.sql.",
+  "Nhắc khoản phải thanh toán":"Payment reminder",
+  "Sửa khoản cần dự phòng":"Edit planned payment",
+  "Cần giữ lại trong quỹ":"Reserve in general fund",
+  "Tổng phải trả (VNĐ)":"Total payable (VND)",
+  "Đã cọc / đã trả (VNĐ)":"Deposit / amount paid (VND)",
+  "Ngày thanh toán dự kiến (tùy chọn)":"Expected payment date (optional)",
+  "Lưu nhắc":"Save reminder",
+  "Đã quá hạn":"Overdue",
+  "Đã thanh toán":"Paid",
+  "Cần giữ lại":"To reserve",
+  "Xem chi tiết":"View details",
+  "Chưa có nhắc thanh toán.":"No payment reminders yet.",
+
   "Danh sách chuyến đi":"My trips",
   "Xem tất cả chuyến đi":"View all trips",
   "Chỉ thành viên đã liên kết tài khoản email mới hiện ở đây. Host có thể gắn email cho thành viên thủ công trong mục Sửa.":"Only members linked to an email account appear here. The Host can assign an email to a member under Edit.","Chưa có thành viên nào đã liên kết tài khoản.":"No members have linked an account yet.",

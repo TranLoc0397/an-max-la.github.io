@@ -1586,3 +1586,28 @@ select:hover{border-color:#cfc9ef}
 #memberList .member-actions-menu[open]>.member-actions-dropdown{z-index:200}
 
 /* Header trip-list link removed by request; sidebar remains the navigation. */
+
+/* Planned fund commitments: separate from recorded expenses and cash ledger. */
+.fund-reminder-panel{border:1px solid #e8e2ff;border-radius:18px;padding:18px;margin-bottom:20px;background:linear-gradient(145deg,#fbfaff,#fff)}
+.fund-reminder-panel .sectionhead{display:flex;align-items:start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.fund-reminder-panel h2{font-size:18px;margin:0 0 6px}
+.fund-reminder-summary{font-weight:800;color:#5042bd;margin:12px 0;font-size:14px;overflow-wrap:anywhere}
+.fund-reminder-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 16px;border:1px solid #ebe8fb;background:#fff;border-radius:12px;flex-wrap:wrap}
+.fund-reminder-info{display:flex;flex-direction:column;min-width:160px;flex:1;gap:5px}
+.fund-reminder-info b{font-size:14px;color:#29254e;overflow-wrap:anywhere}
+.fund-reminder-info small,.fund-reminder-right small{font-size:12px;color:#77728d;line-height:1.45}
+.fund-reminder-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.fund-reminder-right strong{font-size:16px;color:#594acb}
+.fund-reminder-right .fund-reminder-overdue{color:#c0443f}
+.fund-reminder-actions{display:flex;gap:6px;margin-top:4px}
+.fund-reminder-preview{font-weight:800;color:#4c40ac;background:#f1eeff;padding:12px;border-radius:10px}
+.fund-reminder-overview{display:flex;gap:8px 16px;align-items:center;flex-wrap:wrap;padding:12px 16px;border:1px solid #e3d8a7;background:#fffbeb;border-radius:14px;margin-bottom:18px}
+.fund-reminder-overview strong{color:#765513;font-size:13px}
+.fund-reminder-overview span{flex:1;min-width:160px;color:#6c5927;font-size:12px}
+.fund-reminder-overview button{min-height:36px}
+@media(max-width:520px){
+ .fund-reminder-panel{padding:14px}
+ .fund-reminder-panel .sectionhead button{width:100%}
+ .fund-reminder-right{align-items:flex-start}
+ .fund-reminder-overview button{width:100%}
+}

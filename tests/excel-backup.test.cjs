@@ -63,7 +63,7 @@ test('exporter does not use online APIs and requires fresh paginated data',()=>{
  const exporter=read('excel-backup.js'),app=read('app.js'),html=read('index.html');
  assert.doesNotMatch(exporter,/\bfetch\s*\(/);
  assert.match(html,/id="exportExcelBtn"/);
- assert.match(html,/src="excel-backup.js\?v=1"/);
+ assert.match(html,/src="excel-backup.js\?v=2"/);
  assert.match(app,/\.range\(start,start\+499\)/);
  assert.match(app,/excelExportRows\('trip_payments',tripId\)/);
  assert.match(app,/excelExportRows\('member_debts',tripId\)/);
