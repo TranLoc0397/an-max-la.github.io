@@ -34,4 +34,8 @@ create policy "trip fund reminders delete" on public.trip_fund_reminders
  for delete to authenticated using(public.can_edit_trip(trip_id));
 revoke all on public.trip_fund_reminders from public,anon,authenticated;
 grant select,insert,update,delete on public.trip_fund_reminders to authenticated;
+-- Log reminder changes in the existing immutable trip activity history.
+drop trigger if exists audit_trip_fund_reminders on public.trip_fund_reminders;
+create trigger audit_trip_fund_reminders after insert or update or delete on public.trip_fund_reminders
+ for each row execute function public.log_trip_activity();
 -- No automatic inserts. The Host/editor chooses the destination trip.
