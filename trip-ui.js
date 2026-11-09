@@ -55,7 +55,11 @@ function sortByDate(items,dateField,direction='newest'){
  const sign=direction==='oldest'?1:-1;
  const time=value=>String(value||'');
  return [...items].sort((a,b)=>{
-  const date=time(a[dateField]).localeCompare(time(b[dateField]));
+  // Undated items (e.g. a reminder without a due date) go last in both directions,
+  // so the most urgent dated item is always first when sorting oldest-first.
+  const da=time(a[dateField]),dbv=time(b[dateField]);
+  if(!da!==!dbv)return da?-1:1;
+  const date=da.localeCompare(dbv);
   if(date)return date*sign;
   const exact=time(a.created_at||a.recorded_at).localeCompare(time(b.created_at||b.recorded_at));
   if(exact)return exact*sign;

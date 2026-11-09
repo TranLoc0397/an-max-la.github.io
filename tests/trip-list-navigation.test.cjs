@@ -31,6 +31,7 @@ test('Host card badge icon and text have deliberate gap and remain responsive',(
 test('My trips navigation supports translation and cache reload',()=>{
  const i18n=read('i18n.js'),html=read('index.html'),sw=read('sw.js');
  assert.match(i18n,/"Danh sách chuyến đi":"My trips"/);
- assert.match(html,/app\.js\?v=78/);
- assert.match(sw,/const CACHE='triptogether-v105'/);
+ // Versions only move forward; pin a floor instead of an exact number so later bumps don't break this.
+ assert.ok(Number(html.match(/app\.js\?v=(\d+)/)[1])>=78);
+ assert.ok(Number(sw.match(/const CACHE='triptogether-v(\d+)'/)[1])>=105);
 });

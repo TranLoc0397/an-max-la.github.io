@@ -439,7 +439,7 @@ async function refresh(){
    render();status('Chỉ xem');return;
   }
   const [a,b,c,d,requests,ledger,history,invites,reminderReply]=await Promise.all([
-   db.from('members').select('*').eq('trip_id',tripId).order('created_at'),
+   db.from('members').select('*').eq('trip_id',tripId).order('created_at').order('user_id'),
    db.from('expenses').select('*').eq('trip_id',tripId).order('spent_on',{ascending:false}),
    db.from('contributions').select('*').eq('trip_id',tripId).order('paid_on',{ascending:false}),
    db.from('member_debts').select('*').eq('trip_id',tripId).order('incurred_on',{ascending:false}),
@@ -519,13 +519,15 @@ function render(){
  const outstandingReminders=window.TripTogetherUI.sortByDate(fundReminders,'due_on','oldest').filter(x=>reminderMath.remaining(x)>0);
  reminderPanel.innerHTML=fundRemindersAvailable?(fundReminders.length?window.TripTogetherUI.sortByDate(fundReminders,'due_on','oldest').map(item=>{
   const remaining=reminderMath.remaining(item),overdue=!!item.due_on&&item.due_on<today&&remaining>0;
-  const state=remaining===0?'Đã đủ khoản cần trả':overdue?'Đã quá hạn':item.due_on?'Hạn: '+item.due_on:'Chưa đặt hạn';
-  return `<div class="item fund-reminder-row"><div class="fund-reminder-info"><b>${esc(item.title)}</b><small>${esc(state)} · Tổng ${money(item.total_amount)} · Đã cọc/trả ${money(item.paid_amount)}</small>${item.note?`<small>${esc(item.note)}</small>`:''}</div><div class="fund-reminder-right"><div class="fund-reminder-amount"><strong class="${overdue?'fund-reminder-overdue':''}">${money(remaining)}</strong><small>${remaining?'Cần giữ lại':'Đã thanh toán'}</small></div>${canEdit?`<div class="fund-reminder-actions"><button class="secondary compact edit-fund-reminder" data-id="${esc(item.id)}" type="button">Sửa</button><button class="danger compact delete-fund-reminder" data-id="${esc(item.id)}" type="button">Xóa</button></div>`:''}</div></div>`;
+  const state=remaining===0?'Đã đủ khoản cần trả':overdue?'Đã quá hạn':item.due_on?'':'Chưa đặt hạn';
+  const due=item.due_on&&remaining>0?`<span>Hạn</span> <span>${esc(item.due_on)}</span>`:'';
+  const parts=[state?`<span>${state}</span>`:'',due,`<span>Tổng</span> <span>${money(item.total_amount)}</span>`,`<span>Đã cọc/trả</span> <span>${money(item.paid_amount)}</span>`].filter(Boolean).join(' · ');
+  return `<div class="item fund-reminder-row"><div class="fund-reminder-info"><b data-user-content>${esc(item.title)}</b><small>${parts}</small>${item.note?`<small data-user-content>${esc(item.note)}</small>`:''}</div><div class="fund-reminder-right"><div class="fund-reminder-amount"><strong class="${overdue?'fund-reminder-overdue':''}">${money(remaining||item.total_amount)}</strong><small>${remaining?'Cần giữ lại':'Đã trả đủ'}</small></div>${canEdit?`<div class="fund-reminder-actions"><button class="secondary compact edit-fund-reminder" data-id="${esc(item.id)}" type="button">Sửa</button><button class="danger compact delete-fund-reminder" data-id="${esc(item.id)}" type="button">Xóa</button></div>`:''}</div></div>`;
  }).join(''):'<p class="muted small">Chưa có nhắc thanh toán.</p>'):'';
  reminderOverview.classList.toggle('hidden',!fundRemindersAvailable||!outstandingReminders.length);
  if(fundRemindersAvailable&&outstandingReminders.length){
   const upcoming=outstandingReminders[0];
-  reminderOverview.innerHTML=`<strong>Nhắc dự phòng quỹ: ${money(remainingReminder.outstanding)}</strong><span>${esc(upcoming.title)} · Còn ${money(reminderMath.remaining(upcoming))}${upcoming.due_on?' · Hạn '+esc(upcoming.due_on):''}</span><button class="secondary compact" type="button" data-shell-view="fund">Xem chi tiết</button>`;
+  reminderOverview.innerHTML=`<strong><span>Nhắc dự phòng quỹ</span>: ${money(remainingReminder.outstanding)}</strong><span><span data-user-content>${esc(upcoming.title)}</span> · <span>Còn</span> ${money(reminderMath.remaining(upcoming))}${upcoming.due_on?` · <span>Hạn</span> ${esc(upcoming.due_on)}`:''}</span><button class="secondary compact" type="button" data-shell-view="fund">Xem chi tiết</button>`;
  }
  reminderPanel.querySelectorAll('.edit-fund-reminder').forEach(button=>button.addEventListener('click',()=>openFundReminder(fundReminders.find(x=>x.id===button.dataset.id))));
  reminderPanel.querySelectorAll('.delete-fund-reminder').forEach(button=>button.addEventListener('click',async()=>{
@@ -548,9 +550,9 @@ function render(){
  expenseList.innerHTML=visibleExpenses.length?visibleExpenses.map(x=>{
    const isPersonal=!!x.payer_id,paid=Number(x.paid_amount||0),remaining=Number(x.amount)-paid;
    const refundLabel=!isPersonal?'Trả trực tiếp từ quỹ':remaining===0?'Quỹ đã hoàn trả':paid>0?'Đã hoàn một phần: '+money(paid)+' / '+money(x.amount):'Quỹ còn nợ '+esc(x.payer_name||'thành viên');
-   return `<div class="item record-row"><div class="record-main"><div class="record-title">${esc(x.title)}</div><div class="record-meta">${esc(x.spent_on)} · ${esc(categoryLabel(x.category))} · ${isPersonal?'Ứng bởi '+esc(x.payer_name||'thành viên'):'Lấy từ quỹ chung'}</div><div class="record-status ${isPersonal&&remaining>0?(paid>0?'record-status-partial':'record-status-due'):''}">${refundLabel}</div>${x.note?`<div class="record-note">${esc(x.note)}</div>`:''}${x.receipt_path&&(user&&(trip.created_by===user.id||members.some(m=>m.user_id===user.id||m.account_user_id===user.id)))?`<button type="button" class="secondary compact expense-view-receipt" data-receipt-path="${esc(x.receipt_path)}">Xem ảnh hóa đơn</button>`:''}</div><div class="record-meta record-amount">${money(x.amount)}</div>${canEdit?`<div class="record-buttons">${isPersonal&&remaining>0?`<button class="secondary compact record-payment" data-kind="expense" data-id="${esc(x.id)}" data-reverse="false">Ghi hoàn trả</button>`:''}${isPersonal&&paid>0?`<button class="secondary compact record-payment" data-kind="expense" data-id="${esc(x.id)}" data-reverse="true">Hoàn tác thanh toán</button>`:''}<button class="secondary compact edit-expense" data-id="${esc(x.id)}">Sửa</button><button class="danger compact delete-expense" data-id="${esc(x.id)}" data-title="${esc(x.title)}" aria-label="Xóa khoản chi ${esc(x.title)}">Xóa</button></div>`:''}</div>`;
+   return `<div class="item record-row"><div class="record-main"><div class="record-title" data-user-content>${esc(x.title)}</div><div class="record-meta">${esc(x.spent_on)} · ${esc(categoryLabel(x.category))} · ${isPersonal?'Ứng bởi '+esc(x.payer_name||'thành viên'):'Lấy từ quỹ chung'}</div><div class="record-status ${isPersonal&&remaining>0?(paid>0?'record-status-partial':'record-status-due'):''}">${refundLabel}</div>${x.note?`<div class="record-note" data-user-content>${esc(x.note)}</div>`:''}${x.receipt_path&&(user&&(trip.created_by===user.id||members.some(m=>m.user_id===user.id||m.account_user_id===user.id)))?`<button type="button" class="secondary compact expense-view-receipt" data-receipt-path="${esc(x.receipt_path)}">Xem ảnh hóa đơn</button>`:''}</div><div class="record-meta record-amount">${money(x.amount)}</div>${canEdit?`<div class="record-buttons">${isPersonal&&remaining>0?`<button class="secondary compact record-payment" data-kind="expense" data-id="${esc(x.id)}" data-reverse="false">Ghi hoàn trả</button>`:''}${isPersonal&&paid>0?`<button class="secondary compact record-payment" data-kind="expense" data-id="${esc(x.id)}" data-reverse="true">Hoàn tác thanh toán</button>`:''}<button class="secondary compact edit-expense" data-id="${esc(x.id)}">Sửa</button><button class="danger compact delete-expense" data-id="${esc(x.id)}" data-title="${esc(x.title)}" aria-label="Xóa khoản chi ${esc(x.title)}">Xóa</button></div>`:''}</div>`;
  }).join(''):'<p class="muted ledger-empty">'+(expenses.length?'Không tìm thấy khoản chi phù hợp.':'Chưa có khoản chi. Thêm khoản chi đầu tiên.')+'</p>';
- contributionList.innerHTML=contributions.length?window.TripTogetherUI.sortByDate(contributions,'paid_on',$('fundDateSort').value).map(x=>`<div class="item record-row"><div class="record-main"><div class="record-title">${esc(x.note||'Đóng quỹ')}</div><div class="record-meta">${esc(x.paid_on)} · ${esc(x.payer_name)}</div></div><div class="record-meta record-amount">${money(x.amount)}</div>${canEdit?`<div class="record-buttons"><button class="secondary compact edit-contribution" data-id="${esc(x.id)}">Sửa</button><button class="danger compact delete-contribution" data-id="${esc(x.id)}" data-note="${esc(x.note||'Đóng quỹ')}" aria-label="Xóa khoản đóng quỹ">Xóa</button></div>`:''}</div>`).join(''):'<p class="muted ledger-empty">Chưa có khoản đóng thêm.</p>';
+ contributionList.innerHTML=contributions.length?window.TripTogetherUI.sortByDate(contributions,'paid_on',$('fundDateSort').value).map(x=>`<div class="item record-row"><div class="record-main"><div class="record-title"${x.note?' data-user-content':''}>${esc(x.note||'Đóng quỹ')}</div><div class="record-meta">${esc(x.paid_on)} · ${esc(x.payer_name)}</div></div><div class="record-meta record-amount">${money(x.amount)}</div>${canEdit?`<div class="record-buttons"><button class="secondary compact edit-contribution" data-id="${esc(x.id)}">Sửa</button><button class="danger compact delete-contribution" data-id="${esc(x.id)}" data-note="${esc(x.note||'Đóng quỹ')}" aria-label="Xóa khoản đóng quỹ">Xóa</button></div>`:''}</div>`).join(''):'<p class="muted ledger-empty">Chưa có khoản đóng thêm.</p>';
  expenseList.querySelectorAll('.edit-expense').forEach(button=>button.onclick=()=>openExpense(expenses.find(x=>x.id===button.dataset.id)));
  expenseList.querySelectorAll('.expense-view-receipt').forEach(button=>button.onclick=async()=>{
   const current=button.dataset.receiptPath;
@@ -683,10 +685,15 @@ function render(){
 }
 // Always fetch a fresh, complete database snapshot, not the filtered UI list
 // or a potentially stale realtime cache. Paginate past Supabase's row limit.
+// Members must keep the app's order (created_at, then user_id): settle() pairs debtors and
+// creditors in list order, so a different order gives different transfer suggestions.
 async function excelExportRows(table,tripId){
  const items=[];
+ const order=table==='members'?['created_at','user_id']:['id'];
  for(let start=0;;start+=500){
-  const {data,error}=await db.from(table).select('*').eq('trip_id',tripId).order('id',{ascending:true}).range(start,start+499);
+  let query=db.from(table).select('*').eq('trip_id',tripId);
+  for(const column of order)query=query.order(column,{ascending:true});
+  const {data,error}=await query.range(start,start+499);
   if(error)throw new Error('Không thể lấy dữ liệu '+table+': '+error.message);
   if(!data)throw new Error('Không thể đọc dữ liệu '+table);
   items.push(...data);
@@ -707,7 +714,7 @@ $('exportExcelBtn').onclick=async()=>{
    const [freshMembers,freshExpenses,freshContributions,freshDebts,freshPayments,freshReminders]=await Promise.all([
     excelExportRows('members',tripId),excelExportRows('expenses',tripId),
     excelExportRows('contributions',tripId),excelExportRows('member_debts',tripId),
-    excelExportRows('trip_payments',tripId),excelExportRows('trip_fund_reminders',tripId)
+    excelExportRows('trip_payments',tripId),fundRemindersAvailable?excelExportRows('trip_fund_reminders',tripId):Promise.resolve([])
    ]);
    if(trip?.id!==tripId)throw new Error('Chuyến đi đã thay đổi; vui lòng thử lại.');
    const {view_passcode_hash, ...safeTrip}=freshTrip; // Never back up secret viewing passcodes.
@@ -937,7 +944,7 @@ $('fundReminderForm').addEventListener('submit',async event=>{
  const editId=$('fundReminderId').value;
  await withButtonLoading($('fundReminderSave'),'Đang lưu…',async()=>{
   const response=editId
-   ?await db.from('trip_fund_reminders').update(payload).eq('id',editId).eq('trip_id',originalTripId)
+   ?await db.from('trip_fund_reminders').update({...payload,updated_at:new Date().toISOString()}).eq('id',editId).eq('trip_id',originalTripId)
    :await db.from('trip_fund_reminders').insert({...payload,trip_id:originalTripId,created_by:user.id});
   if(response.error){localizedAlert('Không thể lưu nhắc thanh toán: '+response.error.message);return}
   $('fundReminderDialog').close();

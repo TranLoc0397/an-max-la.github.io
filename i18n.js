@@ -2,6 +2,16 @@
 (function(){
 'use strict';
 const dictionary={
+  "Cần dự phòng":"Reserve needed",
+  "Sau khi giữ lại":"After reserving",
+  "Đã đủ khoản cần trả":"Fully paid",
+  "Chưa đặt hạn":"No due date",
+  "Hạn":"Due",
+  "Tổng":"Total",
+  "Đã cọc/trả":"Deposit/paid",
+  "Đã trả đủ":"Paid in full",
+  "Còn":"Remaining",
+  "Tên khoản cần dự phòng không được vượt quá 100 ký tự.":"The reminder name must be 100 characters or fewer.",
   "Nhắc dự phòng quỹ":"Fund payment reminders",
   "+ Thêm nhắc thanh toán":"+ Add payment reminder",
   "Tính năng chưa được cấu hình. Host cần cài trip_fund_reminders.sql.":"Reminders are not set up. The Host must install trip_fund_reminders.sql.",
@@ -383,7 +393,8 @@ function translation(original){
 }
 function translateNode(node){
  if(node.nodeType!==Node.TEXT_NODE)return;
- if(node.parentElement?.closest('script,style,textarea,option[data-user-content]'))return;
+ // [data-user-content] marks names/titles/notes typed by people: never machine-translate them.
+ if(node.parentElement?.closest('script,style,textarea,[data-user-content]'))return;
  const current=node.nodeValue||'';
  let info=sourceText.get(node);
  if(!info||info.rendered!==current){
