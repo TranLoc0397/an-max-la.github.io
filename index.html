@@ -5,7 +5,7 @@
 <meta name="theme-color" content="#6559e8"><meta name="description" content="Quản lý chi tiêu và quỹ chung cho chuyến đi">
 <link rel="stylesheet" href="airport-background.css?v=1">
 <link rel="manifest" href="manifest.webmanifest?v=3"><link rel="icon" href="triptogether-purple-icon.png?v=3" type="image/png" sizes="160x160"><link rel="apple-touch-icon" href="triptogether-purple-icon.png?v=3">
-<title>TripTogether</title><link rel="stylesheet" href="styles.css?v=73">
+<title>TripTogether</title><link rel="stylesheet" href="styles.css?v=74">
 </head>
 <body>
 <div class="airport-scene" aria-hidden="true">
@@ -104,6 +104,7 @@
     <div class="stat stat-net" id="actualFundStat"><span>Quỹ thực sau khi trừ nợ</span><b id="actualFundBalance">₫0</b></div>
   </div>
   <section id="ttOverview" class="tt-overview" aria-label="Tổng quan chuyến đi">
+    <div id="fundReminderOverview" class="fund-reminder-overview hidden" role="status"></div>
     <div class="tt-overview-grid">
       <article class="tt-overview-card">
         <div class="tt-panel-head"><h2>Khoản chi gần đây</h2><button class="tt-text-link" type="button" data-shell-view="expenses">Xem tất cả <svg class="tt-icon tt-icon-after" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
@@ -128,6 +129,15 @@
     <div id="expenseList" class="list ledger-list"></div>
   </section>
   <section id="fundTab" class="tabbody hidden">
+  <section class="fund-reminder-panel" aria-labelledby="fundReminderTitle">
+    <div class="sectionhead">
+      <div><h2 id="fundReminderTitle">Nhắc dự phòng quỹ</h2><p class="muted small">Theo dõi khoản phải thanh toán và số tiền cần giữ lại trong quỹ. Chưa trừ vào số dư quỹ hoặc tổng chi.</p></div>
+      <button id="addFundReminder" class="secondary compact" type="button">+ Thêm nhắc thanh toán</button>
+    </div>
+    <div id="fundReminderSetup" class="muted small hidden" role="status">Tính năng chưa được cấu hình. Host cần cài trip_fund_reminders.sql.</div>
+    <div id="fundReminderSummary" class="fund-reminder-summary"></div>
+    <div id="fundReminderList" class="list ledger-list" aria-live="polite"></div>
+  </section>
     <div class="sectionhead"><div><h2>Theo dõi quỹ</h2><p class="muted small">Quỹ ban đầu được tính riêng. Các lần đóng thêm nằm trong danh sách dưới đây.</p></div><div class="section-actions"><button class="primary compact" id="addContribution"><svg class="tt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg> Ghi đóng quỹ</button></div></div><div class="sort-toolbar"><label for="fundDateSort">Sắp xếp theo ngày</label><select id="fundDateSort" aria-label="Sắp xếp đóng quỹ theo ngày"><option value="newest">Mới nhất trước</option><option value="oldest">Cũ nhất trước</option></select></div><div id="contributionList" class="list ledger-list"></div>
   </section>
   <section id="peopleTab" class="tabbody hidden">
@@ -237,6 +247,23 @@
  <label id="expenseReceiptRemoveRow" class="receipt-remove-row hidden"><input type="checkbox" id="expenseRemoveReceipt"> Gỡ ảnh hóa đơn hiện tại</label>
 </div>
 <menu><button class="secondary" id="expenseCancel" type="button">Hủy</button><button class="primary" id="expenseSave" value="default">Lưu khoản chi</button></menu></form></dialog>
+<dialog id="fundReminderDialog" aria-labelledby="fundReminderDialogTitle">
+  <form id="fundReminderForm">
+    <input type="hidden" id="fundReminderId">
+    <h2 id="fundReminderDialogTitle">Nhắc khoản phải thanh toán</h2>
+    <p class="muted small">Ví dụ: thuê phòng 2.100.000 ₫, đã cọc 400.000 ₫, cần dự phòng thêm 1.700.000 ₫.</p>
+    <label for="fundReminderName">Nội dung<input id="fundReminderName" maxlength="100" required placeholder="Thuê phòng"></label>
+    <div class="formgrid">
+      <label for="fundReminderTotal">Tổng phải trả (VNĐ)<input id="fundReminderTotal" type="text" data-money inputmode="numeric" min="1" value="2100000" required></label>
+      <label for="fundReminderPaid">Đã cọc / đã trả (VNĐ)<input id="fundReminderPaid" type="text" data-money inputmode="numeric" min="0" value="400000" required></label>
+    </div>
+    <p class="fund-reminder-preview" id="fundReminderPreview" aria-live="polite">Cần giữ lại trong quỹ: 1.700.000 ₫</p>
+    <label for="fundReminderDue">Ngày thanh toán dự kiến (tùy chọn)<input id="fundReminderDue" type="date"></label>
+    <label for="fundReminderNote">Ghi chú<input id="fundReminderNote" maxlength="250" placeholder="Ví dụ: trả số còn lại khi nhận phòng"></label>
+    <p class="muted small">Lưu nhắc thanh toán không tự ghi khoản chi hay trừ tiền khỏi quỹ. Khi đã trả tiền, hãy ghi khoản chi thật ở mục Chi tiêu.</p>
+    <menu><button type="button" class="secondary" id="fundReminderCancel">Hủy</button><button id="fundReminderSave" class="primary" type="submit">Lưu nhắc</button></menu>
+  </form>
+</dialog>
 <dialog id="fundDialog"><form method="dialog" id="fundForm"><input id="fundId" type="hidden"><h2 id="fundDialogTitle">Ghi đóng quỹ</h2><div class="formgrid"><label>Số tiền (VNĐ)<input id="fundAmount" data-money type="text" inputmode="numeric" required min="1"></label><label>Người đóng<select id="fundPayer"></select></label></div><label>Ghi chú<input id="fundNote" maxlength="100" placeholder="Ví dụ: Đóng quỹ lần 1"></label><label>Ngày đóng<input id="fundDate" type="date" required></label><menu><button class="secondary" id="fundCancel" type="button">Hủy</button><button class="primary" id="fundSave" value="default">Lưu khoản đóng</button></menu></form></dialog>
 <dialog id="initialFundDialog"><form method="dialog" id="initialFundForm"><h2>Sửa quỹ ban đầu</h2><p class="muted">Nhập số tiền trong quỹ trước các lần đóng thêm.</p><label>Quỹ ban đầu (VNĐ)<input id="initialFundInput" data-money type="text" inputmode="numeric" required min="0"></label><menu><button class="secondary" id="initialFundCancel" type="button">Hủy</button><button class="primary" id="initialFundSave" value="default">Lưu quỹ ban đầu</button></menu></form></dialog>
 <dialog id="memberAccessDialog" aria-labelledby="memberAccessTitle" class="member-access-dialog"><h2 id="memberAccessTitle">Quản lý quyền truy cập</h2><div id="hostEditRequestsPanel" class="settlement member-permissions hidden" style="display:none"><h3>Yêu cầu quyền chỉnh sửa</h3><div id="hostEditRequestsList"></div></div><div id="editPermissionsPanel" class="settlement member-permissions hidden"><h3>Quyền chỉnh sửa thành viên</h3><div id="memberPermissionList"></div></div><menu><button class="secondary" type="button" id="memberAccessClose">Đóng</button></menu></dialog>
@@ -265,5 +292,6 @@ window.__supabaseSdkReady=new Promise(resolve=>{const sources=['https://cdn.jsde
 <script src="money-input.js?v=1"></script>
 <script src="receipts.js?v=1"></script>
 <script src="excel-backup.js?v=1"></script>
-<script src="app.js?v=76"></script>
+<script src="fund-reminders.js?v=1"></script>
+<script src="app.js?v=77"></script>
 </body></html>
