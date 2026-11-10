@@ -47,6 +47,11 @@
   return Number(s);
  }
 
+ // Localised currency name ("Đô la Mỹ" / "US Dollar"); falls back to the built-in Vietnamese name.
+ function displayName(code,lang='vi'){
+  if(lang==='vi'||typeof Intl.DisplayNames!=='function')return byCode[code]?.name||code;
+  try{return new Intl.DisplayNames([lang],{type:'currency'}).of(code)||byCode[code]?.name||code}catch{return byCode[code]?.name||code}
+ }
  function toVnd(original,rate){return Math.round(Number(original)*Number(rate))}
 
  /* Validate a foreign-currency entry. Returns '' when valid, otherwise a Vietnamese message. */
@@ -92,5 +97,5 @@
   return Math.round(rate*10000)/10000;
  }
 
- return {BASE,CURRENCIES,isSupported,decimals,parseAmount,toVnd,validate,formatOriginal,formatRate,describe,fetchRate};
+ return {BASE,CURRENCIES,isSupported,decimals,displayName,parseAmount,toVnd,validate,formatOriginal,formatRate,describe,fetchRate};
 });

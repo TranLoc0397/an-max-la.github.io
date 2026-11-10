@@ -128,3 +128,18 @@ test('new labels are translated',()=>{
  for(const vi of ['Tiền tệ','Số tiền gốc','Tỷ giá','Lấy tỷ giá hôm nay','Quy đổi (VNĐ)','Nhập số tiền gốc và tỷ giá để quy đổi sang VND.'])
   assert.match(i18n,new RegExp('"'+vi.replace(/[.*+?^${}()|[\]\\/]/g,'\\$&')+'" *:'),vi);
 });
+
+test('remembered rate prefills when a currency is chosen, never while the user is typing',()=>{
+ const app=read('app.js');
+ const update=app.slice(app.indexOf('function updateExpenseCurrency(){'),app.indexOf('function prefillRememberedRate(){'));
+ assert.doesNotMatch(update,/rememberedRate\(/,'updateExpenseCurrency runs on every keystroke and must not refill the rate');
+ assert.match(app,/\$\('expenseCurrency'\)\.addEventListener\('change',\(\)=>\{\$\('expenseFxRate'\)\.value='';prefillRememberedRate\(\);updateExpenseCurrency\(\)\}\);/);
+ assert.match(app,/\['expenseOriginalAmount','expenseFxRate'\]\.forEach\(id=>\$\(id\)\.addEventListener\('input',updateExpenseCurrency\)\);/);
+});
+
+test('currency names follow the UI language',()=>{
+ assert.equal(C.displayName('USD','vi'),'Đô la Mỹ');
+ assert.equal(C.displayName('USD','en'),'US Dollar');
+ assert.equal(C.displayName('JPY','en'),'Japanese Yen');
+ assert.match(read('app.js'),/C\.displayName\(c\.code,lang\)/);
+});

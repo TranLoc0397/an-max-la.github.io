@@ -920,11 +920,14 @@ function rememberRate(code,rate){try{const all=JSON.parse(localStorage.getItem(F
 function setupExpenseCurrency(record){
  const C=window.TripTogetherCurrency,select=$('expenseCurrency');
  $('expenseCurrencyBlock').classList.toggle('hidden',!multiCurrencyAvailable);
- if(!select.options.length)select.innerHTML=C.CURRENCIES.map(c=>`<option value="${c.code}">${c.code} · ${esc(c.name)}</option>`).join('');
+ // Rebuilt on every open so names follow the current UI language (Intl knows every ISO currency name).
+ const lang=window.TripTogetherI18n?.language==='en'?'en':'vi';
+ select.innerHTML=C.CURRENCIES.map(c=>`<option value="${c.code}" data-user-content>${c.code} · ${esc(C.displayName(c.code,lang))}</option>`).join('');
  const code=multiCurrencyAvailable&&record?.currency&&C.isSupported(record.currency)?record.currency:C.BASE;
  select.value=code;
  $('expenseOriginalAmount').value=code!==C.BASE&&record?.original_amount!=null?String(Number(record.original_amount)).replace('.',','):'';
  $('expenseFxRate').value=code!==C.BASE&&record?.fx_rate!=null?C.formatRate(record.fx_rate):'';
+ if(!$('expenseFxRate').value)prefillRememberedRate();
  updateExpenseCurrency();
 }
 // Reads the foreign-currency fields: {currency, original, rate, vnd, error}.
@@ -943,12 +946,18 @@ function updateExpenseCurrency(){
  $('expenseAmountLabel').textContent=foreign?'Quy đổi (VNĐ)':'Số tiền (VNĐ)';
  const preview=$('expenseFxPreview');
  if(!foreign){preview.textContent='';preview.classList.remove('is-error');return}
- if(!$('expenseFxRate').value.trim()&&rememberedRate(code))$('expenseFxRate').value=C.formatRate(rememberedRate(code));
  const fx=readExpenseCurrency(),typed=$('expenseOriginalAmount').value.trim()&&$('expenseFxRate').value.trim();
  if(fx.vnd){amount.value=String(fx.vnd);preview.textContent=C.formatOriginal(fx.original,code)+' × '+C.formatRate(fx.rate)+' = '+money(fx.vnd);preview.classList.remove('is-error')}
  else{amount.value='';preview.textContent=typed?fx.error:'Nhập số tiền gốc và tỷ giá để quy đổi sang VND.';preview.classList.toggle('is-error',!!typed)}
 }
-['expenseCurrency','expenseOriginalAmount','expenseFxRate'].forEach(id=>$(id).addEventListener(id==='expenseCurrency'?'change':'input',updateExpenseCurrency));
+// The remembered rate is a starting value when a currency is picked; typing (even clearing the
+// field) must never be overwritten by it.
+function prefillRememberedRate(){
+ const C=window.TripTogetherCurrency,code=$('expenseCurrency').value;
+ if(code!==C.BASE&&rememberedRate(code))$('expenseFxRate').value=C.formatRate(rememberedRate(code));
+}
+$('expenseCurrency').addEventListener('change',()=>{$('expenseFxRate').value='';prefillRememberedRate();updateExpenseCurrency()});
+['expenseOriginalAmount','expenseFxRate'].forEach(id=>$(id).addEventListener('input',updateExpenseCurrency));
 $('expenseFetchRate').onclick=async()=>{
  const C=window.TripTogetherCurrency,code=$('expenseCurrency').value,button=$('expenseFetchRate'),label=button.textContent;
  button.disabled=true;button.textContent='Đang lấy tỷ giá…';
