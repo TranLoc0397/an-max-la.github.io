@@ -2,6 +2,19 @@
 (function(){
 'use strict';
 const dictionary={
+  "Chia cho":"Split between",
+  "Cả nhóm, chia đều":"Everyone, equally",
+  "Một số người, chia đều":"Some people, equally",
+  "Theo phần (ví dụ 2 : 1)":"By shares (e.g. 2 : 1)",
+  "Theo số tiền cụ thể":"By exact amounts",
+  "Cách chia":"Split",
+  "Nhập số tiền để xem phần chi của từng người.":"Enter the amount to see each person's share.",
+  "Chọn ít nhất một người cùng chia khoản này.":"Choose at least one person to share this expense.",
+  "Nhập phần chia cho ít nhất một người.":"Enter a share for at least one person.",
+  "Phần chia phải lớn hơn 0.":"Shares must be greater than 0.",
+  "Cách chia không hợp lệ.":"Invalid split.",
+  "Có người trong cách chia không còn là thành viên của chuyến.":"Someone in this split is no longer a member of the trip.",
+  "Nhập số tiền khoản chi trước khi chia theo số tiền.":"Enter the expense amount before splitting by amounts.",
   "Tiền tệ":"Currency",
   "Số tiền gốc":"Original amount",
   "Tỷ giá":"Exchange rate",
@@ -380,6 +393,13 @@ function translation(original){
  const variablePrefixes={
   'Quỹ còn nợ: ':'Fund owes: ',
   'Tỷ giá (1 ':'Exchange rate (1 ',
+  'Chia đều cho: ':'Split equally between: ',
+  'Chia theo phần: ':'Split by shares: ',
+  'Chia theo số tiền: ':'Split by amounts: ',
+  'Còn ':'Still ',
+  'Đã chia vượt ':'Over-assigned by ',
+  'Đã chia đủ ':'Fully assigned: ',
+  'Phần chi ':'Shares ',
   'Quỹ nợ ':'Fund owes ',
   'Mỗi người chịu ~':'Each person ~',
   'Không thể tạo chuyến: ':'Could not create trip: ',

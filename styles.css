@@ -1680,3 +1680,16 @@ select:hover{border-color:#cfc9ef}
  .record-row>.record-amount{grid-column:2;grid-row:1;text-align:right}
  .record-row>.record-buttons{grid-column:1/-1;justify-content:flex-end}
 }
+/* Uneven splits */
+.split-block{margin:4px 0 10px;padding:12px 14px;border:1px solid #ece9fb;border-radius:14px;background:#faf9ff}
+.split-block.hidden,.split-members.hidden{display:none}
+.split-members{display:grid;gap:6px;margin:10px 0 4px;max-height:260px;overflow:auto}
+.split-member{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;margin:0;padding:8px 10px;border:1px solid #ebe8f7;border-radius:10px;background:#fff;font-weight:600;font-size:13px}
+.split-member:has(input[type=text]){grid-template-columns:minmax(0,1fr) 110px auto}
+.split-member input[type=checkbox]{width:18px;height:18px;margin:0;accent-color:#6559e8}
+.split-member input[type=text]{margin:0;padding:7px 9px;min-height:36px;text-align:right}
+.split-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.split-share{font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap;min-width:90px;text-align:right}
+.split-summary{margin:6px 0 0;font-size:13px;font-weight:600;color:#4f46a9}
+.split-summary.is-error{color:#b3412f}
+.record-split{margin-top:4px;font-size:11px;font-weight:600;color:#5145c7}

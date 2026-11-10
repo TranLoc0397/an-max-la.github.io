@@ -27,14 +27,21 @@
   const memberBalances=F.calculateMemberBalances(members,enrichedExpenses,contributions,totals);
   const debtBalances=F.calculateDebtBalances(members,enrichedDebts);
   const expenseTransfers=F.settle(memberBalances),debtTransfers=F.settle(debtBalances);
+  const A='Phan bo chi phi';
+  const allocationRows=[['ID khoan chi','Hang muc','ID thanh vien','Ten','Phan chi (VND)','Cach chia']];
+  enrichedExpenses.forEach(e=>{
+   const mode=e.split&&e.split.weights?e.split.mode:'ca nhom';
+   for(const [id,value] of F.allocateExpense(e,members))allocationRows.push([e.id,e.title,id,(members.find(m=>m.user_id===id)||{}).name||'',value,mode]);
+  });
+  const ar=col=>range(A,col,allocationRows.length-1);
   const E='Khoan chi',P='Thanh toan',D='No rieng',C='Dong quy',M='Thanh vien',S='Tong quan';
   const er=col=>range(E,col,expenses.length),pr=col=>range(P,col,payments.length),dr=col=>range(D,col,debts.length),cr=col=>range(C,col,contributions.length);
-  const expenseRows=[['ID','Ngay chi','Hang muc','Phan loai','ID nguoi ung','Nguoi tra','So tien','Da hoan (cu)','Ghi chu','Duong dan anh','Da hoan tu quy','Quy da chi','Quy con no','Nguoi tao','Ngay tao','Tien te','So tien goc','Ty gia (VND)']];
+  const expenseRows=[['ID','Ngay chi','Hang muc','Phan loai','ID nguoi ung','Nguoi tra','So tien','Da hoan (cu)','Ghi chu','Duong dan anh','Da hoan tu quy','Quy da chi','Quy con no','Nguoi tao','Ngay tao','Tien te','So tien goc','Ty gia (VND)','Cach chia (JSON)']];
   enrichedExpenses.forEach((e,i)=>{
    const n=i+2,a=number(e.amount),paid=number(e.paid_amount),fundPaid=e.payer_id?paid:a;
    expenseRows.push([e.id,e.spent_on,e.title,e.category,e.payer_id||'',e.payer_name,a,e.reimbursed?1:0,e.note||'',e.receipt_path||'',
     c(paid,'IF(E'+n+'="",0,IF(COUNTIF('+pr('C')+',A'+n+')>0,MIN(G'+n+',MAX(0,SUMIF('+pr('C')+',A'+n+','+pr('E')+'))),IF(H'+n+'=1,G'+n+',0)))'),
-    c(fundPaid,'IF(E'+n+'="",G'+n+',K'+n+')'),c(e.payer_id?a-paid:0,'IF(E'+n+'="",0,MAX(0,G'+n+'-K'+n+'))'),e.created_by||'',e.created_at||'',e.currency||'VND',e.original_amount==null?'':Number(e.original_amount),e.fx_rate==null?'':Number(e.fx_rate)]);
+    c(fundPaid,'IF(E'+n+'="",G'+n+',K'+n+')'),c(e.payer_id?a-paid:0,'IF(E'+n+'="",0,MAX(0,G'+n+'-K'+n+'))'),e.created_by||'',e.created_at||'',e.currency||'VND',e.original_amount==null?'':Number(e.original_amount),e.fx_rate==null?'':Number(e.fx_rate),e.split?JSON.stringify(e.split):'']);
   });
   const contributionRows=[['ID','Ngay dong','ID nguoi dong','Ten nguoi dong','So tien','Ghi chu','Nguoi tao','Ngay tao']];
   contributions.forEach(x=>contributionRows.push([x.id,x.paid_on,x.payer_id,x.payer_name,number(x.amount),x.note||'',x.created_by||'',x.created_at||'']));
@@ -53,7 +60,7 @@
    memberRows.push([m.id,m.name,m.is_guest?'Co':'Khong',
     c(number(m.paid),'SUMIF('+er('E')+',A'+n+','+er('G')+')'),
     c(number(m.contributed),'SUMIF('+cr('C')+',A'+n+','+cr('E')+')'),
-    c(number(m.share),'IFERROR(\'Tong quan\'!B5/\'Tong quan\'!B3,0)'),
+    c(number(m.share),'SUMIF('+ar('C')+',A'+n+','+ar('E')+')'),
     c(number(m.outstanding),'SUMIF('+er('E')+',A'+n+','+er('M')+')'),
     c(number(m.b),'IFERROR(\'Tong quan\'!B4/\'Tong quan\'!B3+E'+n+'-F'+n+'-\'Tong quan\'!B11/\'Tong quan\'!B3,0)'),
     c(number(db.b),'SUMIF('+dr('D')+',A'+n+','+dr('I')+')-SUMIF('+dr('C')+',A'+n+','+dr('I')+')'),
@@ -71,7 +78,7 @@
    ['Quy con no thanh vien',number(totals.dueToMembers),'Khoan nguoi ung chua duoc quy hoan'],
    ['Tien mat quy',number(totals.cashFund),'Tong quy - Quy da chi'],
    ['Quy thuc te',number(totals.actualFund),'Tien mat quy - Quy con no thanh vien'],
-   ['Phan chi / nguoi',number(totals.spent)/Math.max(1,members.length),'Tong chi / so thanh vien'],
+   ['Phan chi trung binh / nguoi',number(totals.spent)/Math.max(1,members.length),'Tong chi / so thanh vien (phan chi tung nguoi o sheet Thanh vien)'],
    ['No rieng con lai',enrichedDebts.reduce((n,d)=>n+Math.max(0,number(d.amount)-number(d.paid_amount)),0),'Khong cong vao can doi quy'],
    ['Xuat luc',new Date().toISOString(),'Ban sao tai thoi diem xuat'],
    ['Quy can du phong',reminders.reduce((sum,x)=>sum+Math.max(0,number(x.total_amount)-number(x.paid_amount)),0),'Chi la so tien du kien; chua tru vao tien mat quy'],
@@ -91,7 +98,7 @@
    ['TripTogether - Sao luu tai chinh','Ban sao doc lap voi website; mo bang Excel/LibreOffice.'],
    ['Nguon','Dữ liệu toàn bộ được lấy trực tiếp từ Supabase theo chuyến đi; không lọc theo giao diện.'],
    ['Du lieu goc','Trang JSON chua toan bo du lieu goc de doi chieu hoac khoi phuc thu cong.'],
-   ['Phan chi','Tong chi / MAX(1, so thanh vien).'],
+   ['Phan chi','SUMIF(Phan bo chi phi.ID thanh vien, Thanh vien.ID, Phan bo chi phi.Phan chi). Khoan chia ca nhom = so tien / so thanh vien; khoan chia rieng = so tien x trong so cua nguoi do / tong trong so.'],
    ['Chi ca nhan','SUMIF(Khoan chi.ID nguoi ung, Thanh vien.ID, Khoan chi.So tien).'],
    ['Da hoan khoan chi','Neu co ban ghi thanh toan: MIN(so tien,MAX(0,SUMIF(Thanh toan.ID khoan chi, khoan chi.ID, so tien +/-))); neu khong: co Da hoan (cu) thi bang so tien, nguoc lai 0.'],
    ['Quy da chi tung khoan','Neu quy tra truc tiep: bang so tien. Neu nguoi ung: bang Da hoan tu quy.'],
@@ -115,7 +122,7 @@
   const sheets=[
    {name:S,rows:summary},{name:M,rows:memberRows},{name:E,rows:expenseRows},
    {name:C,rows:contributionRows},{name:D,rows:debtRows},{name:P,rows:paymentRows},
-   {name:'Goi y chuyen tien',rows:transferRows},{name:'Cong thuc',rows:notes},{name:'Du lieu goc JSON',rows:rawRows},{name:'Nhac quy',rows:reminderRows}
+   {name:'Goi y chuyen tien',rows:transferRows},{name:'Cong thuc',rows:notes},{name:'Du lieu goc JSON',rows:rawRows},{name:'Nhac quy',rows:reminderRows},{name:A,rows:allocationRows}
   ];
   return makeXlsx(sheets);
  }
