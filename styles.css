@@ -1711,3 +1711,12 @@ select:hover{border-color:#cfc9ef}
 @container ledger (max-width:640px){#expenseList .record-row{grid-template-columns:minmax(0,1fr) auto}}
 .currency-hint{margin:-6px 0 8px;font-size:11px;color:var(--muted)}
 .currency-hint:empty{display:none}
+/* "Lấy tỷ giá hôm nay": the rate-source note lives in a small tooltip on the (i) icon */
+.fx-actions{justify-content:flex-end;padding-bottom:13px}
+.fx-fetch{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.fx-info{display:inline-flex;color:#7a6fe0;opacity:.85}
+.fx-fetch:hover .fx-info{opacity:1}
+.fx-tip{position:absolute;right:0;bottom:calc(100% + 8px);width:240px;max-width:calc(100vw - 48px);padding:8px 10px;border-radius:10px;background:#25284a;color:#fff;font:500 12px/1.45 'Roboto',Arial,sans-serif;text-align:left;white-space:normal;box-shadow:0 10px 28px #20234233;opacity:0;visibility:hidden;transform:translateY(4px);transition:opacity .15s ease,transform .15s ease,visibility .15s;pointer-events:none;z-index:20}
+.fx-tip::after{content:'';position:absolute;right:18px;top:100%;border:6px solid transparent;border-top-color:#25284a}
+.fx-fetch:has(.fx-info:hover) .fx-tip,.fx-fetch:focus-visible .fx-tip,.fx-fetch.show-tip .fx-tip{opacity:1;visibility:visible;transform:none}
+@media (prefers-reduced-motion:reduce){.fx-tip{transition:none}}

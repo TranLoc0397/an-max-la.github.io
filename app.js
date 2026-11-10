@@ -976,13 +976,19 @@ function prefillRememberedRate(){
 }
 $('expenseCurrency').addEventListener('change',()=>{$('expenseCurrencyHint').textContent='';$('expenseFxRate').value='';prefillRememberedRate();updateExpenseCurrency()});
 ['expenseOriginalAmount','expenseFxRate'].forEach(id=>$(id).addEventListener('input',updateExpenseCurrency));
-$('expenseFetchRate').onclick=async()=>{
- const C=window.TripTogetherCurrency,code=$('expenseCurrency').value,button=$('expenseFetchRate'),label=button.textContent;
- button.disabled=true;button.textContent='Đang lấy tỷ giá…';
+$('expenseFetchRate').onclick=async event=>{
+ const button=$('expenseFetchRate');
+ // Tapping the (i) icon only shows the note about where the rate comes from (touch has no hover).
+ if(event.target.closest('.fx-info')){button.classList.toggle('show-tip');return}
+ button.classList.remove('show-tip');
+ const C=window.TripTogetherCurrency,code=$('expenseCurrency').value,labelEl=button.querySelector('.fx-fetch-label'),label=labelEl.textContent;
+ button.disabled=true;labelEl.textContent='Đang lấy tỷ giá…';
  try{const rate=await C.fetchRate(code);$('expenseFxRate').value=C.formatRate(rate);updateExpenseCurrency()}
  catch(error){const p=$('expenseFxPreview');p.textContent=error.message+' Bạn có thể nhập tỷ giá thủ công.';p.classList.add('is-error')}
- finally{button.disabled=false;button.textContent=label}
+ finally{button.disabled=false;labelEl.textContent=label}
 };
+$('expenseFetchRate').addEventListener('mouseleave',event=>event.currentTarget.classList.remove('show-tip'));
+$('expenseFetchRate').addEventListener('blur',event=>event.currentTarget.classList.remove('show-tip'));
 // ---- Uneven splits ---------------------------------------------------------------------
 // The expense's entry total: what the user typed it in (original amount when foreign, else VND).
 function expenseEntryTotal(){
