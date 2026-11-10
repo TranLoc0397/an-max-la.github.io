@@ -133,7 +133,7 @@ test('remembered rate prefills when a currency is chosen, never while the user i
  const app=read('app.js');
  const update=app.slice(app.indexOf('function updateExpenseCurrency(){'),app.indexOf('function prefillRememberedRate(){'));
  assert.doesNotMatch(update,/rememberedRate\(/,'updateExpenseCurrency runs on every keystroke and must not refill the rate');
- assert.match(app,/\$\('expenseCurrency'\)\.addEventListener\('change',\(\)=>\{\$\('expenseFxRate'\)\.value='';prefillRememberedRate\(\);updateExpenseCurrency\(\)\}\);/);
+ assert.match(app,/\$\('expenseCurrency'\)\.addEventListener\('change',\(\)=>\{\$\('expenseCurrencyHint'\)\.textContent='';\$\('expenseFxRate'\)\.value='';prefillRememberedRate\(\);updateExpenseCurrency\(\)\}\);/);
  assert.match(app,/\['expenseOriginalAmount','expenseFxRate'\]\.forEach\(id=>\$\(id\)\.addEventListener\('input',updateExpenseCurrency\)\);/);
 });
 
@@ -142,4 +142,23 @@ test('currency names follow the UI language',()=>{
  assert.equal(C.displayName('USD','en'),'US Dollar');
  assert.equal(C.displayName('JPY','en'),'Japanese Yen');
  assert.match(read('app.js'),/C\.displayName\(c\.code,lang\)/);
+});
+
+test('new expenses default to the usual trip currency and its latest rate',()=>{
+ const e=(currency,at,rate)=>({currency,created_at:'2026-11-10T0'+at+':00:00Z',fx_rate:rate??null});
+ assert.equal(C.suggestDefault([]),null);
+ assert.equal(C.suggestDefault([e('VND',1),e('VND',2)]),null,'VND-only trips stay VND');
+ // Mostly THB: one VND airport coffee as the latest expense must not flip the default.
+ assert.deepEqual(C.suggestDefault([e('THB',1,760),e('THB',2,763.16),e('THB',3,763.16),e('VND',4)]),{currency:'THB',rate:763.16});
+ // Latest rate wins.
+ assert.deepEqual(C.suggestDefault([e('THB',1,700),e('THB',3,765)]),{currency:'THB',rate:765});
+ // Tie → most recent currency.
+ assert.equal(C.suggestDefault([e('THB',1,760),e('JPY',2,170)]).currency,'JPY');
+ // Only the latest 10 count: moved on from Japan to Thailand.
+ const trip=[...Array(8)].map((_,i)=>({currency:'JPY',created_at:'2026-11-01T0'+i+':00:00Z',fx_rate:170}))
+  .concat([...Array(10)].map((_,i)=>({currency:'THB',created_at:'2026-11-05T'+String(10+i)+':00:00Z',fx_rate:763})));
+ assert.equal(C.suggestDefault(trip).currency,'THB');
+ const app=read('app.js');
+ assert.match(app,/const suggestion=!record&&multiCurrencyAvailable\?C\.suggestDefault\(expenses\):null;/);
+ assert.match(app,/if\(!\$\('expenseFxRate'\)\.value&&suggestion\?\.rate\)/);
 });

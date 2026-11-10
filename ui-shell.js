@@ -64,11 +64,12 @@
    const avatar=(member,cls)=>'<span class="tt-person-avatar '+tone(member.name)+(cls?' '+cls:'')+'" aria-hidden="true">'+escapeText(initialOf(member.name))+'</span>';
    const ordered=[...members].sort((a,b)=>(b.user_id===trip?.created_by)-(a.user_id===trip?.created_by));
    const share=balanceById.size?[...balanceById.values()][0].share:0;
+   const allShares=[...balanceById.values()].map(x=>Number(x.share)||0),minShare=allShares.length?Math.min(...allShares):0,maxShare=allShares.length?Math.max(...allShares):0,spread=maxShare-minShare;
    const VISIBLE=4;
    const stack=ordered.slice(0,5).map(member=>avatar(member,'tt-stack-avatar')).join('')+
      (ordered.length>5?'<span class="tt-person-avatar tt-stack-avatar tt-stack-more" aria-hidden="true">+'+(ordered.length-5)+'</span>':'');
    const summary=members.length?'<div class="tt-people-summary"><div class="tt-avatar-stack">'+stack+'</div>'+
-     '<div class="tt-people-summary-text"><b>'+members.length+' thành viên</b><small>Mỗi người đã chi ~'+fmt(share)+'</small></div></div>':'';
+     '<div class="tt-people-summary-text"><b>'+members.length+' thành viên</b><small>'+(spread>=1?'Phần chi '+fmt(minShare)+' – '+fmt(maxShare):'Mỗi người đã chi ~'+fmt(share))+'</small></div></div>':'';
    const rows=ordered.slice(0,VISIBLE).map(member=>{
      const info=balanceById.get(member.user_id)||{};
      const isHost=member.user_id===trip?.created_by;

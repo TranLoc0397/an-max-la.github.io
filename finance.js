@@ -40,18 +40,47 @@
     return { spent, additional, initial, fund, fundPaid, dueToMembers, cashFund, actualFund };
   }
 
+  // How one expense is shared (VND, may be fractional like the equal split always was).
+  // split = null → everyone in the trip shares equally (the original behaviour).
+  // split = {mode:'equal'|'shares'|'exact', weights:{memberId: weight}} → proportional to weights.
+  // Weights for ids that are no longer members are ignored and the expense is spread over the
+  // remaining participants, so allocations always add up to the full amount and balances stay zero-sum.
+  function allocateExpense(expense, members) {
+    const amount = Number(expense.amount), ids = members.map(m => m.user_id), out = new Map();
+    const weights = expense.split && typeof expense.split === 'object' && expense.split.weights
+      ? Object.entries(expense.split.weights).filter(([id, w]) => ids.includes(id) && Number(w) > 0) : [];
+    if (!weights.length) {
+      for (const id of ids) out.set(id, amount / Math.max(1, ids.length));
+      return out;
+    }
+    const total = weights.reduce((sum, [, w]) => sum + Number(w), 0);
+    for (const [id, w] of weights) out.set(id, amount * Number(w) / total);
+    return out;
+  }
+
+  function memberShares(members, expenses) {
+    const shares = new Map(members.map(m => [m.user_id, 0]));
+    for (const expense of expenses)
+      for (const [id, value] of allocateExpense(expense, members)) shares.set(id, shares.get(id) + value);
+    return shares;
+  }
+
   function calculateMemberBalances(members, expenses, contributions, totals) {
     const memberCount = Math.max(1, members.length);
     const sharePerMember = totals.spent / memberCount;
+    // Keep the exact original arithmetic when nothing is split unevenly.
+    const custom = expenses.some(item => item.split && item.split.weights);
+    const shares = custom ? memberShares(members, expenses) : null;
     return members.map(member => {
+      const share = custom ? shares.get(member.user_id) : sharePerMember;
       const personal = expenses.filter(item => item.payer_id === member.user_id);
       const paid = personal.reduce((sum, item) => sum + Number(item.amount), 0);
       const outstanding = personal.reduce((sum, item) =>
         sum + (Number(item.amount) - reimbursedAmount(item)), 0);
       const contributed = contributions.filter(item => item.payer_id === member.user_id)
         .reduce((sum, item) => sum + Number(item.amount), 0);
-      const b = totals.initial / memberCount + contributed - sharePerMember - totals.actualFund / memberCount;
-      return { id: member.user_id, name: member.name, is_guest: !!member.is_guest, paid, outstanding, contributed, share: sharePerMember, b };
+      const b = totals.initial / memberCount + contributed - share - totals.actualFund / memberCount;
+      return { id: member.user_id, name: member.name, is_guest: !!member.is_guest, paid, outstanding, contributed, share, b };
     });
   }
 
@@ -93,5 +122,5 @@
     return get('year') + '-' + get('month') + '-' + get('day');
   }
 
-  return { calculateTotals, calculateMemberBalances, calculateDebtBalances, applyPayments, settle, vietnamDate };
+  return { calculateTotals, calculateMemberBalances, allocateExpense, memberShares, calculateDebtBalances, applyPayments, settle, vietnamDate };
 });

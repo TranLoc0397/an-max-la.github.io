@@ -10,6 +10,8 @@ let editRequests=[], editRequestsAvailable=false, editRequestTimer=null;
 let fundReminders=[],fundRemindersAvailable=false;
 // Multi-currency needs expense_currency.sql; until it is installed the app stays VND-only.
 let multiCurrencyAvailable=false;
+// Uneven splits need expense_splits.sql; until then every expense is shared equally (old behaviour).
+let splitAvailable=false;
 let payments=[],activityEvents=[],memberInviteEmails=[],memberInviteEmailsAvailable=false;
 let refreshSequence=0;
 let pendingAction=null;
@@ -86,12 +88,12 @@ $('requestEditBtn').onclick=requestEditAccess;
 async function withButtonLoading(button,message,action){if(!button||actionInFlight)return;actionInFlight=true;const controls=[...document.querySelectorAll('button')],disabled=controls.map(b=>b.disabled),label=button.textContent;controls.forEach(b=>b.disabled=true);button.classList.add('is-loading');button.setAttribute('aria-busy','true');button.textContent=message;try{return await action()}finally{controls.forEach((b,i)=>{if(b.isConnected)b.disabled=disabled[i]});button.classList.remove('is-loading');button.removeAttribute('aria-busy');button.textContent=label;actionInFlight=false}}
 // Close member action menus on outside click or Escape; native <details> handles keyboard opening.
 document.addEventListener('pointerdown',event=>{
- if(event.target.closest('.member-actions-menu'))return;
- document.querySelectorAll('.member-actions-menu[open]').forEach(menu=>{menu.open=false});
+ if(event.target.closest('.member-actions-menu,.record-actions-menu'))return;
+ document.querySelectorAll('.member-actions-menu[open],.record-actions-menu[open]').forEach(menu=>{menu.open=false});
 });
 document.addEventListener('keydown',event=>{
  if(event.key!=='Escape')return;
- const menus=[...document.querySelectorAll('.member-actions-menu[open]')];
+ const menus=[...document.querySelectorAll('.member-actions-menu[open],.record-actions-menu[open]')];
  if(!menus.length)return;
  menus.forEach(menu=>{menu.open=false});
  if(!document.querySelector('dialog[open]'))menus[0].querySelector('summary')?.focus();
@@ -440,7 +442,7 @@ async function refresh(){
    payments=ledgerReply.data||[];activityEvents=[];
    render();status('Chỉ xem');return;
   }
-  const [a,b,c,d,requests,ledger,history,invites,reminderReply,currencyProbe]=await Promise.all([
+  const [a,b,c,d,requests,ledger,history,invites,reminderReply,currencyProbe,splitProbe]=await Promise.all([
    db.from('members').select('*').eq('trip_id',tripId).order('created_at').order('user_id'),
    db.from('expenses').select('*').eq('trip_id',tripId).order('spent_on',{ascending:false}),
    db.from('contributions').select('*').eq('trip_id',tripId).order('paid_on',{ascending:false}),
@@ -450,7 +452,8 @@ async function refresh(){
    db.from('trip_activity').select('*').eq('trip_id',tripId).order('recorded_at',{ascending:false}).limit(40),
    trip.created_by===user?.id?db.rpc('get_trip_member_invite_emails',{p_trip_id:tripId}):Promise.resolve({data:[],error:null}),
     db.from('trip_fund_reminders').select('*').eq('trip_id',tripId).order('created_at',{ascending:false}),
-   db.from('expenses').select('currency,original_amount,fx_rate').eq('trip_id',tripId).limit(1)
+   db.from('expenses').select('currency,original_amount,fx_rate').eq('trip_id',tripId).limit(1),
+   db.from('expenses').select('split').eq('trip_id',tripId).limit(1)
   ]);
   if(!current())return; // Never commit an older or different-trip response.
   if(a.error||b.error||c.error||d.error||ledger.error||history.error){
@@ -485,6 +488,8 @@ async function refresh(){
   if(!current())return;
   members=a.data||[];expenses=nextExpenses;contributions=nextContributions;debts=nextDebts;payments=nextPayments;activityEvents=history.data||[];
   multiCurrencyAvailable=!currencyProbe.error;
+  splitAvailable=!splitProbe.error;
+  if(splitProbe.error)console.warn('Uneven splits require expense_splits.sql:',splitProbe.error);
   if(currencyProbe.error)console.warn('Multi-currency expenses require expense_currency.sql:',currencyProbe.error);
   fundRemindersAvailable=!reminderReply.error;fundReminders=reminderReply.data||[];
   if(reminderReply.error)console.warn('Fund reminders require trip_fund_reminders.sql:',reminderReply.error);memberInviteEmails=invites.error?[]:(invites.data||[]);memberInviteEmailsAvailable=!invites.error;
@@ -559,7 +564,7 @@ function render(){
  expenseList.innerHTML=visibleExpenses.length?visibleExpenses.map(x=>{
    const isPersonal=!!x.payer_id,paid=Number(x.paid_amount||0),remaining=Number(x.amount)-paid;
    const refundLabel=!isPersonal?'Trả trực tiếp từ quỹ':remaining===0?'Quỹ đã hoàn trả':paid>0?'Đã hoàn một phần: '+money(paid)+' / '+money(x.amount):'Quỹ còn nợ '+esc(x.payer_name||'thành viên');
-   return `<div class="item record-row"><div class="record-main"><div class="record-title" data-user-content>${esc(x.title)}</div><div class="record-meta">${esc(x.spent_on)} · ${esc(categoryLabel(x.category))} · ${isPersonal?'Ứng bởi '+esc(x.payer_name||'thành viên'):'Lấy từ quỹ chung'}</div><div class="record-status ${isPersonal&&remaining>0?(paid>0?'record-status-partial':'record-status-due'):''}">${refundLabel}</div>${x.note?`<div class="record-note" data-user-content>${esc(x.note)}</div>`:''}${x.receipt_path&&(user&&(trip.created_by===user.id||members.some(m=>m.user_id===user.id||m.account_user_id===user.id)))?`<button type="button" class="secondary compact expense-view-receipt" data-receipt-path="${esc(x.receipt_path)}">Xem ảnh hóa đơn</button>`:''}</div><div class="record-meta record-amount">${money(x.amount)}${window.TripTogetherCurrency.describe(x)?`<small class="record-fx">${esc(window.TripTogetherCurrency.describe(x))}</small>`:''}</div>${canEdit?`<div class="record-buttons">${isPersonal&&remaining>0?`<button class="secondary compact record-payment" data-kind="expense" data-id="${esc(x.id)}" data-reverse="false">Ghi hoàn trả</button>`:''}${isPersonal&&paid>0?`<button class="secondary compact record-payment" data-kind="expense" data-id="${esc(x.id)}" data-reverse="true">Hoàn tác thanh toán</button>`:''}<button class="secondary compact edit-expense" data-id="${esc(x.id)}">Sửa</button><button class="danger compact delete-expense" data-id="${esc(x.id)}" data-title="${esc(x.title)}" aria-label="Xóa khoản chi ${esc(x.title)}">Xóa</button></div>`:''}</div>`;
+   return `<div class="item record-row"><div class="record-main"><div class="record-title" data-user-content>${esc(x.title)}</div><div class="record-meta">${esc(x.spent_on)} · ${esc(categoryLabel(x.category))} · ${isPersonal?'Ứng bởi '+esc(x.payer_name||'thành viên'):'Lấy từ quỹ chung'}</div><div class="record-status ${isPersonal&&remaining>0?(paid>0?'record-status-partial':'record-status-due'):''}">${refundLabel}</div>${x.note?`<div class="record-note" data-user-content>${esc(x.note)}</div>`:''}${x.split?`<div class="record-split">${esc(window.TripTogetherSplit.describe(x.split,members,x.currency&&x.currency!=='VND'?x.currency:'₫'))}</div>`:''}${x.receipt_path&&(user&&(trip.created_by===user.id||members.some(m=>m.user_id===user.id||m.account_user_id===user.id)))?`<button type="button" class="secondary compact expense-view-receipt" data-receipt-path="${esc(x.receipt_path)}">Xem ảnh hóa đơn</button>`:''}</div><div class="record-meta record-amount">${money(x.amount)}${window.TripTogetherCurrency.describe(x)?`<small class="record-fx">${esc(window.TripTogetherCurrency.describe(x))}</small>`:''}</div>${canEdit?`<div class="record-buttons"><details class="record-actions-menu"><summary class="secondary compact" aria-label="Thao tác khoản chi: ${esc(x.title)}" title="Sửa"><svg class="record-actions-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></summary><div class="record-actions-dropdown" role="group" aria-label="Các thao tác của ${esc(x.title)}"><button type="button" class="edit-expense" data-id="${esc(x.id)}">Sửa thông tin</button>${isPersonal&&remaining>0?`<button type="button" class="record-payment" data-kind="expense" data-id="${esc(x.id)}" data-reverse="false">Ghi hoàn trả</button>`:''}${isPersonal&&paid>0?`<button type="button" class="record-payment" data-kind="expense" data-id="${esc(x.id)}" data-reverse="true">Hoàn tác thanh toán</button>`:''}<button type="button" class="delete-expense" data-id="${esc(x.id)}" data-title="${esc(x.title)}" aria-label="Xóa khoản chi ${esc(x.title)}">Xóa</button></div></details></div>`:''}</div>`;
  }).join(''):'<p class="muted ledger-empty">'+(expenses.length?'Không tìm thấy khoản chi phù hợp.':'Chưa có khoản chi. Thêm khoản chi đầu tiên.')+'</p>';
  contributionList.innerHTML=contributions.length?window.TripTogetherUI.sortByDate(contributions,'paid_on',$('fundDateSort').value).map(x=>`<div class="item record-row"><div class="record-main"><div class="record-title"${x.note?' data-user-content':''}>${esc(x.note||'Đóng quỹ')}</div><div class="record-meta">${esc(x.paid_on)} · ${esc(x.payer_name)}</div></div><div class="record-meta record-amount">${money(x.amount)}</div>${canEdit?`<div class="record-buttons"><button class="secondary compact edit-contribution" data-id="${esc(x.id)}">Sửa</button><button class="danger compact delete-contribution" data-id="${esc(x.id)}" data-note="${esc(x.note||'Đóng quỹ')}" aria-label="Xóa khoản đóng quỹ">Xóa</button></div>`:''}</div>`).join(''):'<p class="muted ledger-empty">Chưa có khoản đóng thêm.</p>';
  expenseList.querySelectorAll('.edit-expense').forEach(button=>button.onclick=()=>openExpense(expenses.find(x=>x.id===button.dataset.id)));
@@ -574,6 +579,13 @@ function render(){
  contributionList.querySelectorAll('.edit-contribution').forEach(button=>button.onclick=()=>openContribution(contributions.find(x=>x.id===button.dataset.id)));
  expenseList.querySelectorAll('.delete-expense').forEach(button=>button.onclick=()=>removeRecord('expenses',button,`Xóa khoản chi “${button.dataset.title}”? Thao tác này không thể hoàn tác.`));
  expenseList.querySelectorAll('.record-payment').forEach(button=>button.onclick=()=>openPaymentDialog(button.dataset.kind,button.dataset.id,button.dataset.reverse==='true'));
+ expenseList.querySelectorAll('.record-actions-menu').forEach(menu=>{
+  menu.addEventListener('toggle',()=>{
+   menu.closest('.record-row')?.classList.toggle('record-menu-open',menu.open);
+   if(menu.open)expenseList.querySelectorAll('.record-actions-menu[open]').forEach(other=>{if(other!==menu)other.open=false});
+  });
+  menu.querySelectorAll('.record-actions-dropdown button').forEach(button=>button.addEventListener('click',()=>{menu.open=false}));
+ });
  contributionList.querySelectorAll('.delete-contribution').forEach(button=>button.onclick=()=>removeRecord('contributions',button,`Xóa khoản đóng quỹ “${button.dataset.note}”? Thao tác này không thể hoàn tác.`));
  const memberName=id=>members.find(m=>m.user_id===id)?.name||'Thành viên';
  const expenseBalances=window.TripTogetherFinance.calculateMemberBalances(members,displayExpenses,contributions,{spent,initial,actualFund});
@@ -668,6 +680,7 @@ function render(){
    const displayChange=(key,value)=>{
     if(value===null||value===undefined||value==='')return 'Không có';
     if(key==='receipt_path')return 'Có ảnh đính kèm';
+    if(key==='split')return window.TripTogetherSplit.describe(value,members)||'Cả nhóm, chia đều';
     if(key==='original_amount')return Number(value).toLocaleString('vi-VN',{maximumFractionDigits:4});
     if(key==='fx_rate')return window.TripTogetherCurrency.formatRate(value)+' ₫';
     if(['amount','total_amount','paid_amount'].includes(key))return money(value);
@@ -927,10 +940,14 @@ function setupExpenseCurrency(record){
  // Rebuilt on every open so names follow the current UI language (Intl knows every ISO currency name).
  const lang=window.TripTogetherI18n?.language==='en'?'en':'vi';
  select.innerHTML=C.CURRENCIES.map(c=>`<option value="${c.code}" data-user-content>${c.code} · ${esc(C.displayName(c.code,lang))}</option>`).join('');
- const code=multiCurrencyAvailable&&record?.currency&&C.isSupported(record.currency)?record.currency:C.BASE;
+ // A new expense starts in the trip's usual currency (and its latest rate) instead of VND every time.
+ const suggestion=!record&&multiCurrencyAvailable?C.suggestDefault(expenses):null;
+ const code=multiCurrencyAvailable&&record?.currency&&C.isSupported(record.currency)?record.currency:suggestion?.currency||C.BASE;
  select.value=code;
+ $('expenseCurrencyHint').innerHTML=suggestion?`<span>Mặc định theo các khoản gần đây của chuyến:</span> <b>${esc(suggestion.currency)}</b>`:'';
  $('expenseOriginalAmount').value=code!==C.BASE&&record?.original_amount!=null?String(Number(record.original_amount)).replace('.',','):'';
  $('expenseFxRate').value=code!==C.BASE&&record?.fx_rate!=null?C.formatRate(record.fx_rate):'';
+ if(!$('expenseFxRate').value&&suggestion?.rate)$('expenseFxRate').value=C.formatRate(suggestion.rate);
  if(!$('expenseFxRate').value)prefillRememberedRate();
  updateExpenseCurrency();
 }
@@ -949,10 +966,11 @@ function updateExpenseCurrency(){
  const amount=$('expenseAmount');amount.readOnly=foreign;amount.classList.toggle('is-computed',foreign);
  $('expenseAmountLabel').textContent=foreign?'Quy đổi (VNĐ)':'Số tiền (VNĐ)';
  const preview=$('expenseFxPreview');
- if(!foreign){preview.textContent='';preview.classList.remove('is-error');return}
+ if(!foreign){preview.textContent='';preview.classList.remove('is-error');if(typeof updateSplitPreview==='function')updateSplitPreview();return}
  const fx=readExpenseCurrency(),typed=$('expenseOriginalAmount').value.trim()&&$('expenseFxRate').value.trim();
  if(fx.vnd){amount.value=String(fx.vnd);preview.textContent=C.formatOriginal(fx.original,code)+' × '+C.formatRate(fx.rate)+' = '+money(fx.vnd);preview.classList.remove('is-error')}
  else{amount.value='';preview.textContent=typed?fx.error:'Nhập số tiền gốc và tỷ giá để quy đổi sang VND.';preview.classList.toggle('is-error',!!typed)}
+ if(typeof updateSplitPreview==='function')updateSplitPreview();
 }
 // The remembered rate is a starting value when a currency is picked; typing (even clearing the
 // field) must never be overwritten by it.
@@ -960,16 +978,77 @@ function prefillRememberedRate(){
  const C=window.TripTogetherCurrency,code=$('expenseCurrency').value;
  if(code!==C.BASE&&rememberedRate(code))$('expenseFxRate').value=C.formatRate(rememberedRate(code));
 }
-$('expenseCurrency').addEventListener('change',()=>{$('expenseFxRate').value='';prefillRememberedRate();updateExpenseCurrency()});
+$('expenseCurrency').addEventListener('change',()=>{$('expenseCurrencyHint').textContent='';$('expenseFxRate').value='';prefillRememberedRate();updateExpenseCurrency()});
 ['expenseOriginalAmount','expenseFxRate'].forEach(id=>$(id).addEventListener('input',updateExpenseCurrency));
-$('expenseFetchRate').onclick=async()=>{
- const C=window.TripTogetherCurrency,code=$('expenseCurrency').value,button=$('expenseFetchRate'),label=button.textContent;
- button.disabled=true;button.textContent='Đang lấy tỷ giá…';
+$('expenseFetchRate').onclick=async event=>{
+ const button=$('expenseFetchRate');
+ // Tapping the (i) icon only shows the note about where the rate comes from (touch has no hover).
+ if(event.target.closest('.fx-info')){button.classList.toggle('show-tip');return}
+ button.classList.remove('show-tip');
+ const C=window.TripTogetherCurrency,code=$('expenseCurrency').value,labelEl=button.querySelector('.fx-fetch-label'),label=labelEl.textContent;
+ button.disabled=true;labelEl.textContent='Đang lấy tỷ giá…';
  try{const rate=await C.fetchRate(code);$('expenseFxRate').value=C.formatRate(rate);updateExpenseCurrency()}
  catch(error){const p=$('expenseFxPreview');p.textContent=error.message+' Bạn có thể nhập tỷ giá thủ công.';p.classList.add('is-error')}
- finally{button.disabled=false;button.textContent=label}
+ finally{button.disabled=false;labelEl.textContent=label}
 };
-function openExpense(record=null){$('expenseForm').reset();$('expenseId').value=record?.id||'';$('expenseTitle').value=record?.title||'';$('expenseAmount').value=record?.amount||'';$('expenseDate').value=record?.spent_on||dateToday();$('expenseNote').value=record?.note||'';if(record?.category&&!Array.from($('expenseCategory').options).some(o=>o.value===record.category))$('expenseCategory').add(new Option(record.category,record.category));$('expenseCategory').value=record?.category||'Food';if(record?.payer_id)$('expensePayer').value=record.payer_id;setupExpenseCurrency(record);$('expenseDialogTitle').textContent=record?'Sửa khoản chi':'Thêm khoản chi';$('expenseSave').textContent=record?'Lưu thay đổi':'Lưu khoản chi';resetExpenseReceiptPicker(record);$('expenseDialog').showModal()}
+$('expenseFetchRate').addEventListener('mouseleave',event=>event.currentTarget.classList.remove('show-tip'));
+$('expenseFetchRate').addEventListener('blur',event=>event.currentTarget.classList.remove('show-tip'));
+// ---- Uneven splits ---------------------------------------------------------------------
+// The expense's entry total: what the user typed it in (original amount when foreign, else VND).
+function expenseEntryTotal(){
+ const fx=readExpenseCurrency();
+ return fx.currency!==window.TripTogetherCurrency.BASE?fx.original:Number($('expenseAmount').value);
+}
+function expenseEntryUnit(){
+ const code=multiCurrencyAvailable?$('expenseCurrency').value:'VND';
+ return code==='VND'?'₫':code;
+}
+function renderSplitMembers(mode,weights={}){
+ const box=$('expenseSplitMembers');
+ box.classList.toggle('hidden',mode==='all');
+ if(mode==='all'){box.innerHTML='';return}
+ const has=id=>Object.hasOwn(weights,id);
+ box.innerHTML=members.map(m=>{
+  const name=`<span class="split-name" data-user-content>${esc(m.name)}</span>`,share=`<span class="split-share" data-id="${esc(m.user_id)}"></span>`;
+  if(mode==='equal')return `<label class="split-member"><input type="checkbox" class="split-input" data-id="${esc(m.user_id)}" ${!Object.keys(weights).length||has(m.user_id)?'checked':''}>${name}${share}</label>`;
+  const value=has(m.user_id)?String(weights[m.user_id]).replace('.',','):(mode==='shares'&&!Object.keys(weights).length?'1':'');
+  return `<label class="split-member">${name}<input type="text" inputmode="decimal" autocomplete="off" class="split-input" data-id="${esc(m.user_id)}" value="${esc(value)}" placeholder="${mode==='shares'?'0':'0'}" aria-label="${mode==='shares'?'Số phần':'Số tiền'} của ${esc(m.name)}">${share}</label>`;
+ }).join('');
+ box.querySelectorAll('.split-input').forEach(input=>input.addEventListener(input.type==='checkbox'?'change':'input',updateSplitPreview));
+}
+function readExpenseSplit(){
+ const mode=splitAvailable?$('expenseSplitMode').value:'all',values={};
+ $('expenseSplitMembers').querySelectorAll('.split-input').forEach(input=>{
+  values[input.dataset.id]=input.type==='checkbox'?input.checked:window.TripTogetherCurrency.parseAmount(input.value);
+ });
+ return window.TripTogetherSplit.build(mode,values);
+}
+function updateSplitPreview(){
+ if(!splitAvailable)return;
+ const S=window.TripTogetherSplit,split=readExpenseSplit(),summary=$('expenseSplitSummary');
+ const vnd=Number($('expenseAmount').value)||0,total=expenseEntryTotal(),unit=expenseEntryUnit();
+ const error=S.validate(split,{entryTotal:total,members});
+ const alloc=vnd&&!error?window.TripTogetherFinance.allocateExpense({amount:vnd,split},members):new Map();
+ $('expenseSplitMembers').querySelectorAll('.split-share').forEach(el=>{
+  const v=alloc.get(el.dataset.id);el.textContent=v?'≈ '+money(v):'';
+ });
+ summary.classList.toggle('is-error',!!error&&!!vnd);
+ if(!vnd){summary.textContent='Nhập số tiền để xem phần chi của từng người.';return}
+ if(error){summary.textContent=error;return}
+ if(!split){summary.textContent='Cả '+members.length+' người cùng chịu, mỗi người ≈ '+money(vnd/Math.max(1,members.length))+'.';return}
+ summary.textContent=split.mode==='exact'?'Đã chia đủ '+total.toLocaleString('vi-VN',{maximumFractionDigits:2})+' '+unit+'.':Object.keys(split.weights).length+' người cùng chịu khoản này.';
+}
+function setupExpenseSplit(record){
+ $('expenseSplitBlock').classList.toggle('hidden',!splitAvailable);
+ if(!splitAvailable)return;
+ const split=record?.split&&record.split.weights?record.split:null;
+ $('expenseSplitMode').value=split?.mode||'all';
+ renderSplitMembers($('expenseSplitMode').value,split?.weights||{});
+ updateSplitPreview();
+}
+$('expenseSplitMode').addEventListener('change',()=>{renderSplitMembers($('expenseSplitMode').value);updateSplitPreview()});
+$('expenseAmount').addEventListener('input',updateSplitPreview);
+function openExpense(record=null){$('expenseForm').reset();$('expenseId').value=record?.id||'';$('expenseTitle').value=record?.title||'';$('expenseAmount').value=record?.amount||'';$('expenseDate').value=record?.spent_on||dateToday();$('expenseNote').value=record?.note||'';if(record?.category&&!Array.from($('expenseCategory').options).some(o=>o.value===record.category))$('expenseCategory').add(new Option(record.category,record.category));$('expenseCategory').value=record?.category||'Food';if(record?.payer_id)$('expensePayer').value=record.payer_id;setupExpenseCurrency(record);setupExpenseSplit(record);$('expenseDialogTitle').textContent=record?'Sửa khoản chi':'Thêm khoản chi';$('expenseSave').textContent=record?'Lưu thay đổi':'Lưu khoản chi';resetExpenseReceiptPicker(record);$('expenseDialog').showModal()}
 function openFundReminder(record=null){
  if(!canEdit||!fundRemindersAvailable)return;
  $('fundReminderForm').reset();
@@ -1090,6 +1169,11 @@ $('expenseForm').addEventListener('submit',async ev=>{
   // Only send currency columns once expense_currency.sql exists, so VND-only databases keep working.
   if(multiCurrencyAvailable){payload.currency=fx.currency;payload.original_amount=fx.original;payload.fx_rate=fx.rate}
   if(fx.rate)rememberRate(fx.currency,fx.rate);
+  if(splitAvailable){
+   const split=readExpenseSplit(),splitError=window.TripTogetherSplit.validate(split,{entryTotal:fx.original??payload.amount,members});
+   if(splitError)throw new Error(splitError);
+   payload.split=split;
+  }
   const receipt=window.TripTogetherReceipts;
   const newExpenseId=editId||crypto.randomUUID();
   let uploadedPath=null;

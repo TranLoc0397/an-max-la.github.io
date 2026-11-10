@@ -17,7 +17,7 @@ The first trip abroad hits the currency lock-in on the first meal. Everything el
 | # | Feature | Reach | Impact | Confidence | Effort | Score | Status |
 |---|---|---|---|---|---|---|---|
 | 1 | **Foreign-currency expenses** (original amount + rate, ledger stays VND) | Every trip abroad | 3 | 90% | 1 | **High** | ✅ This PR |
-| 2 | **Uneven splits**: per-expense participants, shares or exact amounts | Most groups | 3 | 80% | 2 | High | Next |
+| 2 | **Uneven splits**: per-expense participants, shares or exact amounts | Most groups | 3 | 80% | 2 | High | ✅ Done |
 | 3 | **Trip base currency** (a trip of foreigners settles in USD/EUR) | Non-Vietnamese groups | 3 | 70% | 3 | Medium | After 2 |
 | 4 | **Locale-aware formatting** (numbers, dates, time zone of the trip) | All non-VN users | 2 | 90% | 1 | Medium | After 3 |
 | 5 | **More languages** (ko, ja, th, zh) through the existing dictionary | Regional users | 2 | 80% | 1 per language | Medium | Ongoing |
@@ -51,3 +51,19 @@ Splits come second because once a trip goes abroad, "not everyone joined this ac
 - `|amount − round(original_amount × fx_rate)| ≤ 1`.
 
 **Out of scope (feature 3):** trips whose settlement currency is not VND.
+
+## Feature 2: Uneven splits
+
+**User story.** As a trip member, I want an expense to be shared only by the people who took part, or in unequal parts, so that nobody pays for an activity they skipped.
+
+**Design decision.** `expenses.split` is `null` for "everyone, equally", which is how every existing expense stays. Otherwise it holds `{mode, weights}`, and each participant's share is `amount × weight / Σ weights`. With no custom split in a trip, the balance arithmetic is byte-for-byte the old `spent / n`.
+
+**Acceptance criteria**
+1. The "Chia cho" selector offers: everyone equally (default), some people equally, by shares (2 : 1), or by exact amounts.
+2. Each member row shows a live "≈ 123.456 ₫" share, using the same function as the balances.
+3. Exact amounts are typed in the expense's currency (USD for a USD expense) and must add up to the total. The summary shows "Còn X chưa chia" or "Đã chia vượt X", and saving is blocked until they match.
+4. The expense list shows a one-line description, e.g. "Chia đều cho: An, Bình (2/4)" or "Chia theo số tiền: An 60 USD · …".
+5. Member shares, balances, transfer suggestions, the overview card ("Phần chi X – Y") and the Excel export ("Phan bo chi phi" sheet, member share via SUMIF) all use the per-person allocation. Balances always sum to zero.
+6. A member who is part of a split cannot be removed. Merging moves their part to the surviving member. Restoring a deleted expense keeps its split; people who have left are dropped.
+7. The database rejects malformed splits, exact splits that don't add up, and participants who aren't trip members.
+8. Until `expense_splits.sql` is installed, the UI stays hidden and every expense is shared equally.
