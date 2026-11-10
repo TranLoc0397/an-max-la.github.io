@@ -2,6 +2,7 @@
 (function(){
 'use strict';
 const dictionary={
+  "Dự phòng":"Reserved",
   "Mặc định theo các khoản gần đây của chuyến:":"Default from this trip's recent expenses:",
   "Chia cho":"Split between",
   "Cả nhóm, chia đều":"Everyone, equally",
