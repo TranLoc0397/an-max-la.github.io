@@ -163,6 +163,7 @@ const dictionary={
   "Tên của bạn": "Your name",
   "Tiếp tục": "Continue",
   "Sửa": "Edit",
+  "Sửa thông tin": "Edit details",
   "Thêm khoản chi": "Add expense",
   "Hạng mục / nội dung": "Category / description",
   "Ví dụ: Vé máy bay": "Example: Flight tickets",
