@@ -517,7 +517,11 @@ function render(){
  }
  const today=dateToday();
  const outstandingReminders=window.TripTogetherUI.sortByDate(fundReminders,'due_on','oldest').filter(x=>reminderMath.remaining(x)>0);
- reminderPanel.innerHTML=fundRemindersAvailable?(fundReminders.length?window.TripTogetherUI.sortByDate(fundReminders,'due_on','oldest').map(item=>{
+ const reminderSort=$('fundReminderSort').value;
+ const sortedReminders=reminderSort==='due_soon'
+  ?window.TripTogetherUI.sortByDate(fundReminders,'due_on','oldest')
+  :window.TripTogetherUI.sortByDate(fundReminders,'created_at',reminderSort);
+ reminderPanel.innerHTML=fundRemindersAvailable?(fundReminders.length?sortedReminders.map(item=>{
   const remaining=reminderMath.remaining(item),overdue=!!item.due_on&&item.due_on<today&&remaining>0;
   const state=remaining===0?'Đã đủ khoản cần trả':overdue?'Đã quá hạn':item.due_on?'':'Chưa đặt hạn';
   const due=item.due_on&&remaining>0?`<span>Hạn</span> <span>${esc(item.due_on)}</span>`:'';
@@ -959,7 +963,7 @@ function invite(ev){const button=ev?.currentTarget;if(!button)return;return with
 $('expenseSearch').addEventListener('input',()=>{if(trip)render()});
 $('expenseCategoryFilter').addEventListener('change',()=>{if(trip)render()});
 $('expenseStatusFilter').addEventListener('change',()=>{if(trip)render()});
-['expenseDateSort','fundDateSort','activityDateSort'].forEach(id=>$(id).addEventListener('change',()=>{if(trip)render()}));
+['expenseDateSort','fundDateSort','activityDateSort','fundReminderSort'].forEach(id=>$(id).addEventListener('change',()=>{if(trip)render()}));
 document.querySelectorAll('.tabs .tab[data-tab]').forEach(button=>button.onclick=()=>{
   const view=button.dataset.tab;
   if(window.TripTogetherShell?.activate){

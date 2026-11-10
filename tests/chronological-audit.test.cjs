@@ -51,3 +51,19 @@ test('three visible chronological controls and expandable field audit are wired'
  assert.match(app,/sortByDate\(contributions/);
  assert.match(app,/sortByDate\(activityEvents/);
 });
+
+test('contribution change history omits redundant contributor name but keeps contributor identity',()=>{
+ const event={
+  source_table:'contributions',action:'UPDATE',
+  before_data:{payer_id:'member-1',payer_name:'Nguyễn An',amount:400000},
+  after_data:{payer_id:'member-2',payer_name:'Trần Bình',amount:500000}
+ };
+ const fields=ui.activityChanges(event);
+ assert.deepEqual(fields.map(x=>x.key),['amount','payer_id']);
+ assert.ok(!fields.some(x=>x.key==='payer_name'||x.label==='Tên người đóng'));
+ const created=ui.activityChanges({
+  source_table:'contributions',action:'INSERT',
+  after_data:{payer_id:'member-1',payer_name:'Nguyễn An',amount:400000}
+ });
+ assert.deepEqual(created.map(x=>x.key),['amount','payer_id']);
+});
