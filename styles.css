@@ -1730,3 +1730,53 @@ select:hover{border-color:#cfc9ef}
 .fx-tip::after{content:'';position:absolute;right:18px;top:100%;border:6px solid transparent;border-top-color:#25284a}
 .fx-fetch:has(.fx-info:hover) .fx-tip,.fx-fetch:focus-visible .fx-tip,.fx-fetch.show-tip .fx-tip{opacity:1;visibility:visible;transform:none}
 @media (prefers-reduced-motion:reduce){.fx-tip{transition:none}}
+
+/* Compact, accessible icon-only actions on the Đóng quỹ tab. */
+.fund-icon-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px}
+.fund-icon-actions .fund-icon-btn,
+.fund-reminder-actions.fund-icon-actions .fund-icon-btn{
+ display:inline-flex;align-items:center;justify-content:center;
+ width:40px;height:40px;min-width:40px;min-height:40px;flex:0 0 40px;
+ padding:0;border:1px solid transparent;border-radius:12px;
+ cursor:pointer;transition:background .16s ease,transform .16s ease;
+}
+.fund-icon-btn svg{display:block;width:18px;height:18px}
+.fund-icon-edit{color:#5145bf;background:#f0edff}
+.fund-icon-remove{color:#bf493e;background:#fff1ee}
+.fund-icon-edit:hover{background:#e4dfff}
+.fund-icon-remove:hover{background:#ffe4df}
+.fund-icon-btn:focus-visible{outline:3px solid #7162d9;outline-offset:2px}
+.fund-icon-btn:active{transform:scale(.95)}
+.fund-reminder-panel #fundReminderList{gap:8px}
+.fund-reminder-panel .fund-reminder-row{
+ display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;
+ padding:12px;align-items:center;border-radius:13px
+}
+.fund-reminder-row .fund-reminder-info{min-width:0}
+.fund-reminder-row .fund-reminder-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.fund-reminder-row .fund-reminder-amount{padding:8px 10px;border-radius:11px;gap:2px}
+.fund-reminder-row .fund-reminder-amount strong{font-size:clamp(15px,3.8vw,18px)}
+.fund-reminder-row .fund-reminder-actions{width:auto;margin:0;justify-content:flex-end}
+#contributionList .record-row{grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center}
+#contributionList .record-row>.record-buttons{display:flex;grid-column:auto;grid-row:auto;justify-content:flex-end;gap:6px}
+#contributionList .record-row>.record-amount{grid-column:auto;grid-row:auto}
+@container ledger (max-width:590px){
+ #contributionList .record-row{grid-template-columns:minmax(0,1fr) auto;gap:5px 10px;padding:12px}
+ #contributionList .record-row>.record-main{grid-column:1;grid-row:1/3;min-width:0}
+ #contributionList .record-row>.record-amount{grid-column:2;grid-row:1;text-align:right}
+ #contributionList .record-row>.record-buttons{grid-column:2;grid-row:2;justify-content:flex-end}
+}
+@media(max-width:640px){
+ .fund-reminder-panel .fund-reminder-row{grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:11px 10px}
+ .fund-reminder-row .fund-reminder-right{align-items:flex-end}
+ .fund-reminder-row .fund-reminder-amount{padding:7px 8px}
+ .fund-reminder-row .fund-reminder-amount strong{font-size:clamp(14px,3.7vw,17px)}
+ .fund-icon-actions .fund-icon-btn,.fund-reminder-actions.fund-icon-actions .fund-icon-btn{
+  width:40px;height:40px;min-width:40px;min-height:40px;flex-basis:40px
+ }
+}
+@media(max-width:360px){
+ .fund-reminder-panel .fund-reminder-row{grid-template-columns:minmax(0,1fr) auto}
+ .fund-reminder-row .fund-reminder-right{align-items:flex-end}
+}
+@media(prefers-reduced-motion:reduce){.fund-icon-actions .fund-icon-btn{transition:none}}
