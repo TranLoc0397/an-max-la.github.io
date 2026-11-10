@@ -60,7 +60,9 @@
  /* Short, human summary for the expense list and the audit log. */
  function describe(split,members=[],unit='₫'){
   if(!split||!split.weights)return '';
-  const entries=Object.entries(split.weights);
+  // Follow the trip's member order: the database (jsonb) stores object keys in its own order.
+  const rank=id=>{const i=members.findIndex(m=>m.user_id===id);return i<0?members.length:i};
+  const entries=Object.entries(split.weights).sort((a,b)=>rank(a[0])-rank(b[0]));
   if(split.mode==='equal'){
    const names=entries.map(([id])=>nameOf(members,id));
    return 'Chia đều cho: '+names.join(', ')+' ('+names.length+'/'+Math.max(members.length,names.length)+')';

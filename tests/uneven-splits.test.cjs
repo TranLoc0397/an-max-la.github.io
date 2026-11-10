@@ -117,3 +117,9 @@ test('app wires the split UI only when the migration exists and validates before
  assert.match(ui,/split:'Cách chia'/);
  for(const vi of ['Chia cho','Cả nhóm, chia đều','Một số người, chia đều','Theo phần (ví dụ 2 : 1)','Theo số tiền cụ thể'])assert.match(i18n,new RegExp('"'+vi.replace(/[()]/g,'\\$&')+'" *:'),vi);
 });
+
+test('split descriptions follow member order, not the stored key order',()=>{
+ // jsonb returns keys sorted by length then bytes, so Em may come back before An.
+ const stored={mode:'exact',weights:{[id(4)]:40,[id(1)]:60}};
+ assert.equal(S.describe(stored,members,'USD'),'Chia theo số tiền: An 60 USD · Dũng 40 USD');
+});
