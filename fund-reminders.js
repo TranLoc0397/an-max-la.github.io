@@ -14,12 +14,19 @@
   const available=Number(availableFund||0);
   return {outstanding,afterReservations:available-outstanding,shortfall:Math.max(0,outstanding-available)};
  }
+ // YYYY-MM-DD that exists on the calendar (rejects 2026-02-30, 2026-13-01).
+ function isCalendarDate(value){
+  const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(value);if(!m)return false;
+  const d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3]));
+  return d.getUTCFullYear()===+m[1]&&d.getUTCMonth()===+m[2]-1&&d.getUTCDate()===+m[3];
+ }
  function validate(item){
   const total=Number(item.total_amount),paid=Number(item.paid_amount);
   if(!String(item.title||'').trim())return 'Vui lòng nhập tên khoản cần dự phòng.';
+  if(String(item.title).trim().length>100)return 'Tên khoản cần dự phòng không được vượt quá 100 ký tự.';
   if(!Number.isSafeInteger(total)||total<=0)return 'Tổng tiền phải là số nguyên dương.';
   if(!Number.isSafeInteger(paid)||paid<0||paid>total)return 'Tiền đã đặt cọc/đã trả phải từ 0 đến tổng tiền.';
-  if(item.due_on&&!/^\d{4}-\d{2}-\d{2}$/.test(String(item.due_on)))return 'Ngày đến hạn không hợp lệ.';
+  if(item.due_on&&!isCalendarDate(String(item.due_on)))return 'Ngày đến hạn không hợp lệ.';
   if(String(item.note||'').length>250)return 'Ghi chú không được vượt quá 250 ký tự.';
   return '';
  }

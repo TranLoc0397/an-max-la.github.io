@@ -7,7 +7,10 @@
  if(root)root.TripTogetherExcelBackup=api;
 })(typeof globalThis!=='undefined'?globalThis:undefined,function(){
  'use strict';
- const xml=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+ // XML 1.0 forbids most control characters and lone surrogates; one pasted \u000b would make
+ // Excel reject the whole workbook, so drop them before escaping.
+ const XML_INVALID=/[^\u0009\u000A\u000D\u0020-\uD7FF\uE000-\uFFFD\u{10000}-\u{10FFFF}]/gu;
+ const xml=s=>String(s??'').replace(XML_INVALID,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
  const enc=new TextEncoder();
  const number=x=>Number(x||0);
  const column=n=>{let s='';for(n++;n;n=Math.floor((n-1)/26))s=String.fromCharCode(65+(n-1)%26)+s;return s};
@@ -201,14 +204,18 @@
   ];
   return zip(files);
  }
+ // Đ/đ have no NFD decomposition, so map them explicitly before stripping accents.
+ function fileSafeName(name){
+  return String(name||'chuyen-di').replace(/Đ/g,'D').replace(/đ/g,'d').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60)||'chuyen-di';
+ }
  function download(snapshot){
   const bytes=workbook(snapshot);
-  const filename='TripTogether-'+String(snapshot.trip.name||'chuyen-di').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'-').slice(0,60)+'-'+new Date().toISOString().slice(0,10)+'.xlsx';
+  const filename='TripTogether-'+fileSafeName(snapshot.trip.name)+'-'+new Date().toISOString().slice(0,10)+'.xlsx';
   const blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
   const url=URL.createObjectURL(blob),anchor=document.createElement('a');
   anchor.href=url;anchor.download=filename;document.body.append(anchor);anchor.click();anchor.remove();
   setTimeout(()=>URL.revokeObjectURL(url),60000);
   return filename;
  }
- return {workbook,download};
+ return {workbook,download,fileSafeName};
 });
