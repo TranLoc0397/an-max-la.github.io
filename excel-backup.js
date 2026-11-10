@@ -29,12 +29,12 @@
   const expenseTransfers=F.settle(memberBalances),debtTransfers=F.settle(debtBalances);
   const E='Khoan chi',P='Thanh toan',D='No rieng',C='Dong quy',M='Thanh vien',S='Tong quan';
   const er=col=>range(E,col,expenses.length),pr=col=>range(P,col,payments.length),dr=col=>range(D,col,debts.length),cr=col=>range(C,col,contributions.length);
-  const expenseRows=[['ID','Ngay chi','Hang muc','Phan loai','ID nguoi ung','Nguoi tra','So tien','Da hoan (cu)','Ghi chu','Duong dan anh','Da hoan tu quy','Quy da chi','Quy con no','Nguoi tao','Ngay tao']];
+  const expenseRows=[['ID','Ngay chi','Hang muc','Phan loai','ID nguoi ung','Nguoi tra','So tien','Da hoan (cu)','Ghi chu','Duong dan anh','Da hoan tu quy','Quy da chi','Quy con no','Nguoi tao','Ngay tao','Tien te','So tien goc','Ty gia (VND)']];
   enrichedExpenses.forEach((e,i)=>{
    const n=i+2,a=number(e.amount),paid=number(e.paid_amount),fundPaid=e.payer_id?paid:a;
    expenseRows.push([e.id,e.spent_on,e.title,e.category,e.payer_id||'',e.payer_name,a,e.reimbursed?1:0,e.note||'',e.receipt_path||'',
     c(paid,'IF(E'+n+'="",0,IF(COUNTIF('+pr('C')+',A'+n+')>0,MIN(G'+n+',MAX(0,SUMIF('+pr('C')+',A'+n+','+pr('E')+'))),IF(H'+n+'=1,G'+n+',0)))'),
-    c(fundPaid,'IF(E'+n+'="",G'+n+',K'+n+')'),c(e.payer_id?a-paid:0,'IF(E'+n+'="",0,MAX(0,G'+n+'-K'+n+'))'),e.created_by||'',e.created_at||'']);
+    c(fundPaid,'IF(E'+n+'="",G'+n+',K'+n+')'),c(e.payer_id?a-paid:0,'IF(E'+n+'="",0,MAX(0,G'+n+'-K'+n+'))'),e.created_by||'',e.created_at||'',e.currency||'VND',e.original_amount==null?'':Number(e.original_amount),e.fx_rate==null?'':Number(e.fx_rate)]);
   });
   const contributionRows=[['ID','Ngay dong','ID nguoi dong','Ten nguoi dong','So tien','Ghi chu','Nguoi tao','Ngay tao']];
   contributions.forEach(x=>contributionRows.push([x.id,x.paid_on,x.payer_id,x.payer_name,number(x.amount),x.note||'',x.created_by||'',x.created_at||'']));

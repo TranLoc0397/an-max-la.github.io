@@ -1661,6 +1661,16 @@ select:hover{border-color:#cfc9ef}
  .fund-reminder-right{align-items:flex-start}
  .fund-reminder-amount{align-items:flex-start}
 }
+/* Multi-currency expenses */
+.currency-block{margin:4px 0 2px;padding:12px 14px 4px;border:1px solid #ece9fb;border-radius:14px;background:#faf9ff}
+.currency-block.hidden,#expenseOriginalRow.hidden,#expenseFxRow.hidden{display:none}
+.fx-actions{display:flex;flex-direction:column;justify-content:flex-end;gap:6px;padding-bottom:6px}
+.fx-actions .field-hint{margin:0}
+.fx-preview{margin:2px 0 10px;font-size:13px;font-weight:600;color:#4f46a9;min-height:1.2em}
+.fx-preview.is-error{color:#b3412f}
+#expenseAmount.is-computed{background:#f3f1fb;color:#4f46a9;font-weight:700;cursor:default}
+.record-amount .record-fx{display:block;margin-top:3px;font-size:11px;font-weight:500;color:var(--muted);white-space:nowrap}
+@media(max-width:700px){.record-amount .record-fx{white-space:normal;text-align:right}}
 /* Ledger rows adapt to the width of their list, not the viewport. Lists inside half-width cards
    (e.g. "Khoản nợ riêng" in Đối soát quỹ) were squeezed by the fixed 360px action column. */
 .ledger-list{container-type:inline-size;container-name:ledger}
