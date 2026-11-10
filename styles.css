@@ -1709,3 +1709,5 @@ select:hover{border-color:#cfc9ef}
 .record-row.record-menu-open,.record-row:has(.record-actions-menu[open]){position:relative;z-index:50}
 #expenseList .record-row{grid-template-columns:minmax(0,1fr) auto auto}
 @container ledger (max-width:640px){#expenseList .record-row{grid-template-columns:minmax(0,1fr) auto}}
+.currency-hint{margin:-6px 0 8px;font-size:11px;color:var(--muted)}
+.currency-hint:empty{display:none}

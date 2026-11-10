@@ -97,5 +97,22 @@
   return Math.round(rate*10000)/10000;
  }
 
- return {BASE,CURRENCIES,isSupported,decimals,displayName,parseAmount,toVnd,validate,formatOriginal,formatRate,describe,fetchRate};
+ /* Default currency for a NEW expense: the one used most in the trip's latest expenses (ties → the
+  * most recent), so a week in Thailand defaults to THB even after one VND airport coffee.
+  * The rate is the latest one recorded for that currency in this trip. Shared data, so every member
+  * and device gets the same default. Returns null when the trip has no foreign expense yet. */
+ function suggestDefault(expenses,window=10){
+  const recent=[...(expenses||[])].filter(e=>e&&e.created_at)
+   .sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at))).slice(0,window);
+  if(!recent.length)return null;
+  const counts=new Map();
+  recent.forEach((e,i)=>{const c=isSupported(e.currency)?e.currency:BASE;const v=counts.get(c)||{n:0,first:i};v.n++;counts.set(c,v)});
+  const [currency]=[...counts.entries()].sort((a,b)=>b[1].n-a[1].n||a[1].first-b[1].first)[0];
+  if(currency===BASE)return null;
+  const withRate=[...(expenses||[])].filter(e=>e.currency===currency&&Number(e.fx_rate)>0)
+   .sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at)));
+  return {currency,rate:withRate.length?Number(withRate[0].fx_rate):null};
+ }
+
+ return {BASE,CURRENCIES,isSupported,decimals,displayName,suggestDefault,parseAmount,toVnd,validate,formatOriginal,formatRate,describe,fetchRate};
 });

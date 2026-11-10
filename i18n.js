@@ -2,6 +2,7 @@
 (function(){
 'use strict';
 const dictionary={
+  "Mặc định theo các khoản gần đây của chuyến:":"Default from this trip's recent expenses:",
   "Chia cho":"Split between",
   "Cả nhóm, chia đều":"Everyone, equally",
   "Một số người, chia đều":"Some people, equally",

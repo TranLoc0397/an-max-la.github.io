@@ -936,10 +936,14 @@ function setupExpenseCurrency(record){
  // Rebuilt on every open so names follow the current UI language (Intl knows every ISO currency name).
  const lang=window.TripTogetherI18n?.language==='en'?'en':'vi';
  select.innerHTML=C.CURRENCIES.map(c=>`<option value="${c.code}" data-user-content>${c.code} · ${esc(C.displayName(c.code,lang))}</option>`).join('');
- const code=multiCurrencyAvailable&&record?.currency&&C.isSupported(record.currency)?record.currency:C.BASE;
+ // A new expense starts in the trip's usual currency (and its latest rate) instead of VND every time.
+ const suggestion=!record&&multiCurrencyAvailable?C.suggestDefault(expenses):null;
+ const code=multiCurrencyAvailable&&record?.currency&&C.isSupported(record.currency)?record.currency:suggestion?.currency||C.BASE;
  select.value=code;
+ $('expenseCurrencyHint').innerHTML=suggestion?`<span>Mặc định theo các khoản gần đây của chuyến:</span> <b>${esc(suggestion.currency)}</b>`:'';
  $('expenseOriginalAmount').value=code!==C.BASE&&record?.original_amount!=null?String(Number(record.original_amount)).replace('.',','):'';
  $('expenseFxRate').value=code!==C.BASE&&record?.fx_rate!=null?C.formatRate(record.fx_rate):'';
+ if(!$('expenseFxRate').value&&suggestion?.rate)$('expenseFxRate').value=C.formatRate(suggestion.rate);
  if(!$('expenseFxRate').value)prefillRememberedRate();
  updateExpenseCurrency();
 }
@@ -970,7 +974,7 @@ function prefillRememberedRate(){
  const C=window.TripTogetherCurrency,code=$('expenseCurrency').value;
  if(code!==C.BASE&&rememberedRate(code))$('expenseFxRate').value=C.formatRate(rememberedRate(code));
 }
-$('expenseCurrency').addEventListener('change',()=>{$('expenseFxRate').value='';prefillRememberedRate();updateExpenseCurrency()});
+$('expenseCurrency').addEventListener('change',()=>{$('expenseCurrencyHint').textContent='';$('expenseFxRate').value='';prefillRememberedRate();updateExpenseCurrency()});
 ['expenseOriginalAmount','expenseFxRate'].forEach(id=>$(id).addEventListener('input',updateExpenseCurrency));
 $('expenseFetchRate').onclick=async()=>{
  const C=window.TripTogetherCurrency,code=$('expenseCurrency').value,button=$('expenseFetchRate'),label=button.textContent;
