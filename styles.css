@@ -1661,3 +1661,12 @@ select:hover{border-color:#cfc9ef}
  .fund-reminder-right{align-items:flex-start}
  .fund-reminder-amount{align-items:flex-start}
 }
+/* Ledger rows adapt to the width of their list, not the viewport. Lists inside half-width cards
+   (e.g. "Khoản nợ riêng" in Đối soát quỹ) were squeezed by the fixed 360px action column. */
+.ledger-list{container-type:inline-size;container-name:ledger}
+@container ledger (max-width:640px){
+ .record-row{grid-template-columns:minmax(0,1fr) auto;gap:8px 12px;align-items:start}
+ .record-row>.record-main{grid-column:1;min-width:0}
+ .record-row>.record-amount{grid-column:2;grid-row:1;text-align:right}
+ .record-row>.record-buttons{grid-column:1/-1;justify-content:flex-end}
+}
