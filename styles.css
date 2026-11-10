@@ -1780,3 +1780,25 @@ select:hover{border-color:#cfc9ef}
  .fund-reminder-row .fund-reminder-right{align-items:flex-end}
 }
 @media(prefers-reduced-motion:reduce){.fund-icon-actions .fund-icon-btn{transition:none}}
+
+/* Room-reservation polish: compact amount chip, clear destructive control. */
+.fund-reminder-row .fund-reminder-amount{
+ width:max-content;max-width:100%;min-width:0;
+ padding:6px 9px;gap:1px;border-radius:10px;
+ background:#f4f1ff;box-shadow:inset 0 0 0 1px #ebe6ff;
+}
+.fund-reminder-row .fund-reminder-amount strong{
+ font-size:clamp(14px,2vw,16px);line-height:1.2;
+ letter-spacing:-.25px;white-space:nowrap;
+}
+.fund-reminder-row .fund-reminder-amount small{
+ font-size:10px;line-height:1.25;color:#77718f;
+}
+.fund-reminder-row .fund-reminder-right{gap:4px}
+.fund-icon-remove{background:#fff4f1;color:#c24f45}
+.fund-icon-remove:hover{background:#ffe7e1}
+.fund-icon-remove svg{width:19px;height:19px}
+@media(max-width:640px){
+ .fund-reminder-row .fund-reminder-amount{padding:6px 8px;border-radius:9px}
+ .fund-reminder-row .fund-reminder-amount strong{font-size:clamp(13px,3.5vw,15px)}
+}
