@@ -102,6 +102,7 @@ document.addEventListener('keydown',event=>{
  if(!document.querySelector('dialog[open]'))menus[0].querySelector('summary')?.focus();
 });
 async function init(){
+ window.__ttBooted=true;try{sessionStorage.removeItem('tt_boot_retry')}catch{}
  addPasswordVisibilityControls();
  pageLoading(true,'Connecting to your trip…');
  try{

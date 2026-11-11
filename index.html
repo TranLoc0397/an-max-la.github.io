@@ -303,5 +303,23 @@ window.__supabaseSdkReady=new Promise(resolve=>{const sources=['https://cdn.jsde
 <script src="receipts.js?v=1"></script>
 <script src="excel-backup.js?v=5"></script>
 <script src="fund-reminders.js?v=2"></script>
-<script src="app.js?v=89"></script>
+<script src="app.js?v=90"></script>
+<script>
+/* Boot guard: if app.js failed to load or crashed before init() (e.g. an outdated cached page running
+ * newer scripts), clear the offline cache and reload once instead of spinning forever. */
+if(!window.__ttBooted){
+ const loaderText=document.getElementById('pageLoaderText');
+ if(!sessionStorage.getItem('tt_boot_retry')){
+  sessionStorage.setItem('tt_boot_retry','1');
+  if(loaderText)loaderText.textContent='Đang cập nhật phiên bản mới…';
+  Promise.all([
+   'serviceWorker' in navigator?navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))):null,
+   'caches' in window?caches.keys().then(ks=>Promise.all(ks.filter(k=>k.startsWith('triptogether-')).map(k=>caches.delete(k)))):null
+  ]).catch(()=>{}).finally(()=>location.reload());
+ }else if(loaderText){
+  loaderText.textContent='Không tải được ứng dụng. Kiểm tra kết nối mạng rồi tải lại trang (Cmd/Ctrl + Shift + R).';
+  document.querySelector('#pageLoader .loading-spinner')?.remove();
+ }
+}
+</script>
 </body></html>
