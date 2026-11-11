@@ -293,12 +293,15 @@ $('accountClose').onclick=()=>$('accountDialog').close();
 async function loadMyTrips(){
  if(!db||!user)return;
  try{
-  const {data:memberships,error}=await db.from('members').select('trip_id').eq('user_id',user.id);
+  // Both membership lookups are independent: run them together instead of back to back.
+  const [{data:memberships,error},linked]=await Promise.all([
+   db.from('members').select('trip_id').eq('user_id',user.id),
+   // Email-linked memberships are available only after the optional schema migration.
+   // A missing account_user_id column must never hide existing Host trips.
+   db.from('members').select('trip_id').eq('account_user_id',user.id)
+  ]);
   if(error)throw error;
   const tripIds=[...new Set((memberships||[]).map(m=>m.trip_id))];
-  // Email-linked memberships are available only after the optional schema migration.
-  // A missing account_user_id column must never hide existing Host trips.
-  const linked=await db.from('members').select('trip_id').eq('account_user_id',user.id);
   if(!linked.error){
     for(const item of linked.data||[])if(!tripIds.includes(item.trip_id))tripIds.push(item.trip_id);
   }else if(!/account_user_id/i.test(linked.error.message||'')){
@@ -410,9 +413,13 @@ async function joinTrip(id,ask=true){
   if(error){localizedAlert('Không tìm thấy chuyến đi hoặc link không hợp lệ. '+error.message);return}
   if(channel){await db.removeChannel(channel);channel=null}
   payments=[];activityEvents=[];fundReminders=[];fundRemindersAvailable=false;memberInviteEmails=[];
-  trip=tdata;await refresh();await loadMyTrips();await showTrip();
+  trip=tdata;await refresh();await showTrip();
+  // The saved-trip list is hidden while a trip is open: refresh it in the background, never block opening.
+  void loadMyTrips();
   // Always filter on the database trip ID; id may be an invitation code.
-  const watchChanges=()=>{if(trip?.id===tripId&&!readOnly)void refresh()};
+  // One save touches several tables (expense + payments + members…): coalesce the burst into one reload.
+  let changeTimer=null;
+  const watchChanges=()=>{clearTimeout(changeTimer);changeTimer=setTimeout(()=>{if(trip?.id===tripId&&!readOnly)void refresh()},300)};
   channel=db.channel('trip-'+tripId)
    .on('postgres_changes',{event:'*',schema:'public',table:'expenses',filter:'trip_id=eq.'+tripId},watchChanges)
    .on('postgres_changes',{event:'*',schema:'public',table:'contributions',filter:'trip_id=eq.'+tripId},watchChanges)
@@ -457,8 +464,9 @@ async function refresh(){
    db.from('trip_activity').select('*').eq('trip_id',tripId).order('recorded_at',{ascending:false}).limit(40),
    trip.created_by===user?.id?db.rpc('get_trip_member_invite_emails',{p_trip_id:tripId}):Promise.resolve({data:[],error:null}),
     db.from('trip_fund_reminders').select('*').eq('trip_id',tripId).order('created_at',{ascending:false}),
-   db.from('expenses').select('currency,original_amount,fx_rate').eq('trip_id',tripId).limit(1),
-   db.from('expenses').select('split').eq('trip_id',tripId).limit(1)
+   // Schema probes: once a migration is detected it stays installed, so stop asking on every reload.
+   multiCurrencyAvailable?{error:null}:db.from('expenses').select('currency,original_amount,fx_rate').eq('trip_id',tripId).limit(1),
+   splitAvailable?{error:null}:db.from('expenses').select('split').eq('trip_id',tripId).limit(1)
   ]);
   if(!current())return; // Never commit an older or different-trip response.
   if(a.error||b.error||c.error||d.error||ledger.error||history.error){
