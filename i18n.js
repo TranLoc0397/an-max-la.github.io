@@ -380,7 +380,8 @@ Object.assign(dictionary,{
  "Tôi xác nhận đây là cùng một người và đồng ý tính lại phần chia của chuyến đi.":"I confirm these two entries represent the same person and agree to recalculate expense shares.",
  "Hợp nhất hai dòng của cùng một người. Khoản chi, đóng quỹ và khoản nợ sẽ chuyển sang thành viên được giữ lại. Số thành viên giảm đi một nên phần chia chi phí sẽ được tính lại.":"Merge two entries for the same person. Their expenses, contributions and debts move to the kept member. The participant count decreases by one, so expense shares will be recalculated.",
  "Không thể hợp nhất Host, hai tài khoản đăng nhập khác nhau, hoặc hai thành viên có khoản nợ riêng giữa họ. Lịch sử thanh toán vẫn được giữ nguyên.":"You cannot merge the Host, two different signed-in accounts, or members with a personal debt between them. Payment history remains preserved.",
- "Không có thành viên phù hợp để hợp nhất.":"There is no eligible member to merge."
+ "Không có thành viên phù hợp để hợp nhất.":"There is no eligible member to merge.",
+ "Thu gọn":"Show less"
 });
 const reverse=new Map(Object.entries(dictionary).map(([vi,en])=>[en,vi]));
 // Icons are now SVG, so text nodes no longer carry ＋/→/✨/🚀/● decorations; register stripped keys.
@@ -428,6 +429,8 @@ function translation(original){
  // Preserve user-generated names and notes; replace only known UI fragments.
  const m=original.match(/^(\d+) thành viên$/);
  if(m)return m[1]+' members';
+ const moreChanges=original.match(/^Xem thêm (\d+) thay đổi$/);
+ if(moreChanges)return 'Show '+moreChanges[1]+' more changes';
  const more=original.match(/^\+(\d+) thành viên khác$/);
  if(more)return '+'+more[1]+' more members';
  return original;

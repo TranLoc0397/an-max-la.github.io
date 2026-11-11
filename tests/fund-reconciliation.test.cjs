@@ -167,7 +167,7 @@ test('fund-owes-member card lists only unreimbursed member advances with their r
 
 test('expense list and category filter show Vietnamese category labels, keeping raw values',()=>{
  assert.match(app,/CATEGORY_LABELS=\{Food:'Ăn uống',Transport:'Di chuyển',Accommodation:'Lưu trú',Tickets:'Vé tham quan',Shopping:'Mua sắm',Other:'Khác'\}/);
- assert.match(app,/\$\{esc\(x\.spent_on\)\} · \$\{esc\(categoryLabel\(x\.category\)\)\}/);
+ assert.match(app,/\$\{esc\(fmtDate\(x\.spent_on\)\)\} · \$\{esc\(categoryLabel\(x\.category\)\)\}/);
  assert.match(app,/<option value="\$\{esc\(category\)\}">\$\{esc\(categoryLabel\(category\)\)\}<\/option>/);
 });
 

@@ -3,6 +3,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_wdF9hHZTOa8APs3zG4hxNw_ylyfuETK";
 const $ = id => document.getElementById(id);
 const localizedAlert=message=>window.alert(window.TripTogetherI18n?.t(String(message))||message);
 const localizedConfirm=message=>window.confirm(window.TripTogetherI18n?.t(String(message))||message);
+const fmtDate=v=>window.TripTogetherUI.formatDate(v),fmtDateTime=v=>window.TripTogetherUI.formatDateTime(v);
 const money = n => new Intl.NumberFormat('vi-VN',{style:'currency',currency:'VND',maximumFractionDigits:0}).format(Number(n||0));
 const dateToday = () => window.TripTogetherFinance.vietnamDate();
 let db, user, trip, members=[], expenses=[], contributions=[], debts=[], channel, readOnly=false, canEdit=false, editPermissionsReady=false, sharedCode=null, sharedPasscode=null, viewerTimer=null;
@@ -314,7 +315,7 @@ async function loadMyTrips(){
   $('savedTripList').innerHTML=(trips||[]).map((t,i)=>{
    const cover=TTIcon(['map','luggage','plane','compass','mountain'][i%5]);
    const isHost=t.created_by===user.id;
-   const created=t.created_at?new Date(t.created_at).toLocaleDateString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'}):'';
+   const created=t.created_at?fmtDate(t.created_at):'';
    return `<article class="tt-trip-card">
      <div class="tt-trip-cover" aria-hidden="true"><span>${cover}</span></div>
      <div class="tt-trip-card-body">
@@ -538,14 +539,14 @@ function render(){
  reminderPanel.innerHTML=fundRemindersAvailable?(fundReminders.length?sortedReminders.map(item=>{
   const remaining=reminderMath.remaining(item),overdue=!!item.due_on&&item.due_on<today&&remaining>0;
   const state=remaining===0?'Đã đủ khoản cần trả':overdue?'Đã quá hạn':item.due_on?'':'Chưa đặt hạn';
-  const due=item.due_on&&remaining>0?`<span>Hạn</span> <span>${esc(item.due_on)}</span>`:'';
+  const due=item.due_on&&remaining>0?`<span>Hạn</span> <span>${esc(fmtDate(item.due_on))}</span>`:'';
   const parts=[state?`<span>${state}</span>`:'',due,`<span>Tổng</span> <span>${money(item.total_amount)}</span>`,`<span>Đã cọc/trả</span> <span>${money(item.paid_amount)}</span>`].filter(Boolean).join(' · ');
   return `<div class="item fund-reminder-row"><div class="fund-reminder-info"><b data-user-content>${esc(item.title)}</b><small>${parts}</small>${item.note?`<small data-user-content>${esc(item.note)}</small>`:''}</div><div class="fund-reminder-right"><div class="fund-reminder-amount"><strong class="${overdue?'fund-reminder-overdue':''}">${money(remaining||item.total_amount)}</strong><small>${remaining?'Dự phòng':'Đã trả đủ'}</small></div>${canEdit?`<div class="fund-reminder-actions fund-icon-actions"><button class="fund-icon-btn fund-icon-edit edit-fund-reminder" data-id="${esc(item.id)}" type="button" aria-label="Sửa nhắc thanh toán: ${esc(item.title)}" title="Sửa nhắc thanh toán">${FUND_EDIT_ICON}</button><button class="fund-icon-btn fund-icon-remove delete-fund-reminder" data-id="${esc(item.id)}" type="button" aria-label="Xóa nhắc thanh toán: ${esc(item.title)}" title="Xóa nhắc thanh toán">${FUND_REMOVE_ICON}</button></div>`:''}</div></div>`;
  }).join(''):'<p class="muted small">Chưa có nhắc thanh toán.</p>'):'';
  reminderOverview.classList.toggle('hidden',!fundRemindersAvailable||!outstandingReminders.length);
  if(fundRemindersAvailable&&outstandingReminders.length){
   const upcoming=outstandingReminders[0];
-  reminderOverview.innerHTML=`<strong><span>Nhắc dự phòng quỹ</span>: ${money(remainingReminder.outstanding)}</strong><span><span data-user-content>${esc(upcoming.title)}</span> · <span>Còn</span> ${money(reminderMath.remaining(upcoming))}${upcoming.due_on?` · <span>Hạn</span> ${esc(upcoming.due_on)}`:''}</span><button class="secondary compact" type="button" data-shell-view="fund">Xem chi tiết</button>`;
+  reminderOverview.innerHTML=`<strong><span>Nhắc dự phòng quỹ</span>: ${money(remainingReminder.outstanding)}</strong><span><span data-user-content>${esc(upcoming.title)}</span> · <span>Còn</span> ${money(reminderMath.remaining(upcoming))}${upcoming.due_on?` · <span>Hạn</span> ${esc(fmtDate(upcoming.due_on))}`:''}</span><button class="secondary compact" type="button" data-shell-view="fund">Xem chi tiết</button>`;
  }
  reminderPanel.querySelectorAll('.edit-fund-reminder').forEach(button=>button.addEventListener('click',()=>openFundReminder(fundReminders.find(x=>x.id===button.dataset.id))));
  reminderPanel.querySelectorAll('.delete-fund-reminder').forEach(button=>button.addEventListener('click',async()=>{
@@ -568,9 +569,9 @@ function render(){
  expenseList.innerHTML=visibleExpenses.length?visibleExpenses.map(x=>{
    const isPersonal=!!x.payer_id,paid=Number(x.paid_amount||0),remaining=Number(x.amount)-paid;
    const refundLabel=!isPersonal?'Trả trực tiếp từ quỹ':remaining===0?'Quỹ đã hoàn trả':paid>0?'Đã hoàn một phần: '+money(paid)+' / '+money(x.amount):'Quỹ còn nợ '+esc(x.payer_name||'thành viên');
-   return `<div class="item record-row"><div class="record-main"><div class="record-title" data-user-content>${esc(x.title)}</div><div class="record-meta">${esc(x.spent_on)} · ${esc(categoryLabel(x.category))} · ${isPersonal?'Ứng bởi '+esc(x.payer_name||'thành viên'):'Lấy từ quỹ chung'}</div><div class="record-status ${isPersonal&&remaining>0?(paid>0?'record-status-partial':'record-status-due'):''}">${refundLabel}</div>${x.note?`<div class="record-note" data-user-content>${esc(x.note)}</div>`:''}${x.split?`<div class="record-split">${esc(window.TripTogetherSplit.describe(x.split,members,x.currency&&x.currency!=='VND'?x.currency:'₫'))}</div>`:''}${x.receipt_path&&(user&&(trip.created_by===user.id||members.some(m=>m.user_id===user.id||m.account_user_id===user.id)))?`<button type="button" class="secondary compact expense-view-receipt" data-receipt-path="${esc(x.receipt_path)}">Xem ảnh hóa đơn</button>`:''}</div><div class="record-meta record-amount">${money(x.amount)}${window.TripTogetherCurrency.describe(x)?`<small class="record-fx">${esc(window.TripTogetherCurrency.describe(x))}</small>`:''}</div>${canEdit?`<div class="record-buttons"><details class="record-actions-menu"><summary class="secondary compact" aria-label="Thao tác khoản chi: ${esc(x.title)}" title="Sửa"><svg class="record-actions-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></summary><div class="record-actions-dropdown" role="group" aria-label="Các thao tác của ${esc(x.title)}"><button type="button" class="edit-expense" data-id="${esc(x.id)}">Sửa thông tin</button>${isPersonal&&remaining>0?`<button type="button" class="record-payment" data-kind="expense" data-id="${esc(x.id)}" data-reverse="false">Ghi hoàn trả</button>`:''}${isPersonal&&paid>0?`<button type="button" class="record-payment" data-kind="expense" data-id="${esc(x.id)}" data-reverse="true">Hoàn tác thanh toán</button>`:''}<button type="button" class="delete-expense" data-id="${esc(x.id)}" data-title="${esc(x.title)}" aria-label="Xóa khoản chi ${esc(x.title)}">Xóa</button></div></details></div>`:''}</div>`;
+   return `<div class="item record-row"><div class="record-main"><div class="record-title" data-user-content>${esc(x.title)}</div><div class="record-meta">${esc(fmtDate(x.spent_on))} · ${esc(categoryLabel(x.category))} · ${isPersonal?'Ứng bởi '+esc(x.payer_name||'thành viên'):'Lấy từ quỹ chung'}</div><div class="record-status ${isPersonal&&remaining>0?(paid>0?'record-status-partial':'record-status-due'):''}">${refundLabel}</div>${x.note?`<div class="record-note" data-user-content>${esc(x.note)}</div>`:''}${x.split?`<div class="record-split">${esc(window.TripTogetherSplit.describe(x.split,members,x.currency&&x.currency!=='VND'?x.currency:'₫'))}</div>`:''}${x.receipt_path&&(user&&(trip.created_by===user.id||members.some(m=>m.user_id===user.id||m.account_user_id===user.id)))?`<button type="button" class="secondary compact expense-view-receipt" data-receipt-path="${esc(x.receipt_path)}">Xem ảnh hóa đơn</button>`:''}</div><div class="record-meta record-amount">${money(x.amount)}${window.TripTogetherCurrency.describe(x)?`<small class="record-fx">${esc(window.TripTogetherCurrency.describe(x))}</small>`:''}</div>${canEdit?`<div class="record-buttons"><details class="record-actions-menu"><summary class="secondary compact" aria-label="Thao tác khoản chi: ${esc(x.title)}" title="Sửa"><svg class="record-actions-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></summary><div class="record-actions-dropdown" role="group" aria-label="Các thao tác của ${esc(x.title)}"><button type="button" class="edit-expense" data-id="${esc(x.id)}">Sửa thông tin</button>${isPersonal&&remaining>0?`<button type="button" class="record-payment" data-kind="expense" data-id="${esc(x.id)}" data-reverse="false">Ghi hoàn trả</button>`:''}${isPersonal&&paid>0?`<button type="button" class="record-payment" data-kind="expense" data-id="${esc(x.id)}" data-reverse="true">Hoàn tác thanh toán</button>`:''}<button type="button" class="delete-expense" data-id="${esc(x.id)}" data-title="${esc(x.title)}" aria-label="Xóa khoản chi ${esc(x.title)}">Xóa</button></div></details></div>`:''}</div>`;
  }).join(''):'<p class="muted ledger-empty">'+(expenses.length?'Không tìm thấy khoản chi phù hợp.':'Chưa có khoản chi. Thêm khoản chi đầu tiên.')+'</p>';
- contributionList.innerHTML=contributions.length?window.TripTogetherUI.sortByDate(contributions,'paid_on',$('fundDateSort').value).map(x=>`<div class="item record-row"><div class="record-main"><div class="record-title"${x.note?' data-user-content':''}>${esc(x.note||'Đóng quỹ')}</div><div class="record-meta">${esc(x.paid_on)} · ${esc(x.payer_name)}</div></div><div class="record-meta record-amount">${money(x.amount)}</div>${canEdit?`<div class="record-buttons fund-icon-actions"><button class="fund-icon-btn fund-icon-edit edit-contribution" data-id="${esc(x.id)}" type="button" aria-label="Sửa khoản đóng quỹ: ${esc(x.note||'Đóng quỹ')}" title="Sửa khoản đóng quỹ">${FUND_EDIT_ICON}</button><button class="fund-icon-btn fund-icon-remove delete-contribution" data-id="${esc(x.id)}" data-note="${esc(x.note||'Đóng quỹ')}" type="button" aria-label="Xóa khoản đóng quỹ: ${esc(x.note||'Đóng quỹ')}" title="Xóa khoản đóng quỹ">${FUND_REMOVE_ICON}</button></div>`:''}</div>`).join(''):'<p class="muted ledger-empty">Chưa có khoản đóng thêm.</p>';
+ contributionList.innerHTML=contributions.length?window.TripTogetherUI.sortByDate(contributions,'paid_on',$('fundDateSort').value).map(x=>`<div class="item record-row"><div class="record-main"><div class="record-title"${x.note?' data-user-content':''}>${esc(x.note||'Đóng quỹ')}</div><div class="record-meta">${esc(fmtDate(x.paid_on))} · ${esc(x.payer_name)}</div></div><div class="record-meta record-amount">${money(x.amount)}</div>${canEdit?`<div class="record-buttons fund-icon-actions"><button class="fund-icon-btn fund-icon-edit edit-contribution" data-id="${esc(x.id)}" type="button" aria-label="Sửa khoản đóng quỹ: ${esc(x.note||'Đóng quỹ')}" title="Sửa khoản đóng quỹ">${FUND_EDIT_ICON}</button><button class="fund-icon-btn fund-icon-remove delete-contribution" data-id="${esc(x.id)}" data-note="${esc(x.note||'Đóng quỹ')}" type="button" aria-label="Xóa khoản đóng quỹ: ${esc(x.note||'Đóng quỹ')}" title="Xóa khoản đóng quỹ">${FUND_REMOVE_ICON}</button></div>`:''}</div>`).join(''):'<p class="muted ledger-empty">Chưa có khoản đóng thêm.</p>';
  expenseList.querySelectorAll('.edit-expense').forEach(button=>button.onclick=()=>openExpense(expenses.find(x=>x.id===button.dataset.id)));
  expenseList.querySelectorAll('.expense-view-receipt').forEach(button=>button.onclick=async()=>{
   const current=button.dataset.receiptPath;
@@ -643,14 +644,14 @@ function render(){
  const fundDueTotal=fundDues.reduce((sum,x)=>sum+Number(x.amount)-Number(x.paid_amount||0),0);
  $('fundDueList').innerHTML=fundDues.length?`<div class="settlement-row fund-due-total"><span>Tổng quỹ còn nợ</span><b>${money(fundDueTotal)}</b></div>`+fundDues.map(x=>{
    const paid=Number(x.paid_amount||0),remaining=Number(x.amount)-paid;
-   const detail=esc(x.title)+' · '+esc(x.spent_on||'')+(paid>0?' · đã hoàn '+money(paid)+' / '+money(x.amount):'');
+   const detail=esc(x.title)+' · '+esc(fmtDate(x.spent_on))+(paid>0?' · đã hoàn '+money(paid)+' / '+money(x.amount):'');
    return `<div class="item payment-history-entry fund-due-entry"><div><b>Quỹ → ${esc(x.payer_name||memberName(x.payer_id))}</b><small class="payment-meta">${detail}</small></div><span class="payment-amount fund-due-amount">${money(remaining)}</span>${canEdit?`<button class="secondary compact record-payment" data-kind="expense" data-id="${esc(x.id)}" data-reverse="false">Ghi hoàn trả</button>`:''}</div>`;
  }).join(''):'<p class="muted small">Quỹ không còn nợ thành viên nào.</p>';
  $('fundDueList').querySelectorAll('.record-payment').forEach(button=>button.onclick=()=>openPaymentDialog('expense',button.dataset.id,false));
  $('debtList').innerHTML=displayDebts.length?displayDebts.map(d=>{
    const paid=Number(d.paid_amount||0),remaining=Number(d.amount)-paid;
    const state=remaining===0?'Đã thanh toán':paid>0?'Đã trả một phần: '+money(paid)+' / '+money(d.amount):'Chưa thanh toán';
-   return `<div class="item record-row debt-row"><div class="record-main"><div class="record-title">${esc(memberName(d.debtor_id))} → ${esc(memberName(d.creditor_id))}</div><div class="record-meta">${esc(d.incurred_on)}${d.note?' · '+esc(d.note):''}</div><div class="record-status ${remaining>0?(paid>0?'record-status-partial':'record-status-due'):''}">${state}</div></div><div class="record-meta record-amount">${money(d.amount)}</div>${canEdit?`<div class="record-buttons">${remaining>0?`<button class="secondary compact record-payment" data-kind="debt" data-id="${esc(d.id)}" data-reverse="false">Ghi trả nợ</button>`:''}${paid>0?`<button class="secondary compact record-payment" data-kind="debt" data-id="${esc(d.id)}" data-reverse="true">Hoàn tác thanh toán</button>`:''}<button class="danger compact delete-debt" data-id="${esc(d.id)}" aria-label="Xóa khoản nợ">Xóa</button></div>`:''}</div>`;
+   return `<div class="item record-row debt-row"><div class="record-main"><div class="record-title">${esc(memberName(d.debtor_id))} → ${esc(memberName(d.creditor_id))}</div><div class="record-meta">${esc(fmtDate(d.incurred_on))}${d.note?' · '+esc(d.note):''}</div><div class="record-status ${remaining>0?(paid>0?'record-status-partial':'record-status-due'):''}">${state}</div></div><div class="record-meta record-amount">${money(d.amount)}</div>${canEdit?`<div class="record-buttons">${remaining>0?`<button class="secondary compact record-payment" data-kind="debt" data-id="${esc(d.id)}" data-reverse="false">Ghi trả nợ</button>`:''}${paid>0?`<button class="secondary compact record-payment" data-kind="debt" data-id="${esc(d.id)}" data-reverse="true">Hoàn tác thanh toán</button>`:''}<button class="danger compact delete-debt" data-id="${esc(d.id)}" aria-label="Xóa khoản nợ">Xóa</button></div>`:''}</div>`;
  }).join(''):'<p class="muted ledger-empty">Chưa ghi khoản nợ nào.</p>';
  $('debtList').querySelectorAll('.record-payment').forEach(button=>button.onclick=()=>openPaymentDialog(button.dataset.kind,button.dataset.id,button.dataset.reverse==='true'));
  $('debtList').querySelectorAll('.delete-debt').forEach(button=>button.onclick=()=>removeRecord('member_debts',button,'Xóa khoản nợ này?'));
@@ -665,7 +666,7 @@ function render(){
    const isExpense=!!p.expense_id,source=isExpense?expenseById(p.expense_id):debtById(p.debt_id);
    const title=isExpense?'Quỹ chung hoàn tiền':'Thanh toán nợ riêng';
    const counterparty=isExpense?(source?.payer_name||'Thành viên'):(memberDisplay(source?.debtor_id)+' → '+memberDisplay(source?.creditor_id));
-   const subtitle=String(p.paid_on||'')+' · '+counterparty+(p.note?' · '+p.note:'');
+   const subtitle=fmtDate(p.paid_on)+' · '+counterparty+(p.note?' · '+p.note:'');
    return `<div class="item payment-history-entry"><div><b>${esc(Number(p.amount)<0?'Hoàn tác · '+title:title)}</b><small class="payment-meta">${esc(subtitle)}</small></div><span class="payment-amount ${Number(p.amount)<0?'payment-reversed':''}">${Number(p.amount)<0?'−':'+'}${money(Math.abs(Number(p.amount)))}</span></div>`;
  }).join(''):'<p class="muted small">Chưa có thanh toán nào.</p>';
  activityPanel.classList.toggle('hidden',readOnly);
@@ -690,9 +691,8 @@ function render(){
     if(['amount','total_amount','paid_amount'].includes(key))return money(value);
     if(['payer_id','debtor_id','creditor_id'].includes(key))return memberDisplay(value);
     if(['reimbursed','is_settled'].includes(key))return value?'Có':'Không';
-    if(['reimbursed_at','settled_at'].includes(key)){
-     const date=new Date(value);return Number.isNaN(date.getTime())?String(value):date.toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'});
-    }
+    if(['reimbursed_at','settled_at'].includes(key))return fmtDateTime(value);
+    if(['spent_on','paid_on','incurred_on','due_on'].includes(key))return fmtDate(value);
     if(key==='category')return categoryLabel(value);
     return String(value);
    };
@@ -704,9 +704,15 @@ function render(){
     return `<div class="audit-change"><span class="audit-field">${esc(change.label)}</span><span class="audit-values">${description}</span></div>`;
    }).join('');
    const detail=changedRows||'<p class="muted small">Không có trường dữ liệu nào thay đổi.</p>';
-   return `<div class="item activity-entry"><div><b>${esc(actionNames[event.action]||event.action)} · ${esc(entity)}</b><small class="activity-meta">${esc(String(title).slice(0,70))} · ${esc(actor)} · ${esc(new Date(event.recorded_at).toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'}))}</small><details class="audit-detail"><summary>Chi tiết thay đổi (${changes.length})</summary><div class="audit-changes">${detail}</div></details></div>${canRestore?`<button type="button" class="secondary compact restore-activity" data-id="${esc(event.id)}">Khôi phục</button>`:''}</div>`;
+   return `<div class="item activity-entry"><div><b>${esc(actionNames[event.action]||event.action)} · ${esc(entity)}</b><small class="activity-meta">${esc(String(title).slice(0,70))} · ${esc(actor)} · ${esc(fmtDateTime(event.recorded_at))}</small><details class="audit-detail"><summary>Chi tiết thay đổi (${changes.length})</summary><div class="audit-changes">${detail}</div></details></div>${canRestore?`<button type="button" class="secondary compact restore-activity" data-id="${esc(event.id)}">Khôi phục</button>`:''}</div>`;
   }).join(''):'<p class="muted small">Chưa có thay đổi nào được ghi nhận.</p>';
   activityList.querySelectorAll('.restore-activity').forEach(button=>button.onclick=()=>restoreActivity(button));
+  // The overview shows the 6 latest changes; the rest stay one click away.
+  const moreBtn=$('activityMoreBtn'),hiddenCount=Math.max(0,activityEvents.length-6),expanded=activityList.classList.contains('expanded');
+  moreBtn.classList.toggle('hidden',!hiddenCount);
+  moreBtn.textContent=expanded?'Thu gọn':'Xem thêm '+hiddenCount+' thay đổi';
+  moreBtn.setAttribute('aria-expanded',String(expanded));
+  window.TripTogetherI18n?.refresh();
  }
  window.TripTogetherShell?.render({trip,user,canEdit,members,expenses,contributions,actualFund,balances:expenseBalances});
  $('deleteTripBtn').classList.toggle('hidden',readOnly||trip.created_by!==user.id);$('shareBtn').classList.toggle('hidden',readOnly);$('inviteBtn').classList.toggle('hidden',readOnly);$('leaveBtn').classList.toggle('hidden',readOnly);$('addExpense').classList.toggle('hidden',!canEdit);$('exportExcelBtn').classList.toggle('hidden',readOnly||!canEdit);$('addContribution').classList.toggle('hidden',!canEdit);$('editInitialFundBtn').classList.toggle('hidden',!canEdit);$('addMember').classList.toggle('hidden',!canEdit);$('addDebt').classList.toggle('hidden',!canEdit);$('syncStatus').textContent=readOnly?'Chế độ chỉ xem':canEdit?'Đã đồng bộ':'Chỉ xem · chưa được cấp quyền sửa';
@@ -1105,6 +1111,7 @@ function invite(ev){const button=ev?.currentTarget;if(!button)return;return with
 $('expenseSearch').addEventListener('input',()=>{if(trip)render()});
 $('expenseCategoryFilter').addEventListener('change',()=>{if(trip)render()});
 $('expenseStatusFilter').addEventListener('change',()=>{if(trip)render()});
+$('activityMoreBtn').addEventListener('click',()=>{$('activityList').classList.toggle('expanded');if(trip)render()});
 ['expenseDateSort','fundDateSort','activityDateSort','fundReminderSort'].forEach(id=>$(id).addEventListener('change',()=>{if(trip)render()}));
 document.querySelectorAll('.tabs .tab[data-tab]').forEach(button=>button.onclick=()=>{
   const view=button.dataset.tab;

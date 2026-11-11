@@ -76,7 +76,7 @@ test('B5: reminder validation matches the database (title ≤ 100, real calendar
 
 test('B6: reminder rows show the due date when overdue and the paid amount when fully paid',()=>{
  const app=read('app.js');
- assert.match(app,/const due=item\.due_on&&remaining>0\?`<span>Hạn<\/span> <span>\$\{esc\(item\.due_on\)\}<\/span>`:''/);
+ assert.match(app,/const due=item\.due_on&&remaining>0\?`<span>Hạn<\/span> <span>\$\{esc\(fmtDate\(item\.due_on\)\)\}<\/span>`:''/);
  assert.match(app,/\$\{money\(remaining\|\|item\.total_amount\)\}<\/strong><small>\$\{remaining\?'Dự phòng':'Đã trả đủ'\}<\/small>/);
  assert.doesNotMatch(app,/'Cần giữ lại':'Đã thanh toán'/);
 });

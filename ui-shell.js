@@ -54,7 +54,7 @@
    const expenseUI=recent.map(item=>{
      const symbol=window.TTIcon(({Food:'utensils',Transport:'car',Accommodation:'home',Tickets:'ticket',Shopping:'bag'})[item.category]||'receipt');
      return '<div class="tt-recent-row"><span class="tt-recent-icon" aria-hidden="true">'+symbol+'</span>'+
-       '<span class="tt-recent-body"><b data-user-content>'+escapeText(item.title)+'</b><small>'+escapeText(item.payer_name||'Quỹ chung')+' · '+escapeText(item.spent_on||'')+'</small></span>'+
+       '<span class="tt-recent-body"><b data-user-content>'+escapeText(item.title)+'</b><small>'+escapeText(item.payer_name||'Quỹ chung')+' · '+escapeText(window.TripTogetherUI.formatDate(item.spent_on))+'</small></span>'+
        '<strong class="tt-recent-amount">'+fmt(item.amount)+'</strong></div>';
    }).join('');
    pick('ttRecentExpenses').innerHTML=expenseUI||'<p class="tt-overview-empty">Chưa có khoản chi.</p>';

@@ -82,5 +82,28 @@ function activityChanges(event){
   return (event.action==='DELETE'?oldValue:newValue)!==null&&(event.action==='DELETE'?oldValue:newValue)!=='';
  }).map(([key,label])=>({key,label,before:before[key]??null,after:after[key]??null}));
 }
- return {filterExpenses,sharedAccess,memberPermissionView,sortByDate,activityChanges};
+ /* One date style everywhere: dd/mm/yyyy, and dd/mm/yyyy HH:mm for moments, in Vietnam time.
+  * Calendar dates ('2026-11-08') are shown as-is (no timezone shift); timestamps are converted. */
+ const TIME_ZONE='Asia/Ho_Chi_Minh';
+ const pad=n=>String(n).padStart(2,'0');
+ function dateParts(value){
+  if(value===null||value===undefined||value==='')return null;
+  const calendar=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value).trim());
+  if(calendar)return {year:calendar[1],month:calendar[2],day:calendar[3],hour:null,minute:null};
+  const date=value instanceof Date?value:new Date(value);
+  if(Number.isNaN(date.getTime()))return null;
+  const parts=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:TIME_ZONE,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'})
+   .formatToParts(date).map(p=>[p.type,p.value]));
+  return {year:parts.year,month:pad(parts.month),day:pad(parts.day),hour:pad(parts.hour),minute:pad(parts.minute)};
+ }
+ function formatDate(value){
+  const p=dateParts(value);
+  return p?p.day+'/'+p.month+'/'+p.year:String(value??'');
+ }
+ function formatDateTime(value){
+  const p=dateParts(value);
+  if(!p)return String(value??'');
+  return p.day+'/'+p.month+'/'+p.year+(p.hour===null?'':' '+p.hour+':'+p.minute);
+ }
+ return {filterExpenses,sharedAccess,memberPermissionView,sortByDate,activityChanges,formatDate,formatDateTime};
 });

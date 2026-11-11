@@ -1118,22 +1118,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   box-shadow:none;
 }
 #peopleTab .tt-reconciliation-content .item + .item{margin-top:8px}
-#peopleTab .tt-reconciliation-activity{grid-column:1/-1}
-#peopleTab .tt-reconciliation-activity .tt-reconciliation-content{
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:9px;
-}
-#peopleTab .tt-reconciliation-activity .tt-reconciliation-content .item{
-  margin:0;
-  background:#faf9ff;
-}
-#peopleTab .tt-reconciliation-activity .tt-reconciliation-content > .muted{
-  grid-column:1/-1;
-}
 @media(max-width:860px){
   #peopleTab .tt-reconciliation-grid{grid-template-columns:minmax(0,1fr);gap:12px}
-  #peopleTab .tt-reconciliation-activity{grid-column:auto}
 }
 @media(max-width:650px){
   #peopleTab .tt-reconciliation{margin-top:24px}
@@ -1145,7 +1131,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   #peopleTab .tt-reconciliation-card-heading h3{font-size:15px}
   #peopleTab .tt-reconciliation-card-icon{flex-basis:33px;width:33px;height:33px;font-size:17px}
   #peopleTab .tt-reconciliation-content{margin-top:10px}
-  #peopleTab .tt-reconciliation-activity .tt-reconciliation-content{grid-template-columns:1fr;gap:8px}
 }
 @media(prefers-reduced-motion:reduce){
   #peopleTab .tt-reconciliation-card,
@@ -1802,3 +1787,20 @@ select:hover{border-color:#cfc9ef}
  .fund-reminder-row .fund-reminder-amount{padding:6px 8px;border-radius:9px}
  .fund-reminder-row .fund-reminder-amount strong{font-size:clamp(13px,3.5vw,15px)}
 }
+
+/* Activity history lives on the trip overview, under the summary cards. */
+.tt-activity-card{margin-top:21px}
+.tt-activity-head{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid #f0eef8}
+.tt-activity-head>div{flex:1 1 220px;min-width:0}
+.tt-activity-head h2{font-size:17px;letter-spacing:-.35px;margin:0 0 4px;color:var(--tt-ink)}
+.tt-activity-head p{margin:0}
+.tt-activity-icon{flex:0 0 35px;width:35px;height:35px;display:grid;place-items:center;border-radius:11px;background:#f0edff;color:#6759df}
+.tt-activity-head .sort-toolbar{margin:0;flex:0 0 auto;flex-wrap:nowrap;align-self:center}
+.tt-activity-head .sort-toolbar label{white-space:nowrap;margin:0}
+.tt-activity-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:14px}
+.tt-activity-list .item{margin:0;padding:12px;border-radius:12px;border-color:#edeaf5;background:#faf9ff;box-shadow:none;min-width:0}
+.tt-activity-list>.muted{grid-column:1/-1;margin:0;padding:10px 0}
+.tt-activity-list:not(.expanded)>.activity-entry:nth-child(n+7){display:none}
+.tt-activity-more{display:block;margin:10px auto 0}
+@media(max-width:860px){.tt-activity-list{grid-template-columns:1fr;gap:8px}}
+@media(max-width:650px){.tt-activity-card{margin-top:12px}.tt-activity-head .sort-toolbar{flex:1 1 100%}}
